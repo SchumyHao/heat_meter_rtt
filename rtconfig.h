@@ -68,6 +68,12 @@
 #define RT_USING_SERIAL
 // <bool name="RT_USING_SPI" description="Using SPI" default="false" />
 #define RT_USING_SPI
+#ifdef RT_USING_SPI
+// <bool name="RT_USING_SPI_TX_DMA" description="Using DMA when tx spi" default="false" />
+#define RT_USING_SPI_TX_DMA
+// <bool name="RT_USING_SPI_RX_DMA" description="Using DMA when rx spi" default="false" />
+//#define RT_USING_SPI_RX_DMA
+#endif /* ifdef RT_USING_SPI */
 
 /* SECTION: Console options */
 #define RT_USING_CONSOLE
