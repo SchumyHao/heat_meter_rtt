@@ -41,3 +41,9 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# User Define
+build/
+*.bak
+project.uvguix.schumy
+project_rt-thread.dep
