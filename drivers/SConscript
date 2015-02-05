@@ -3,8 +3,11 @@ Import('rtconfig')
 from building import *
 
 cwd     = os.path.join(str(Dir('#')), 'drivers')
-src	= Glob('*.c')
+src	= ['board.c','led.c','stm32f0xx_it.c','usart.c']
 CPPPATH = [cwd]
+
+if GetDepend('RT_USING_SPI') & GetDepend('RT_USING_MUTEX'):
+    src += ['rt_stm32f0xx_spi.c']
 
 group = DefineGroup('Drivers', src, depend = [''], CPPPATH = CPPPATH)
 

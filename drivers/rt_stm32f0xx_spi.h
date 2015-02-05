@@ -7,10 +7,15 @@
  * 2014-12-19     Schumy       the first version
  */
 
-#ifndef __SPI_H__
-#define __SPI_H__
+#ifndef __RT_STM32F0XX_SPI_H__
+#define __RT_STM32F0XX_SPI_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <rtthread.h>
+#include <drivers/spi.h>
 #include "stm32f0xx.h"
 
 //#define SPI_USE_DMA
@@ -38,5 +43,8 @@ rt_err_t stm32f0xx_spi_register(SPI_TypeDef* SPI,
                                 struct stm32f0xx_spi_bus* stm32f0xx_spi,
                                 const char* spi_bus_name);
 
-#endif // STM32F0xx_SPI_H_INCLUDED
+#ifdef __cplusplus
+}
+#endif
 
+#endif // STM32F0xx_SPI_H_INCLUDED

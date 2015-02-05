@@ -66,6 +66,8 @@
 #define RT_USING_DEVICE_IPC
 // <bool name="RT_USING_SERIAL" description="Using Serial" default="true" />
 #define RT_USING_SERIAL
+// <bool name="RT_USING_SPI" description="Using SPI" default="false" />
+#define RT_USING_SPI
 
 /* SECTION: Console options */
 #define RT_USING_CONSOLE

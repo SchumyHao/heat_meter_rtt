@@ -9,7 +9,7 @@
 
 #include <rtdevice.h>
 #include "stm32f0xx.h"
-#include "spi.h"
+#include "rt_stm32f0xx_spi.h"
 
 static rt_err_t configure(struct rt_spi_device* device, struct rt_spi_configuration* configuration);
 static rt_uint32_t xfer(struct rt_spi_device* device, struct rt_spi_message* message);
