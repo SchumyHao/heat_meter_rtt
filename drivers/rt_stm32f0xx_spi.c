@@ -11,61 +11,70 @@
 #include "stm32f0xx.h"
 #include "rt_stm32f0xx_spi.h"
 
+#define SPI_DUMP 0xff
+#define SPI_XFER_ONEC_MAX_LEN (32)
+
 /* SPI1 */
-#define SPI1_GPIO_MISO
+#define SPI1_GPIO_MISO_PIN       GPIO_Pin_6
 #define SPI1_GPIO_MISO_SOURCE
-#define SPI1_GPIO_MOSI
+#define SPI1_GPIO_MOSI           GPIO_Pin_7
 #define SPI1_GPIO_MOSI_SOURCE
-#define SPI1_GPIO_SCLK
+#define SPI1_GPIO_SCLK_PIN       GPIO_Pin_5
 #define SPI1_GPIO_SCLK_SOURCE
-#define SPI1_GPIO_NSS_GROUP
-#define SPI1_GPIO_NSS_PIN
+#define SPI1_GPIO_PIN_GROUP      GPIOA
+#define SPI1_GPIO_PIN_AF         GPIO_AF_0
+#define SPI1_GPIO_NSS_PIN        GPIO_Pin_4
+#define SPI1_GPIO_NSS_GROUP      GPIOA
 #ifdef RT_USING_SPI1_TX_DMA
-#define SPI1_DMA_TX 
+#define SPI1_DMA_TX              DMA1_Channel3
 #else
-#define SPI1_DMA_TX RT_NULL
+#define SPI1_DMA_TX              RT_NULL
 #endif /* RT_USING_SPI1_TX_DMA */
 #ifdef RT_USING_SPI1_RX_DMA
-#define SPI1_DMA_RX
+#define SPI1_DMA_RX              DMA1_Channel2
 #else
-#define SPI1_DMA_RX RT_NULL
+#define SPI1_DMA_RX              RT_NULL
 #endif /* RT_USING_SPI1_RX_DMA */
 
 /* SPI2 */
-#define SPI2_GPIO_MISO
+#define SPI2_GPIO_MISO_PIN       GPIO_Pin_14
 #define SPI2_GPIO_MISO_SOURCE
-#define SPI2_GPIO_MOSI
+#define SPI2_GPIO_MOSI_PIN       GPIO_Pin_15
 #define SPI2_GPIO_MOSI_SOURCE
-#define SPI2_GPIO_SCLK
+#define SPI2_GPIO_SCLK_PIN       GPIO_Pin_13
 #define SPI2_GPIO_SCLK_SOURCE
-#define SPI2_GPIO_NSS_GROUP
-#define SPI2_GPIO_NSS_PIN
+#define SPI2_GPIO_PIN_GROUP      GPIOB
+#define SPI2_GPIO_PIN_AF         GPIO_AF_0
+#define SPI2_GPIO_NSS_PIN        GPIO_Pin_12
+#define SPI2_GPIO_NSS_GROUP      GPIOB
 #ifdef RT_USING_SPI2_TX_DMA
-#define SPI2_DMA_TX 
+#define SPI2_DMA_TX              DMA1_Channel5
 #else
-#define SPI2_DMA_TX RT_NULL
+#define SPI2_DMA_TX              RT_NULL
 #endif /* RT_USING_SPI2_TX_DMA */
 #ifdef RT_USING_SPI2_RX_DMA
-#define SPI2_DMA_RX
+#define SPI2_DMA_RX              DMA1_Channel4
 #else
-#define SPI2_DMA_RX RT_NULL
+#define SPI2_DMA_RX              RT_NULL
 #endif /* RT_USING_SPI2_RX_DMA */
 
 struct stm32_spi_cs {
-	GPIO_TypeDef* GPIOx;
-	uint16_t GPIO_Pin;
+    GPIO_TypeDef* GPIOx;
+    uint16_t GPIO_Pin;
 };
 
 struct stm32_spi_bus {
     SPI_TypeDef* spix;
-	SPI_InitTypeDef init;
-	struct stm32_spi_cs* cs;
-	uint8_t *tx_buf_ptr;
-	uint32_t tx_xfer_size;
-	uint32_t tx_xfer_count;
-	uint8_t *rx_buf_ptr;
-	uint32_t rx_xfer_size;
-	uint32_t rx_xfer_count;
+    SPI_InitTypeDef init;
+    struct stm32_spi_cs* cs;
+	struct rt_ringbuffer *tx_buf;
+    uint32_t tx_xfer_size;
+    uint32_t tx_buf_count;
+	struct rt_ringbuffer *rx_buf;
+    uint32_t rx_xfer_size;
+    uint32_t rx_buf_count;
+    void (*TxISR)(struct stm32_spi_bus* bus);
+    void (*RxISR)(struct stm32_spi_bus* bus);
     struct rt_dma_device* tx_dma;
     struct rt_dma_device* rx_dma;
 };
@@ -179,7 +188,8 @@ rt_inline uint16_t get_spi_Mode(rt_uint8_t mode)
     return SPI_Mode;
 }
 
-rt_inline void get_spi_InitTypeDef_from_configuration(SPI_InitTypeDef* SPI_Init, struct rt_spi_configuration* cfg){
+rt_inline void get_spi_InitTypeDef_from_configuration(SPI_InitTypeDef* SPI_Init, struct rt_spi_configuration* cfg)
+{
     SPI_Init->SPI_DataSize = get_spi_DataSize(cfg->data_width);
     SPI_Init->SPI_BaudRatePrescaler = get_spi_BaudRatePrescaler(cfg->max_hz);
     SPI_Init->SPI_CPOL = get_spi_CPOL(cfg->mode);
@@ -190,136 +200,162 @@ rt_inline void get_spi_InitTypeDef_from_configuration(SPI_InitTypeDef* SPI_Init,
     SPI_Init->SPI_NSS  = SPI_NSS_Soft;
 }
 
+rt_inline rt_bool_t is_spi_master(struct stm32_spi_bus* bus){
+	return (SPI_Mode_Master==bus->init->SPI_DataSize)? RT_TRUE: RT_FALSE;
+}
+
+rt_inline rt_bool_t is_spi_8bits(struct stm32_spi_bus* bus){
+	return (SPI_DataSize_8b==bus->init->SPI_Mode)? RT_TRUE: RT_FALSE;
+}
+
 static rt_err_t configure(struct rt_spi_device* dev, struct rt_spi_configuration* cfg)
 {
     struct stm32_spi_bus* spi_bus = NULL;
-	SPI_TypeDef* SPIx = NULL;
+    SPI_TypeDef* SPIx = NULL;
 
     RT_ASSERT(dev != RT_NULL);
-	RT_ASSERT(dev->bus != RT_NULL);
-	RT_ASSERT(dev->bus->parent.user_data != RT_NULL);
+    RT_ASSERT(dev->bus != RT_NULL);
+    RT_ASSERT(dev->bus->parent.user_data != RT_NULL);
     RT_ASSERT(cfg != RT_NULL);
 
     spi_bus = (struct stm32_spi_bus*)dev->bus->parent.user_data;
-	SPIx = spi_bus->spix;
+    SPIx = spi_bus->spix;
 
     SPI_StructInit(&spi_bus->init);
-	get_spi_InitTypeDef_from_configuration(&spi_bus->init, cfg);
+    get_spi_InitTypeDef_from_configuration(&spi_bus->init, cfg);
 
     /* init SPI bus */
     SPI_I2S_DeInit(SPIx);
     SPI_Init(SPIx, &spi_bus->init);
     /* Enable SPI */
     SPI_CalculateCRC(SPIx, DISABLE);
-    SPI_Cmd(SPIx, ENABLE);
-
+	if(!is_spi_master(spi_bus)){
+		SPI_Cmd(SPIx, ENABLE);
+	}
+	
     return RT_EOK;
 }
 
-rt_inline void take_cs(struct stm32_spi_bus* bus){
-	RT_ASSERT(bus->cs != RT_NULL);
-	GPIO_ResetBits(bus->cs->GPIOx, bus->cs->GPIO_Pin);
+rt_inline void take_cs(struct stm32_spi_bus* bus)
+{
+    RT_ASSERT(bus->cs != RT_NULL);
+    GPIO_ResetBits(bus->cs->GPIOx, bus->cs->GPIO_Pin);
+}
+
+rt_inline void release_cs(struct stm32_spi_bus* bus)
+{
+    RT_ASSERT(bus->cs != RT_NULL);
+    GPIO_SetBits(bus->cs->GPIOx, bus->cs->GPIO_Pin);
+}
+
+static rt_err_t stm32_spi_do_transmit(struct stm32_spi_bus* bus){
+	SPI_TypeDef* SPIx = bus->spix;
+	if(RESET != SPI_I2S_GetFlagStatus(SPIx, SPI_I2S_FLAG_BSY)){
+		return -RT_EBUSY;
+	}
+	if(is_spi_8bits(bus)){
+		SPI_RxFIFOThresholdConfig(SPIx, SPI_RxFIFOThreshold_QF);
+	}
+	else{
+		SPI_RxFIFOThresholdConfig(SPIx, SPI_RxFIFOThreshold_HF);
+	}
+	
+	
+	if(is_spi_master(bus)){
+		SPI_Cmd(SPIx, ENABLE);
+	}
+
+	
+	
+	if(is_spi_master(bus)){
+		SPI_Cmd(SPIx, DISABLE);
+	}
+}
+
+static rt_err_t stm32_spi_transmit_receive(struct stm32_spi_bus* bus, const rt_uint8_t* tx_buf, rt_uint8_t* rx_buf){
+	rt_size_t len = 0;
+	rt_size_t xfern = 0;
+	rt_uint8_t dump_tx_buf[SPI_XFER_ONEC_MAX_LEN];
+	rt_uint8_t* tx_ptr = tx_buf;
+	rt_uint8_t* rx_ptr = rx_buf;
+
+	if(tx_buf==RT_NULL){
+		memset(dump_tx_buf ,SPI_DUMP ,sizeof(dump_tx_buf[0])*SPI_XFER_ONEC_MAX_LEN);
+		len = bus->rx_xfer_size;
+	}
+	else{
+		len = bus->tx_xfer_size;
+	}
+	
+	while(len>0){
+		if(tx_buf==RT_NULL){
+			xfern = rt_ringbuffer_put(bus->tx_buf, dump_tx_buf, (len>SPI_XFER_ONEC_MAX_LEN)? SPI_XFER_ONEC_MAX_LEN: len);
+		}
+		else{
+			xfern = rt_ringbuffer_put(bus->tx_buf, tx_ptr, len);
+			tx_ptr += xfern;
+		}
+		stm32_spi_do_transmit(bus);
+		if(rx_buf == RT_NULL){
+			rt_ringbuffer_move_nchar(bus->rx_buf, xfern);
+		}
+		else{
+			rt_ringbuffer_get(bus->rx_buf, rx_ptr, xfern);
+			rx_ptr += xfern;
+		}
+		len -= xfern;
+	}
+	return RT_EOK;
+}
+
+rt_inline rt_err_t stm32_spi_transmit(struct stm32_spi_bus* bus, const rt_uint8_t* tx_buf){
+	return stm32_spi_transmit_receive(bus, tx_buf, RT_NULL);
+}
+
+rt_inline rt_err_t stm32_spi_receive(struct stm32_spi_bus* bus, rt_uint8_t* rx_buf){
+	return stm32_spi_transmit_receive(bus, RT_NULL, rx_buf);
 }
 
 static rt_uint32_t xfer(struct rt_spi_device* dev, struct rt_spi_message* msg)
 {
     struct stm32_spi_bus* spi_bus = NULL;
-	//struct rt_spi_configuration* cfg = NULL;
-	SPI_TypeDef* SPIx = NULL;
-	//rt_uint32_t size = 0;
-	
+    SPI_TypeDef* SPIx = NULL;
+
     RT_ASSERT(dev != RT_NULL);
-	RT_ASSERT(dev->bus != RT_NULL);
-	RT_ASSERT(dev->bus->parent.user_data != RT_NULL);
+    RT_ASSERT(dev->bus != RT_NULL);
+    RT_ASSERT(dev->bus->parent.user_data != RT_NULL);
     RT_ASSERT(msg != RT_NULL);
 
-	spi_bus = (struct stm32_spi_bus*)dev->bus->parent.user_data;
-    //cfg = &dev->config;
+    spi_bus = (struct stm32_spi_bus*)dev->bus->parent.user_data;
     SPIx = spi_bus->spix;
-    //size = msg->length;
 
-    if(msg->cs_take) {
-		take_cs(spi_bus);
+    if(is_spi_master(spi_bus) && msg->cs_take) {
+        take_cs(spi_bus);
     }
 
-	
-
-#ifdef SPI_USE_DMA
-    if(message->length > 32) {
-        if(config->data_width <= 8) {
-            DMA_Configuration(stm32f0xx_spi_bus, message->send_buf, message->recv_buf, message->length);
-            SPI_I2S_DMACmd(SPI, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, ENABLE);
-            //Wait until the DMA xfer over
-            while (DMA_GetFlagStatus(stm32f0xx_spi_bus->DMA_Channel_RX_FLAG_TC) == RESET
-                   || DMA_GetFlagStatus(stm32f0xx_spi_bus->DMA_Channel_TX_FLAG_TC) == RESET);
-            SPI_I2S_DMACmd(SPI, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, DISABLE);
-        }
-//        rt_memcpy(buffer,_spi_flash_buffer,DMA_BUFFER_SIZE);
-//        buffer += DMA_BUFFER_SIZE;
+	if((RT_NULL!=msg->send_buf)&&(RT_NULL!=msg->recv_buf)) {
+        spi_bus->rx_xfer_size = msg->length;
+        spi_bus->tx_xfer_size = msg->length;
+        stm32_spi_transmit_receive(spi_bus, (const rt_uint8_t*)msg->send_buf, (rt_uint8_t*)msg->recv_buf);
     }
-    else
-#endif
-    {
-        if(config->data_width <= 8) {
-            const rt_uint8_t* send_ptr = message->send_buf;
-            rt_uint8_t* recv_ptr = message->recv_buf;
-
-            while(size--) {
-                rt_uint8_t data = 0xFF;
-
-                if(send_ptr != RT_NULL) {
-                    data = *send_ptr++;
-                }
-
-                //Wait until the transmit buffer is empty
-                while (SPI_I2S_GetFlagStatus(SPI, SPI_I2S_FLAG_TXE) == RESET);
-                // Send the byte
-                SPI_SendData8(SPI, data);
-
-                //Wait until a data is received
-                while (SPI_I2S_GetFlagStatus(SPI, SPI_I2S_FLAG_RXNE) == RESET);
-                // Get the received data
-                data = SPI_ReceiveData8(SPI);
-
-                if(recv_ptr != RT_NULL) {
-                    *recv_ptr++ = data;
-                }
-            }
+    else {
+        if(RT_NULL!=msg->send_buf) {
+            spi_bus->rx_xfer_size = 0;
+            spi_bus->tx_xfer_size = msg->length;
+            stm32_spi_transmit(spi_bus, (const rt_uint8_t*)msg->send_buf);
         }
-        else if(config->data_width <= 16) {
-            const rt_uint16_t* send_ptr = message->send_buf;
-            rt_uint16_t* recv_ptr = message->recv_buf;
-
-            while(size--) {
-                rt_uint16_t data = 0xFFFF;
-
-                if(send_ptr != RT_NULL) {
-                    data = *send_ptr++;
-                }
-
-                //Wait until the transmit buffer is empty
-                while (SPI_I2S_GetFlagStatus(SPI, SPI_I2S_FLAG_TXE) == RESET);
-                // Send the byte
-                SPI_I2S_SendData16(SPI, data);
-
-                //Wait until a data is received
-                while (SPI_I2S_GetFlagStatus(SPI, SPI_I2S_FLAG_RXNE) == RESET);
-                // Get the received data
-                data = SPI_I2S_ReceiveData16(SPI);
-
-                if(recv_ptr != RT_NULL) {
-                    *recv_ptr++ = data;
-                }
-            }
+        if(RT_NULL!=msg->recv_buf) {
+            spi_bus->rx_xfer_size = msg->length;
+            spi_bus->tx_xfer_size = 0;
+            stm32_spi_receive(spi_bus, (rt_uint8_t*)msg->recv_buf);
         }
     }
 
-    /* release CS */
-    if(message->cs_release) {
-        GPIO_SetBits(stm32f0xx_spi_cs->GPIOx, stm32f0xx_spi_cs->GPIO_Pin);
+    if(is_spi_master(spi_bus) && msg->cs_release) {
+        release_cs(spi_bus);
     }
 
-    return message->length;
+    return msg->length;
 };
 
 static struct rt_spi_ops stm32f0xx_spi_ops = {
@@ -410,14 +446,7 @@ static void DMA_Configuration(struct stm32f0xx_spi_bus* stm32f0xx_spi_bus, const
 
 
 
-/** \brief init and register stm32f0xx spi bus.
- *
- * \param SPI: STM32 SPI, e.g: SPI1,SPI2.
- * \param stm32f0xx_spi: stm32f0xx spi bus struct.
- * \param spi_bus_name: spi bus name, e.g: "spi1"
- * \return
- *
- */
+
 rt_err_t stm32f0xx_spi_register(SPI_TypeDef* SPI,
                                 struct stm32f0xx_spi_bus* stm32f0xx_spi,
                                 const char* spi_bus_name)
