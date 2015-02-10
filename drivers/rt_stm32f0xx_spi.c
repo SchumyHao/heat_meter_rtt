@@ -67,16 +67,18 @@ struct stm32_spi_bus {
     SPI_TypeDef* spix;
     SPI_InitTypeDef init;
     struct stm32_spi_cs* cs;
-	struct rt_ringbuffer *tx_buf;
-    uint32_t tx_xfer_size;
-    uint32_t tx_buf_count;
-	struct rt_ringbuffer *rx_buf;
-    uint32_t rx_xfer_size;
-    uint32_t rx_buf_count;
+    void* tx_buf;
+    //uint32_t tx_xfer_size;
+    //uint32_t tx_buf_count;
+    void* rx_buf;
+	uint32_t xfer_size;
+    //uint32_t rx_xfer_size;
+    //uint32_t rx_buf_count;
     void (*TxISR)(struct stm32_spi_bus* bus);
     void (*RxISR)(struct stm32_spi_bus* bus);
     struct rt_dma_device* tx_dma;
     struct rt_dma_device* rx_dma;
+
 };
 
 rt_inline uint16_t get_spi_DataSize(rt_uint8_t data_width)
@@ -200,12 +202,24 @@ rt_inline void get_spi_InitTypeDef_from_configuration(SPI_InitTypeDef* SPI_Init,
     SPI_Init->SPI_NSS  = SPI_NSS_Soft;
 }
 
-rt_inline rt_bool_t is_spi_master(struct stm32_spi_bus* bus){
-	return (SPI_Mode_Master==bus->init->SPI_DataSize)? RT_TRUE: RT_FALSE;
+rt_inline rt_bool_t is_spi_master(struct stm32_spi_bus* bus)
+{
+    return (SPI_Mode_Master==bus->init->SPI_DataSize)? RT_TRUE: RT_FALSE;
 }
 
-rt_inline rt_bool_t is_spi_8bits(struct stm32_spi_bus* bus){
-	return (SPI_DataSize_8b==bus->init->SPI_Mode)? RT_TRUE: RT_FALSE;
+rt_inline rt_bool_t is_spi_8bits(struct stm32_spi_bus* bus)
+{
+    return (SPI_DataSize_8b==bus->init->SPI_Mode)? RT_TRUE: RT_FALSE;
+}
+
+rt_inline rt_bool_t is_spi_tx_dma(struct stm32_spi_bus* bus)
+{
+    return (RT_NULL==bus->tx_dma)? RT_FALSE: RT_TRUE;
+}
+
+rt_inline rt_bool_t is_spi_rx_dma(struct stm32_spi_bus* bus)
+{
+    return (RT_NULL==bus->rx_dma)? RT_FALSE: RT_TRUE;
 }
 
 static rt_err_t configure(struct rt_spi_device* dev, struct rt_spi_configuration* cfg)
@@ -229,10 +243,10 @@ static rt_err_t configure(struct rt_spi_device* dev, struct rt_spi_configuration
     SPI_Init(SPIx, &spi_bus->init);
     /* Enable SPI */
     SPI_CalculateCRC(SPIx, DISABLE);
-	if(!is_spi_master(spi_bus)){
-		SPI_Cmd(SPIx, ENABLE);
-	}
-	
+    if(!is_spi_master(spi_bus)) {
+        SPI_Cmd(SPIx, ENABLE);
+    }
+
     return RT_EOK;
 }
 
@@ -248,72 +262,185 @@ rt_inline void release_cs(struct stm32_spi_bus* bus)
     GPIO_SetBits(bus->cs->GPIOx, bus->cs->GPIO_Pin);
 }
 
-static rt_err_t stm32_spi_do_transmit(struct stm32_spi_bus* bus){
-	SPI_TypeDef* SPIx = bus->spix;
-	if(RESET != SPI_I2S_GetFlagStatus(SPIx, SPI_I2S_FLAG_BSY)){
-		return -RT_EBUSY;
+rt_inline rt_size_t stm32_spi_set_tx_buf(struct stm32_spi_bus* bus, const rt_uint8_t* tx_buf, len){
+	rt_size_t n = 0;
+	if(is_spi_tx_dma(bus)){
+		bus->tx_buf = tx_buf;
+		return (len>SPI_XFER_ONEC_MAX_LEN)? SPI_XFER_ONEC_MAX_LEN: len;
 	}
+	else{
+		n = rt_ringbuffer_put(bus->tx_buf, tx_buf, len);
+		return n;
+	}
+}
+
+rt_inline rt_err_t _stm32_spi_8bit_transmit(struct stm32_spi_bus* bus, const rt_size_t len)
+{
+	SPI_TypeDef* SPIx = bus->spix;
+    rt_size_t txn,rxn = 0;
+	uint16_t tx16,rx16 = 0;
+	uint8_t tx8,rx8 = 0;
+
+    if(is_spi_tx_dma(bus)) { /* tx dma mode */
+        while(len > txn) {
+			
+        }
+    }
+    else { /* tx interrupt mode */
+        while(len > txn) {
+			if(SPI_I2S_GetFlagStatus(SPIx, SPI_I2S_FLAG_TXE)){
+				if(len-txn > 1){
+					rt_ringbuffer_get(bus->tx_buf, (rt_uint8_t*)&tx16, sizeof(uint16_t));
+					SPI_I2S_SendData16(SPIx, tx16);
+					txn += sizeof(uint16_t);
+				}
+				else{
+					rt_ringbuffer_get(bus->tx_buf, (rt_uint8_t*)&tx8, sizeof(uint8_t));
+					SPI_SendData8(SPIx, tx8);
+					txn += sizeof(uint8_t);
+				}
+			}
+        }
+		
+    }
+}
+
+rt_inline rt_err_t _stm32_spi_transmit_dma_receive_dma(struct stm32_spi_bus* bus){
+	SPI_TypeDef* SPIx = bus->spix;
+	rt_size_t dma_count = bus->xfer_size;
+
 	if(is_spi_8bits(bus)){
 		SPI_RxFIFOThresholdConfig(SPIx, SPI_RxFIFOThreshold_QF);
+		if((bus->xfer_size & 0x1) == 0x0)){
+			SPI_LastDMATransferCmd(SPIx, SPI_LastDMATransfer_TxEvenRxEven);
+			dma_count = dma_count >> 1;
+		}
+		else{
+			SPI_LastDMATransferCmd(SPIx, SPI_LastDMATransfer_TxOddRxOdd);
+			dma_count = (dma_count >> 1) + 1;
+		}
 	}
 	else{
 		SPI_RxFIFOThresholdConfig(SPIx, SPI_RxFIFOThreshold_HF);
 	}
-	
-	
-	if(is_spi_master(bus)){
-		SPI_Cmd(SPIx, ENABLE);
-	}
 
-	
-	
-	if(is_spi_master(bus)){
-		SPI_Cmd(SPIx, DISABLE);
-	}
+	bus->rx_dma->xfer_half_cplt_callback = stm32_spi_dma_half_rx_cplt;
+	bus->rx_dma->xfer_cplt_callback = stm32_spi_dma_rx_cplt;
+	bus->rx_dma->xfer_error_callback = stm32_spi_dma_rx_error;
+	stm32_dma_start_it(bus->rx_dma, &SPIx->DR, bus->rx_buf, dma_count);
+
+	bus->tx_dma->xfer_error_callback = stm32_spi_dma_tx_error;
+	stm32_dma_start_it(bus->tx_dma, bus->rx_buf, &SPIx->DR, dma_count);
+
+	SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Tx|SPI_I2S_DMAReq_Rx, ENABLE);
 }
 
-static rt_err_t stm32_spi_transmit_receive(struct stm32_spi_bus* bus, const rt_uint8_t* tx_buf, rt_uint8_t* rx_buf){
-	rt_size_t len = 0;
-	rt_size_t xfern = 0;
-	rt_uint8_t dump_tx_buf[SPI_XFER_ONEC_MAX_LEN];
-	rt_uint8_t* tx_ptr = tx_buf;
-	rt_uint8_t* rx_ptr = rx_buf;
+rt_inline rt_err_t _stm32_spi_transmit_it_receive_it(struct stm32_spi_bus* bus){
+	SPI_TypeDef* SPIx = bus->spix;
 
-	if(tx_buf==RT_NULL){
-		memset(dump_tx_buf ,SPI_DUMP ,sizeof(dump_tx_buf[0])*SPI_XFER_ONEC_MAX_LEN);
-		len = bus->rx_xfer_size;
+	if(is_spi_8bits(bus)){
+		bus->TxISR = stm32_spi_tx_isr_8bit;
+		bus->RxISR = stm32_spi_rx_isr_8bit;
+		SPI_RxFIFOThresholdConfig(SPIx, SPI_RxFIFOThreshold_QF);
 	}
 	else{
-		len = bus->tx_xfer_size;
+		bus->TxISR = stm32_spi_tx_isr_16bit;
+		bus->RxISR = stm32_spi_rx_isr_16bit;
+		SPI_RxFIFOThresholdConfig(SPIx, SPI_RxFIFOThreshold_HF);
 	}
-	
-	while(len>0){
-		if(tx_buf==RT_NULL){
-			xfern = rt_ringbuffer_put(bus->tx_buf, dump_tx_buf, (len>SPI_XFER_ONEC_MAX_LEN)? SPI_XFER_ONEC_MAX_LEN: len);
-		}
-		else{
-			xfern = rt_ringbuffer_put(bus->tx_buf, tx_ptr, len);
-			tx_ptr += xfern;
-		}
-		stm32_spi_do_transmit(bus);
-		if(rx_buf == RT_NULL){
-			rt_ringbuffer_move_nchar(bus->rx_buf, xfern);
-		}
-		else{
-			rt_ringbuffer_get(bus->rx_buf, rx_ptr, xfern);
-			rx_ptr += xfern;
-		}
-		len -= xfern;
+
+	SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_TXE|SPI_I2S_IT_RXNE|SPI_I2S_IT_ERR, ENABLE);
+}
+
+rt_inline rt_err_t _stm32_spi_transmit_receive(struct stm32_spi_bus* bus)
+{
+    SPI_TypeDef* SPIx = bus->spix;
+
+    /* check SPI bus is busy or not */
+    if(RESET != SPI_I2S_GetFlagStatus(SPIx, SPI_I2S_FLAG_BSY)) {
+        return -RT_EBUSY;
+    }
+
+	/* send data though dma/interrupt */
+	if(is_spi_tx_dma(bus) && is_spi_rx_dma(bus)){
+		_stm32_spi_transmit_dma_receive_dma(bus);
 	}
+	else if(!is_spi_tx_dma(bus) && is_spi_rx_dma(bus)){
+		_stm32_spi_transmit_it_receive_dma(bus);
+	}
+	else if(is_spi_tx_dma(bus) && !is_spi_rx_dma(bus)){
+		_stm32_spi_transmit_dma_receive_it(bus);
+	}
+	else{
+		_stm32_spi_transmit_it_receive_it(bus);
+	}
+
 	return RT_EOK;
 }
 
-rt_inline rt_err_t stm32_spi_transmit(struct stm32_spi_bus* bus, const rt_uint8_t* tx_buf){
-	return stm32_spi_transmit_receive(bus, tx_buf, RT_NULL);
+static rt_err_t stm32_spi_transmit_receive(struct stm32_spi_bus* bus, const rt_uint8_t* tx_buf, rt_uint8_t* rx_buf)
+{
+    rt_size_t len = 0;
+    rt_size_t xfern = 0;
+    rt_uint8_t dump_tx_buf[SPI_XFER_ONEC_MAX_LEN];
+    rt_uint8_t* tx_ptr = tx_buf;
+    rt_uint8_t* rx_ptr = rx_buf;
+
+	len = bus->xfer_size;
+
+    if(tx_buf==RT_NULL) {
+        memset(dump_tx_buf ,SPI_DUMP ,sizeof(dump_tx_buf[0])*SPI_XFER_ONEC_MAX_LEN);
+        //len = bus->rx_xfer_size;
+    }
+    //else {
+    //    len = bus->tx_xfer_size;
+    //}
+
+    /* slave mode, spi bus is enable all time, master mode enable if is required */
+    if(is_spi_master(bus)) {
+        SPI_Cmd(SPIx, ENABLE);
+    }
+
+    while(len>0) {
+        if(tx_buf==RT_NULL) {
+			xfern = stm32_spi_set_tx_buf(bus, dump_tx_buf, len);
+        }
+        else {
+            xfern = stm32_spi_set_tx_buf(bus, tx_ptr, len);
+            tx_ptr += xfern;
+        }
+		bus->rx_buf = rx_ptr;
+        _stm32_spi_transmit_receive(bus);
+
+
+
+		
+        if(rx_buf == RT_NULL) {
+            rt_ringbuffer_move_nchar(bus->rx_buf, xfern);
+        }
+        else {
+            rt_ringbuffer_get(bus->rx_buf, rx_ptr, xfern);
+            rx_ptr += xfern;
+        }
+        len -= xfern;
+    }
+
+    /* turn off spi bus if in master mode. */
+    if(is_spi_master(bus)) {
+        SPI_Cmd(SPIx, DISABLE);
+    }
+	
+    return RT_EOK;
 }
 
-rt_inline rt_err_t stm32_spi_receive(struct stm32_spi_bus* bus, rt_uint8_t* rx_buf){
-	return stm32_spi_transmit_receive(bus, RT_NULL, rx_buf);
+rt_inline rt_err_t stm32_spi_transmit(struct stm32_spi_bus* bus, const rt_uint8_t* tx_buf)
+{
+    return stm32_spi_transmit_receive(bus, tx_buf, RT_NULL);
+}
+
+rt_inline rt_err_t stm32_spi_receive(struct stm32_spi_bus* bus, rt_uint8_t* rx_buf)
+{
+    return stm32_spi_transmit_receive(bus, RT_NULL, rx_buf);
 }
 
 static rt_uint32_t xfer(struct rt_spi_device* dev, struct rt_spi_message* msg)
@@ -333,20 +460,23 @@ static rt_uint32_t xfer(struct rt_spi_device* dev, struct rt_spi_message* msg)
         take_cs(spi_bus);
     }
 
-	if((RT_NULL!=msg->send_buf)&&(RT_NULL!=msg->recv_buf)) {
-        spi_bus->rx_xfer_size = msg->length;
-        spi_bus->tx_xfer_size = msg->length;
+	spi_bus->xfer_size = (is_spi_8bits(spi_bus))? msg->length: msg->length<<1;
+	
+    if((RT_NULL!=msg->send_buf)&&(RT_NULL!=msg->recv_buf)) {
+        //spi_bus->rx_xfer_size = (is_spi_8bits(spi_bus))? msg->length: msg->length<<1;
+        //spi_bus->tx_xfer_size = (is_spi_8bits(spi_bus))? msg->length: msg->length<<1;
         stm32_spi_transmit_receive(spi_bus, (const rt_uint8_t*)msg->send_buf, (rt_uint8_t*)msg->recv_buf);
     }
     else {
         if(RT_NULL!=msg->send_buf) {
-            spi_bus->rx_xfer_size = 0;
-            spi_bus->tx_xfer_size = msg->length;
+            //spi_bus->rx_xfer_size = 0;
+            //spi_bus->tx_xfer_size = (is_spi_8bits(spi_bus))? msg->length: msg->length<<1;
+            
             stm32_spi_transmit(spi_bus, (const rt_uint8_t*)msg->send_buf);
         }
         if(RT_NULL!=msg->recv_buf) {
-            spi_bus->rx_xfer_size = msg->length;
-            spi_bus->tx_xfer_size = 0;
+            //spi_bus->rx_xfer_size = (is_spi_8bits(spi_bus))? msg->length: msg->length<<1;
+            //spi_bus->tx_xfer_size = 0;
             stm32_spi_receive(spi_bus, (rt_uint8_t*)msg->recv_buf);
         }
     }
