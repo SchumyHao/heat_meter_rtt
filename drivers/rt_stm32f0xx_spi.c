@@ -627,10 +627,80 @@ static struct rt_spi_ops stm32_spi_ops = {
 
 #ifdef USING_SPI1
 static struct stm32_spi_bus stm32_spi_bus_1;
+void SPI1_IRQHandler(void)
+{
+    struct stm32_spi_bus* bus = &stm32_spi_bus_1;
+
+    /* enter interrupt */
+    rt_interrupt_enter();
+	
+	if(SPI_I2S_GetITStatus(bus->spix, SPI_I2S_IT_TXE) != RESET){
+		bus->TxISR(bus);
+	}
+	if(SPI_I2S_GetITStatus(bus->spix, SPI_I2S_IT_RXNE) != RESET){
+		bus->RxISR(bus);
+	}
+    
+    /* leave interrupt */
+    rt_interrupt_leave();
+}
+void DMA1_Channel2_3_IRQHandler(void){
+    struct stm32_spi_bus* bus = &stm32_spi_bus_1;
+
+    /* enter interrupt */
+    rt_interrupt_enter();
+
+	if(DMA_GetITStatus(DMA1_IT_TC2) != RESET){
+		bus->RxDMAISR(bus);
+		DMA_ClearITPendingBit(DMA1_IT_TC2);
+	}
+	if(DMA_GetITStatus(DMA1_IT_TC3) != RESET){
+		bus->TxDMAISR(bus);
+		DMA_ClearITPendingBit(DMA1_IT_TC3);
+	}
+    
+    /* leave interrupt */
+    rt_interrupt_leave();
+}
 #endif /* #ifdef USING_SPI1 */
 
 #ifdef USING_SPI2
 static struct stm32_spi_bus stm32_spi_bus_2;
+void SPI2_IRQHandler(void)
+{
+    struct stm32_spi_bus* bus = &stm32_spi_bus_2;
+
+    /* enter interrupt */
+    rt_interrupt_enter();
+	
+	if(SPI_I2S_GetITStatus(bus->spix, SPI_I2S_IT_TXE) != RESET){
+		bus->TxISR(bus);
+	}
+	if(SPI_I2S_GetITStatus(bus->spix, SPI_I2S_IT_RXNE) != RESET){
+		bus->RxISR(bus);
+	}
+    
+    /* leave interrupt */
+    rt_interrupt_leave();
+}
+void DMA1_Channel4_5_IRQHandler(void){
+    struct stm32_spi_bus* bus = &stm32_spi_bus_2;
+
+    /* enter interrupt */
+    rt_interrupt_enter();
+
+	if(DMA_GetITStatus(DMA1_IT_TC4) != RESET){
+		bus->RxDMAISR(bus);
+		DMA_ClearITPendingBit(DMA1_IT_TC4);
+	}
+	if(DMA_GetITStatus(DMA1_IT_TC5) != RESET){
+		bus->TxDMAISR(bus);
+		DMA_ClearITPendingBit(DMA1_IT_TC5);
+	}
+    
+    /* leave interrupt */
+    rt_interrupt_leave();
+}
 #endif /* #ifdef USING_SPI2 */
 
 static rt_err_t stm32_spi_bus_init(rt_device_t dev)
@@ -722,6 +792,38 @@ static rt_err_t stm32_spi_bus_register(struct rt_spi_bus* spi_bus, const char* s
     }
 
     return RT_EOK;
+}
+
+static void STM32_spi1_bus_rx_dma_isr(struct stm32_spi_bus* bus){
+
+}
+
+static void STM32_spi1_bus_tx_dma_isr(struct stm32_spi_bus* bus){
+
+}
+
+static void STM32_spi1_bus_rx_isr(struct stm32_spi_bus* bus){
+
+}
+
+static void STM32_spi1_bus_tx_isr(struct stm32_spi_bus* bus){
+
+}
+
+static void STM32_spi2_bus_rx_dma_isr(struct stm32_spi_bus* bus){
+
+}
+
+static void STM32_spi2_bus_tx_dma_isr(struct stm32_spi_bus* bus){
+
+}
+
+static void STM32_spi2_bus_rx_isr(struct stm32_spi_bus* bus){
+
+}
+
+static void STM32_spi2_bus_tx_isr(struct stm32_spi_bus* bus){
+
 }
 
 static rt_err_t stm32_spi_bus_device_init(struct stm32_spi_bus* spi_bus, const char* spi_bus_name)
@@ -849,3 +951,4 @@ rt_err_t rt_hw_spi_bus_init(void)
 
     return RT_EOK;
 }
+
