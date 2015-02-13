@@ -46,6 +46,4 @@ Temporary Items
 build/
 *.bak
 project*.*
-project_rt-thread.dep
-project.uvprojx
 .sconsign.dblite
