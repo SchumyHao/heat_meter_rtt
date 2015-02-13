@@ -11,7 +11,7 @@
 #include "stm32f0xx.h"
 #include "rt_stm32f0xx_spi.h"
 
-#define SPI_DUMP 0xff
+#define SPI_DUMP 0xffff
 #define SPI_IT_XFER_ONEC_MAX_LEN (32)
 
 /* SPI1 */
@@ -85,10 +85,13 @@ struct stm32_spi_bus {
     SPI_TypeDef* spix;
     SPI_InitTypeDef init;
     struct stm32_spi_cs* cs;
+    rt_size_t xfer_size;
     void* tx_buf;
     void* rx_buf;
     void (*TxISR)(struct stm32_spi_bus* bus);
     void (*RxISR)(struct stm32_spi_bus* bus);
+    rt_size_t volatile tx_it_count;
+    rt_size_t volatile rx_it_count;
     DMA_Channel_TypeDef* tx_dma;
     DMA_Channel_TypeDef* rx_dma;
     void (*TxDMAISR)(struct stm32_spi_bus* bus);
@@ -313,8 +316,13 @@ rt_inline rt_size_t stm32_spi_bus_set_bus_tx_buf(struct stm32_spi_bus* bus, cons
         return len;
     }
     else {
-        n = rt_ringbuffer_put((struct rt_ringbuffer*)bus->tx_buf, tx_buf, len);
-        return n;
+        if(RT_NULL != tx_buf) {
+            n = rt_ringbuffer_put((struct rt_ringbuffer*)bus->tx_buf, tx_buf, len);
+            return n;
+        }
+        else {
+            return len;
+        }
     }
 }
 
@@ -341,24 +349,32 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_dma(struct stm32_spi_bus*
 {
     SPI_TypeDef* SPIx = bus->spix;
     DMA_InitTypeDef SPI_DMA;
-    rt_size_t dma_count = len;
+    uint16_t dump = SPI_DUMP;
 
     if(stm32_spi_bus_is_8bits(bus)) {
         SPI_RxFIFOThresholdConfig(SPIx, SPI_RxFIFOThreshold_QF);
         DMA_StructInit(&SPI_DMA);
         SPI_DMA.DMA_DIR = DMA_DIR_PeripheralDST;
         SPI_DMA.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-        SPI_DMA.DMA_MemoryInc = DMA_MemoryInc_Enable;
         SPI_DMA.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
         SPI_DMA.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
         SPI_DMA.DMA_Mode = DMA_Mode_Normal;
         SPI_DMA.DMA_Priority = DMA_Priority_Low;
-        SPI_DMA.DMA_BufferSize = dma_count;
+        SPI_DMA.DMA_BufferSize = len;
         SPI_DMA.DMA_M2M = DMA_M2M_Disable;
-        SPI_DMA.DMA_MemoryBaseAddr = bus->tx_buf;
         SPI_DMA.DMA_PeripheralBaseAddr = SPIx->DR;
+        if(((stm32_spi_bus_is_tx_dma(bus))&&(bus->tx_buf!=RT_NULL)) ||
+           ((!stm32_spi_bus_is_tx_dma(bus))&&(rt_ringbuffer_data_len((struct rt_ringbuffer*)bus->tx_buf)!=0))) {
+            SPI_DMA.DMA_MemoryInc = DMA_MemoryInc_Enable;
+            SPI_DMA.DMA_MemoryBaseAddr = bus->tx_buf;
+        }
+        else {
+            SPI_DMA.DMA_MemoryInc = DMA_MemoryInc_Disable;
+            SPI_DMA.DMA_MemoryBaseAddr = &dump;
+        }
         DMA_Init(bus->tx_dma, &SPI_DMA);
         SPI_DMA.DMA_DIR = DMA_DIR_PeripheralSRC;
+        SPI_DMA.DMA_MemoryInc = DMA_MemoryInc_Enable;
         SPI_DMA.DMA_MemoryBaseAddr = bus->rx_buf;
         DMA_Init(bus->rx_dma, &SPI_DMA);
     }
@@ -367,29 +383,45 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_dma(struct stm32_spi_bus*
         DMA_StructInit(&SPI_DMA);
         SPI_DMA.DMA_DIR = DMA_DIR_PeripheralDST;
         SPI_DMA.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-        SPI_DMA.DMA_MemoryInc = DMA_MemoryInc_Enable;
         SPI_DMA.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
         SPI_DMA.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
         SPI_DMA.DMA_Mode = DMA_Mode_Normal;
         SPI_DMA.DMA_Priority = DMA_Priority_Low;
-        SPI_DMA.DMA_BufferSize = dma_count>>1;
+        SPI_DMA.DMA_BufferSize = len>>1;
         SPI_DMA.DMA_M2M = DMA_M2M_Disable;
-        SPI_DMA.DMA_MemoryBaseAddr = bus->tx_buf;
         SPI_DMA.DMA_PeripheralBaseAddr = SPIx->DR;
+        if(((stm32_spi_bus_is_tx_dma(bus))&&(bus->tx_buf!=RT_NULL)) ||
+           ((!stm32_spi_bus_is_tx_dma(bus))&&(rt_ringbuffer_data_len((struct rt_ringbuffer*)bus->tx_buf)!=0))) {
+            SPI_DMA.DMA_MemoryInc = DMA_MemoryInc_Enable;
+            SPI_DMA.DMA_MemoryBaseAddr = bus->tx_buf;
+        }
+        else {
+            SPI_DMA.DMA_MemoryInc = DMA_MemoryInc_Disable;
+            SPI_DMA.DMA_MemoryBaseAddr = &dump;
+        }
         DMA_Init(bus->tx_dma, &SPI_DMA);
         SPI_DMA.DMA_DIR = DMA_DIR_PeripheralSRC;
+        SPI_DMA.DMA_MemoryInc = DMA_MemoryInc_Enable;
         SPI_DMA.DMA_MemoryBaseAddr = bus->rx_buf;
         DMA_Init(bus->rx_dma, &SPI_DMA);
     }
     SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, ENABLE);
+    SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_TXE | SPI_I2S_IT_RXNE, DISABLE);
     DMA_ITConfig(bus->rx_dma, DMA_IT_TC, ENABLE);
     DMA_ITConfig(bus->tx_dma, DMA_IT_TC, ENABLE);
     DMA_Cmd(bus->rx_dma, ENABLE);
     DMA_Cmd(bus->tx_dma, ENABLE);
 
-    while((bus->tx_dma_tc_flag==RT_FALSE)||(bus->rx_dma_tc_flag==RT_FALSE));
+    while(bus->tx_dma_tc_flag==RT_FALSE);
     bus->tx_dma_tc_flag==RT_FALSE;
+    SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Tx, DISABLE);
+    DMA_ITConfig(bus->tx_dma, DMA_IT_TC, DISABLE);
+    DMA_Cmd(bus->tx_dma, DISABLE);
+    while(bus->rx_dma_tc_flag==RT_FALSE);
     bus->rx_dma_tc_flag==RT_FALSE;
+    SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Rx, DISABLE);
+    DMA_ITConfig(bus->rx_dma, DMA_IT_TC, DISABLE);
+    DMA_Cmd(bus->rx_dma, DISABLE);
 
     return RT_EOK;
 }
@@ -398,7 +430,6 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_it_receive_dma(struct stm32_spi_bus* 
 {
     SPI_TypeDef* SPIx = bus->spix;
     DMA_InitTypeDef SPI_DMA;
-    rt_size_t dma_count = len;
 
     if(stm32_spi_bus_is_8bits(bus)) {
         SPI_RxFIFOThresholdConfig(SPIx, SPI_RxFIFOThreshold_QF);
@@ -410,7 +441,7 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_it_receive_dma(struct stm32_spi_bus* 
         SPI_DMA.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
         SPI_DMA.DMA_Mode = DMA_Mode_Normal;
         SPI_DMA.DMA_Priority = DMA_Priority_Low;
-        SPI_DMA.DMA_BufferSize = dma_count;
+        SPI_DMA.DMA_BufferSize = len;
         SPI_DMA.DMA_M2M = DMA_M2M_Disable;
         SPI_DMA.DMA_MemoryBaseAddr = bus->rx_buf;
         SPI_DMA.DMA_PeripheralBaseAddr = SPIx->DR;
@@ -426,20 +457,28 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_it_receive_dma(struct stm32_spi_bus* 
         SPI_DMA.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
         SPI_DMA.DMA_Mode = DMA_Mode_Normal;
         SPI_DMA.DMA_Priority = DMA_Priority_Low;
-        SPI_DMA.DMA_BufferSize = dma_count>>1;
+        SPI_DMA.DMA_BufferSize = len>>1;
         SPI_DMA.DMA_M2M = DMA_M2M_Disable;
         SPI_DMA.DMA_MemoryBaseAddr = bus->rx_buf;
         SPI_DMA.DMA_PeripheralBaseAddr = SPIx->DR;
         DMA_Init(bus->rx_dma, &SPI_DMA);
     }
+    bus->tx_it_count = 0;
+    SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Tx, DISABLE);
+    SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_RXNE, DISABLE);
     SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Rx, ENABLE);
     DMA_ITConfig(bus->rx_dma, DMA_IT_TC, ENABLE);
     DMA_Cmd(bus->rx_dma, ENABLE);
     SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_TXE, ENABLE);
 
-    while((rt_ringbuffer_data_len((struct rt_ringbuffer*)bus->tx_buf)!=0)||
-          (bus->rx_dma_tc_flag==RT_FALSE));
+    while(bus->tx_it_count < len);
+    SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_TXE, DISABLE);
+    bus->tx_it_count = 0;
+    while(bus->rx_dma_tc_flag==RT_FALSE);
     bus->rx_dma_tc_flag==RT_FALSE;
+    SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Rx, DISABLE);
+    DMA_ITConfig(bus->rx_dma, DMA_IT_TC, DISABLE);
+    DMA_Cmd(bus->rx_dma, DISABLE);
 
     return RT_EOK;
 }
@@ -449,21 +488,29 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_it(struct stm32_spi_bus* 
     SPI_TypeDef* SPIx = bus->spix;
     DMA_InitTypeDef SPI_DMA;
     rt_size_t dma_count = len;
+    uint16_t dump = SPI_DUMP;
 
     if(stm32_spi_bus_is_8bits(bus)) {
         SPI_RxFIFOThresholdConfig(SPIx, SPI_RxFIFOThreshold_QF);
         DMA_StructInit(&SPI_DMA);
         SPI_DMA.DMA_DIR = DMA_DIR_PeripheralDST;
         SPI_DMA.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-        SPI_DMA.DMA_MemoryInc = DMA_MemoryInc_Enable;
         SPI_DMA.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
         SPI_DMA.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
         SPI_DMA.DMA_Mode = DMA_Mode_Normal;
         SPI_DMA.DMA_Priority = DMA_Priority_Low;
         SPI_DMA.DMA_BufferSize = dma_count;
         SPI_DMA.DMA_M2M = DMA_M2M_Disable;
-        SPI_DMA.DMA_MemoryBaseAddr = bus->tx_buf;
         SPI_DMA.DMA_PeripheralBaseAddr = SPIx->DR;
+        if(((stm32_spi_bus_is_tx_dma(bus))&&(bus->tx_buf!=RT_NULL)) ||
+           ((!stm32_spi_bus_is_tx_dma(bus))&&(rt_ringbuffer_data_len((struct rt_ringbuffer*)bus->tx_buf)!=0))) {
+            SPI_DMA.DMA_MemoryInc = DMA_MemoryInc_Enable;
+            SPI_DMA.DMA_MemoryBaseAddr = bus->tx_buf;
+        }
+        else {
+            SPI_DMA.DMA_MemoryInc = DMA_MemoryInc_Disable;
+            SPI_DMA.DMA_MemoryBaseAddr = &dump;
+        }
         DMA_Init(bus->tx_dma, &SPI_DMA);
     }
     else {
@@ -471,25 +518,41 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_it(struct stm32_spi_bus* 
         DMA_StructInit(&SPI_DMA);
         SPI_DMA.DMA_DIR = DMA_DIR_PeripheralDST;
         SPI_DMA.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-        SPI_DMA.DMA_MemoryInc = DMA_MemoryInc_Enable;
         SPI_DMA.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
         SPI_DMA.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
         SPI_DMA.DMA_Mode = DMA_Mode_Normal;
         SPI_DMA.DMA_Priority = DMA_Priority_Low;
         SPI_DMA.DMA_BufferSize = dma_count>>1;
         SPI_DMA.DMA_M2M = DMA_M2M_Disable;
-        SPI_DMA.DMA_MemoryBaseAddr = bus->tx_buf;
         SPI_DMA.DMA_PeripheralBaseAddr = SPIx->DR;
+        if(((stm32_spi_bus_is_tx_dma(bus))&&(bus->tx_buf!=RT_NULL)) ||
+           ((!stm32_spi_bus_is_tx_dma(bus))&&(rt_ringbuffer_data_len((struct rt_ringbuffer*)bus->tx_buf)!=0))) {
+            SPI_DMA.DMA_MemoryInc = DMA_MemoryInc_Enable;
+            SPI_DMA.DMA_MemoryBaseAddr = bus->tx_buf;
+        }
+        else {
+            SPI_DMA.DMA_MemoryInc = DMA_MemoryInc_Disable;
+            SPI_DMA.DMA_MemoryBaseAddr = &dump;
+        }
         DMA_Init(bus->tx_dma, &SPI_DMA);
     }
+    bus->rx_it_count = 0;
+    SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Rx, DISABLE);
+    SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_TXE, DISABLE);
     SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Tx, ENABLE);
     SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_RXNE, ENABLE);
     DMA_ITConfig(bus->tx_dma, DMA_IT_TC, ENABLE);
     DMA_Cmd(bus->tx_dma, ENABLE);
 
-    while((rt_ringbuffer_data_len((struct rt_ringbuffer*)bus->rx_buf)!=len)||
-          (bus->tx_dma_tc_flag==RT_FALSE));
+    while(bus->tx_dma_tc_flag==RT_FALSE);
     bus->tx_dma_tc_flag==RT_FALSE;
+    SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Tx, DISABLE);
+    DMA_ITConfig(bus->tx_dma, DMA_IT_TC, DISABLE);
+    DMA_Cmd(bus->tx_dma, DISABLE);
+
+    while(bus->rx_it_count < len);
+    SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_RXNE, DISABLE);
+    bus->rx_it_count = 0;
 
     return RT_EOK;
 }
@@ -504,10 +567,17 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_it_receive_it(struct stm32_spi_bus* b
     else {
         SPI_RxFIFOThresholdConfig(SPIx, SPI_RxFIFOThreshold_HF);
     }
+    bus->tx_it_count = 0;
+    bus->rx_it_count = 0;
+    SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, DISABLE);
     SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_TXE | SPI_I2S_IT_RXNE, ENABLE);
 
-    while((rt_ringbuffer_data_len((struct rt_ringbuffer*)bus->rx_buf)!=len)||
-          (rt_ringbuffer_data_len((struct rt_ringbuffer*)bus->tx_buf)!=0));
+    while(bus->tx_it_count < len);
+    SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_TXE, DISABLE);
+    bus->tx_it_count = 0;
+    while(bus->rx_it_count < len);
+    SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_RXNE, DISABLE);
+    bus->rx_it_count = 0;
 
     return RT_EOK;
 }
@@ -542,21 +612,14 @@ static rt_err_t _stm32_spi_bus_transmit_receive(struct stm32_spi_bus* bus, const
 {
     rt_size_t len = 0;
     rt_size_t xfern = 0;
-    rt_uint8_t dump_tx_buf[SPI_XFER_ONEC_MAX_LEN];
     rt_uint8_t* tx_ptr = tx_buf;
     rt_uint8_t* rx_ptr = rx_buf;
 
     len = bus->xfer_size;
 
     while(len>0) {
-        if(tx_buf==RT_NULL) {
-            rt_memset(dump_tx_buf ,SPI_DUMP ,sizeof(dump_tx_buf));
-            xfern = stm32_spi_bus_set_bus_tx_buf(bus, dump_tx_buf, len);
-        }
-        else {
-            xfern = stm32_spi_bus_set_bus_tx_buf(bus, tx_ptr, len);
-            tx_ptr += xfern;
-        }
+        xfern = stm32_spi_bus_set_bus_tx_buf(bus, tx_ptr, len);
+        tx_ptr += xfern;
         stm32_spi_bus_set_bus_rx_buf(bus, rx_ptr);
         __stm32_spi_bus_transmit_receive(bus, xfern);
         if(rx_buf != RT_NULL) {
@@ -751,10 +814,12 @@ static void STM32_spi_bus_rx_isr(struct stm32_spi_bus* bus)
     if(stm32_spi_bus_is_8bits(bus)) {
         uint8_t data = SPI_ReceiveData8(bus->spix);
         rt_ringbuffer_put((struct rt_ringbuffer*)bus->rx_buf, &data, sizeof(uint8_t));
+        bus->rx_it_count += sizeof(uint8_t);
     }
     else {
         uint16_t data = SPI_I2S_ReceiveData16(bus->spix);
         rt_ringbuffer_put((struct rt_ringbuffer*)bus->rx_buf, &data, sizeof(uint16_t));
+        bus->rx_it_count += sizeof(uint16_t);
     }
 }
 
@@ -762,13 +827,25 @@ static void STM32_spi_bus_tx_isr(struct stm32_spi_bus* bus)
 {
     if(stm32_spi_bus_is_8bits(bus)) {
         uint8_t data = 0;
-        rt_ringbuffer_get((struct rt_ringbuffer*)bus->tx_buf, &data, sizeof(uint8_t));
+        if(rt_ringbuffer_data_len((struct rt_ringbuffer*)bus->tx_buf)!=0) {
+            rt_ringbuffer_get((struct rt_ringbuffer*)bus->tx_buf, &data, sizeof(uint8_t));
+        }
+        else {
+            data = (uint8_t)SPI_DUMP;
+        }
         SPI_SendData8(bus->spix, data);
+        bus->tx_it_count += sizeof(uint8_t);
     }
     else {
         uint16_t data = 0;
-        rt_ringbuffer_get((struct rt_ringbuffer*)bus->tx_buf, &data, sizeof(uint16_t));
+        if(rt_ringbuffer_data_len((struct rt_ringbuffer*)bus->tx_buf)!=0) {
+            rt_ringbuffer_get((struct rt_ringbuffer*)bus->tx_buf, &data, sizeof(uint16_t));
+        }
+        else {
+            data = (uint16_t)SPI_DUMP;
+        }
         SPI_I2S_SendData16(bus->spix, data);
+        bus->tx_it_count += sizeof(uint16_t);
     }
 }
 
