@@ -31,7 +31,7 @@ I (Libraries\STM32F0xx_StdPeriph_Driver\inc\stm32f0xx_usart.h)(0x54913286)
 I (Libraries\STM32F0xx_StdPeriph_Driver\inc\stm32f0xx_wwdg.h)(0x54913286)
 I (Libraries\STM32F0xx_StdPeriph_Driver\inc\stm32f0xx_misc.h)(0x54913286)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -48,7 +48,7 @@ I (..\rt-thread\include\rthw.h)(0x54913289)
 F (applications\startup.c)(0x54913286)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\startup.o --omf_browse .\build\startup.crf --depend .\build\startup.d)
 I (..\rt-thread\include\rthw.h)(0x54913289)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -86,7 +86,7 @@ I (Libraries\STM32F0xx_StdPeriph_Driver\inc\stm32f0xx_misc.h)(0x54913286)
 F (drivers\board.c)(0x54913286)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\board.o --omf_browse .\build\board.crf --depend .\build\board.d)
 I (..\rt-thread\include\rthw.h)(0x54913289)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -132,7 +132,7 @@ F (drivers\led.c)(0x54913286)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=inte
 I (drivers\led.h)(0x54913286)
 I (..\rt-thread\include\rthw.h)(0x54913289)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -232,7 +232,7 @@ I (Libraries\STM32F0xx_StdPeriph_Driver\inc\stm32f0xx_wwdg.h)(0x54913286)
 I (Libraries\STM32F0xx_StdPeriph_Driver\inc\stm32f0xx_misc.h)(0x54913286)
 I (..\rt-thread\components\drivers\include\rtdevice.h)(0x54D0BB64)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -243,10 +243,10 @@ I (d:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x53463A44)
 I (..\rt-thread\components\drivers\include\drivers/serial.h)(0x54913287)
 I (drivers\usart.h)(0x54913286)
 I (..\rt-thread\include\rthw.h)(0x54913289)
-F (drivers\rt_stm32f0xx_spi.c)(0x54D2E6B8)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\rt_stm32f0xx_spi.o --omf_browse .\build\rt_stm32f0xx_spi.crf --depend .\build\rt_stm32f0xx_spi.d)
+F (drivers\rt_stm32f0xx_spi.c)(0x54DDE20C)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\rt_stm32f0xx_spi.o --omf_browse .\build\rt_stm32f0xx_spi.crf --depend .\build\rt_stm32f0xx_spi.d)
 I (..\rt-thread\components\drivers\include\rtdevice.h)(0x54D0BB64)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -283,7 +283,7 @@ I (Libraries\STM32F0xx_StdPeriph_Driver\inc\stm32f0xx_tim.h)(0x54913286)
 I (Libraries\STM32F0xx_StdPeriph_Driver\inc\stm32f0xx_usart.h)(0x54913286)
 I (Libraries\STM32F0xx_StdPeriph_Driver\inc\stm32f0xx_wwdg.h)(0x54913286)
 I (Libraries\STM32F0xx_StdPeriph_Driver\inc\stm32f0xx_misc.h)(0x54913286)
-I (drivers\rt_stm32f0xx_spi.h)(0x54D2E861)
+I (drivers\rt_stm32f0xx_spi.h)(0x54DDA1EC)
 F (Libraries\CMSIS\ST\STM32F0xx\Source\Templates\system_stm32f0xx.c)(0x54913286)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\system_stm32f0xx.o --omf_browse .\build\system_stm32f0xx.crf --depend .\build\system_stm32f0xx.d)
 I (Libraries\CMSIS\ST\STM32F0xx\Include\stm32f0xx.h)(0x54913286)
 I (Libraries\CMSIS\Include\core_cm0.h)(0x54913286)
@@ -926,7 +926,7 @@ F (Libraries\CMSIS\ST\STM32F0xx\Source\Templates\arm\startup_stm32f0xx.s)(0x5491
 F (..\rt-thread\src\clock.c)(0x54913289)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\clock.o --omf_browse .\build\clock.crf --depend .\build\clock.d)
 I (..\rt-thread\include\rthw.h)(0x54913289)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -934,7 +934,7 @@ I (..\rt-thread\include\rtservice.h)(0x54913289)
 I (..\rt-thread\include\rtm.h)(0x54913289)
 F (..\rt-thread\src\device.c)(0x54913289)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\device.o --omf_browse .\build\device.crf --depend .\build\device.d)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -943,7 +943,7 @@ I (..\rt-thread\include\rtm.h)(0x54913289)
 F (..\rt-thread\src\idle.c)(0x54913289)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\idle.o --omf_browse .\build\idle.crf --depend .\build\idle.d)
 I (..\rt-thread\include\rthw.h)(0x54913289)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -951,7 +951,7 @@ I (..\rt-thread\include\rtservice.h)(0x54913289)
 I (..\rt-thread\include\rtm.h)(0x54913289)
 F (..\rt-thread\src\ipc.c)(0x54913289)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\ipc.o --omf_browse .\build\ipc.crf --depend .\build\ipc.d)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -961,7 +961,7 @@ I (..\rt-thread\include\rthw.h)(0x54913289)
 F (..\rt-thread\src\irq.c)(0x54913289)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\irq.o --omf_browse .\build\irq.crf --depend .\build\irq.d)
 I (..\rt-thread\include\rthw.h)(0x54913289)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -969,7 +969,7 @@ I (..\rt-thread\include\rtservice.h)(0x54913289)
 I (..\rt-thread\include\rtm.h)(0x54913289)
 F (..\rt-thread\src\kservice.c)(0x54D0BB65)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\kservice.o --omf_browse .\build\kservice.crf --depend .\build\kservice.d)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -979,7 +979,7 @@ I (..\rt-thread\include\rthw.h)(0x54913289)
 F (..\rt-thread\src\mem.c)(0x54913289)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\mem.o --omf_browse .\build\mem.crf --depend .\build\mem.d)
 I (..\rt-thread\include\rthw.h)(0x54913289)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -991,7 +991,7 @@ I (d:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x53463A44)
 I (d:\Keil_v5\ARM\ARMCC\include\string.h)(0x53463A44)
 F (..\rt-thread\src\object.c)(0x54D0BB65)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\object.o --omf_browse .\build\object.crf --depend .\build\object.d)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1000,7 +1000,7 @@ I (..\rt-thread\include\rtm.h)(0x54913289)
 I (..\rt-thread\include\rthw.h)(0x54913289)
 F (..\rt-thread\src\scheduler.c)(0x54913289)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\scheduler.o --omf_browse .\build\scheduler.crf --depend .\build\scheduler.d)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1009,7 +1009,7 @@ I (..\rt-thread\include\rtm.h)(0x54913289)
 I (..\rt-thread\include\rthw.h)(0x54913289)
 F (..\rt-thread\src\thread.c)(0x54913289)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\thread.o --omf_browse .\build\thread.crf --depend .\build\thread.d)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1018,7 +1018,7 @@ I (..\rt-thread\include\rtm.h)(0x54913289)
 I (..\rt-thread\include\rthw.h)(0x54913289)
 F (..\rt-thread\src\timer.c)(0x54913289)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\timer.o --omf_browse .\build\timer.crf --depend .\build\timer.d)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1027,7 +1027,7 @@ I (..\rt-thread\include\rtm.h)(0x54913289)
 I (..\rt-thread\include\rthw.h)(0x54913289)
 F (..\rt-thread\libcpu\arm\cortex-m0\cpuport.c)(0x54913289)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\cpuport.o --omf_browse .\build\cpuport.crf --depend .\build\cpuport.d)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1036,7 +1036,7 @@ I (..\rt-thread\include\rtm.h)(0x54913289)
 F (..\rt-thread\libcpu\arm\cortex-m0\context_rvds.S)(0x54913289)(--cpu Cortex-M0 -g --apcs=interwork --pd "__MICROLIB SETA 1"-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx--list .\build\context_rvds.lst --xref -o .\build\context_rvds.o --depend .\build\context_rvds.d)
 F (..\rt-thread\libcpu\arm\common\backtrace.c)(0x54913289)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\backtrace.o --omf_browse .\build\backtrace.crf --depend .\build\backtrace.d)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1045,7 +1045,7 @@ I (..\rt-thread\include\rtm.h)(0x54913289)
 F (..\rt-thread\libcpu\arm\common\div0.c)(0x54913289)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\div0.o --omf_browse .\build\div0.crf --depend .\build\div0.d)
 F (..\rt-thread\libcpu\arm\common\showmem.c)(0x54913289)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\showmem.o --omf_browse .\build\showmem.crf --depend .\build\showmem.d)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1054,7 +1054,7 @@ I (..\rt-thread\include\rtm.h)(0x54913289)
 F (..\rt-thread\components\drivers\serial\serial.c)(0x54D0BB64)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\serial.o --omf_browse .\build\serial.crf --depend .\build\serial.d)
 I (..\rt-thread\include\rthw.h)(0x54913289)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1068,7 +1068,7 @@ F (..\rt-thread\components\drivers\spi\spi_core.c)(0x54913287)(-c --cpu Cortex-M
 I (..\rt-thread\components\drivers\include\drivers/spi.h)(0x54913287)
 I (d:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x53463A44)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1076,7 +1076,7 @@ I (..\rt-thread\include\rtservice.h)(0x54913289)
 I (..\rt-thread\include\rtm.h)(0x54913289)
 F (..\rt-thread\components\drivers\spi\spi_dev.c)(0x54913287)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\spi_dev.o --omf_browse .\build\spi_dev.crf --depend .\build\spi_dev.d)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1087,7 +1087,7 @@ I (d:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x53463A44)
 F (..\rt-thread\components\drivers\src\completion.c)(0x54913287)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\completion.o --omf_browse .\build\completion.crf --depend .\build\completion.d)
 I (..\rt-thread\include\rthw.h)(0x54913289)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1099,7 +1099,7 @@ I (d:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x53463A44)
 I (..\rt-thread\components\drivers\include\drivers/serial.h)(0x54913287)
 F (..\rt-thread\components\drivers\src\dataqueue.c)(0x54913287)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\dataqueue.o --omf_browse .\build\dataqueue.crf --depend .\build\dataqueue.d)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1113,7 +1113,7 @@ I (..\rt-thread\include\rthw.h)(0x54913289)
 F (..\rt-thread\components\drivers\src\pipe.c)(0x54913287)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\pipe.o --omf_browse .\build\pipe.crf --depend .\build\pipe.d)
 I (..\rt-thread\include\rthw.h)(0x54913289)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1125,7 +1125,7 @@ I (d:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x53463A44)
 I (..\rt-thread\components\drivers\include\drivers/serial.h)(0x54913287)
 F (..\rt-thread\components\drivers\src\portal.c)(0x54913287)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\portal.o --omf_browse .\build\portal.crf --depend .\build\portal.d)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1137,7 +1137,7 @@ I (d:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x53463A44)
 I (..\rt-thread\components\drivers\include\drivers/serial.h)(0x54913287)
 F (..\rt-thread\components\drivers\src\ringbuffer.c)(0x54D0BB64)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\ringbuffer.o --omf_browse .\build\ringbuffer.crf --depend .\build\ringbuffer.d)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1150,7 +1150,7 @@ I (..\rt-thread\components\drivers\include\drivers/serial.h)(0x54913287)
 I (d:\Keil_v5\ARM\ARMCC\include\string.h)(0x53463A44)
 F (..\rt-thread\components\drivers\src\workqueue.c)(0x54913287)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\workqueue.o --omf_browse .\build\workqueue.crf --depend .\build\workqueue.d)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1163,7 +1163,7 @@ I (..\rt-thread\components\drivers\include\drivers/serial.h)(0x54913287)
 F (..\rt-thread\components\finsh\shell.c)(0x54D0BB64)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\shell.o --omf_browse .\build\shell.crf --depend .\build\shell.d)
 I (..\rt-thread\include\rthw.h)(0x54913289)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1177,7 +1177,7 @@ I (..\rt-thread\components\finsh\shell.h)(0x54913288)
 F (..\rt-thread\components\finsh\symbol.c)(0x54913288)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\symbol.o --omf_browse .\build\symbol.crf --depend .\build\symbol.d)
 I (..\rt-thread\components\finsh\finsh.h)(0x54913288)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1188,7 +1188,7 @@ I (d:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x53463A44)
 I (d:\Keil_v5\ARM\ARMCC\include\string.h)(0x53463A44)
 F (..\rt-thread\components\finsh\cmd.c)(0x54913288)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\cmd.o --omf_browse .\build\cmd.crf --depend .\build\cmd.d)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1201,7 +1201,7 @@ I (d:\Keil_v5\ARM\ARMCC\include\string.h)(0x53463A44)
 F (..\rt-thread\components\finsh\finsh_compiler.c)(0x54913288)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\finsh_compiler.o --omf_browse .\build\finsh_compiler.crf --depend .\build\finsh_compiler.d)
 I (..\rt-thread\components\finsh\finsh.h)(0x54913288)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1219,7 +1219,7 @@ F (..\rt-thread\components\finsh\finsh_error.c)(0x54913288)(-c --cpu Cortex-M0 -
 I (..\rt-thread\components\finsh\finsh_error.h)(0x54913288)
 I (..\rt-thread\components\finsh\finsh.h)(0x54913288)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1231,7 +1231,7 @@ I (d:\Keil_v5\ARM\ARMCC\include\string.h)(0x53463A44)
 F (..\rt-thread\components\finsh\finsh_heap.c)(0x54913288)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\finsh_heap.o --omf_browse .\build\finsh_heap.crf --depend .\build\finsh_heap.d)
 I (..\rt-thread\components\finsh\finsh.h)(0x54913288)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1244,7 +1244,7 @@ I (..\rt-thread\components\finsh\finsh_var.h)(0x54913288)
 F (..\rt-thread\components\finsh\finsh_init.c)(0x54913288)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\finsh_init.o --omf_browse .\build\finsh_init.crf --depend .\build\finsh_init.d)
 I (..\rt-thread\components\finsh\finsh.h)(0x54913288)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1262,7 +1262,7 @@ I (..\rt-thread\components\finsh\finsh_heap.h)(0x54913288)
 F (..\rt-thread\components\finsh\finsh_node.c)(0x54913288)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\finsh_node.o --omf_browse .\build\finsh_node.crf --depend .\build\finsh_node.d)
 I (..\rt-thread\components\finsh\finsh.h)(0x54913288)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1280,7 +1280,7 @@ I (..\rt-thread\components\finsh\finsh_ops.h)(0x54913288)
 I (..\rt-thread\components\finsh\finsh_vm.h)(0x54913288)
 I (..\rt-thread\components\finsh\finsh.h)(0x54913288)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1293,7 +1293,7 @@ I (..\rt-thread\components\finsh\finsh_var.h)(0x54913288)
 F (..\rt-thread\components\finsh\finsh_parser.c)(0x54913288)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\finsh_parser.o --omf_browse .\build\finsh_parser.crf --depend .\build\finsh_parser.d)
 I (..\rt-thread\components\finsh\finsh.h)(0x54913288)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1310,7 +1310,7 @@ I (..\rt-thread\components\finsh\finsh_var.h)(0x54913288)
 F (..\rt-thread\components\finsh\finsh_var.c)(0x54913288)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\finsh_var.o --omf_browse .\build\finsh_var.crf --depend .\build\finsh_var.d)
 I (..\rt-thread\components\finsh\finsh.h)(0x54913288)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1323,7 +1323,7 @@ I (..\rt-thread\components\finsh\finsh_var.h)(0x54913288)
 F (..\rt-thread\components\finsh\finsh_vm.c)(0x54913288)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\finsh_vm.o --omf_browse .\build\finsh_vm.crf --depend .\build\finsh_vm.d)
 I (..\rt-thread\components\finsh\finsh.h)(0x54913288)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1338,7 +1338,7 @@ I (..\rt-thread\components\finsh\finsh_ops.h)(0x54913288)
 F (..\rt-thread\components\finsh\finsh_token.c)(0x54913288)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\finsh_token.o --omf_browse .\build\finsh_token.crf --depend .\build\finsh_token.d)
 I (..\rt-thread\components\finsh\finsh.h)(0x54913288)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1352,7 +1352,7 @@ I (..\rt-thread\components\finsh\finsh_error.h)(0x54913288)
 F (..\rt-thread\components\init\components.c)(0x54913288)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\components.o --omf_browse .\build\components.crf --depend .\build\components.d)
 I (..\rt-thread\components\init\components.h)(0x54913288)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1365,7 +1365,7 @@ I (d:\Keil_v5\ARM\ARMCC\include\string.h)(0x53463A44)
 I (..\rt-thread\components\finsh\shell.h)(0x54913288)
 F (..\rt-thread\components\libc\armlibc\mem_std.c)(0x54913288)(-c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I. -I..\rt-thread\components\drivers\include -I..\rt-thread\components\drivers\spi -I..\rt-thread\components\finsh -I..\rt-thread\components\init -I..\rt-thread\components\libc\armlibc -I..\rt-thread\include -I..\rt-thread\libcpu\arm\common -I..\rt-thread\libcpu\arm\cortex-m0 -ILibraries\CMSIS\Include -ILibraries\CMSIS\ST\STM32F0xx\Include -ILibraries\STM32F0xx_StdPeriph_Driver\inc -Iapplications -Idrivers-I d:\Keil_v5\ARM\RV31\INC-I d:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.0\CMSIS\Include-I d:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include-I d:\Keil_v5\ARM\Inc\ST\STM32F0xx-DSTM32F051 -DRT_USING_ARM_LIBC -DUSE_STDPERIPH_DRIVER-o .\build\mem_std.o --omf_browse .\build\mem_std.crf --depend .\build\mem_std.d)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)
@@ -1375,7 +1375,7 @@ F (..\rt-thread\components\libc\armlibc\stubs.c)(0x54D0BB64)(-c --cpu Cortex-M0 
 I (d:\Keil_v5\ARM\ARMCC\include\string.h)(0x53463A44)
 I (d:\Keil_v5\ARM\ARMCC\include\rt_sys.h)(0x53463A44)
 I (..\rt-thread\include\rtthread.h)(0x54913289)
-I (.\rtconfig.h)(0x54D2E2ED)
+I (.\rtconfig.h)(0x54DB05C1)
 I (..\rt-thread\include\rtdebug.h)(0x54913289)
 I (..\rt-thread\include\rtdef.h)(0x54913289)
 I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x53463A44)

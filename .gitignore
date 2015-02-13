@@ -45,6 +45,6 @@ Temporary Items
 # User Define
 build/
 *.bak
-project.*
+project*.*
 project_rt-thread.dep
-
+project.uvprojx
