@@ -18,11 +18,14 @@ extern "C" {
 #include <drivers/spi.h>
 #include "stm32f0xx.h"
 
- /* public function list */
-rt_err_t stm32f0xx_spi_register(SPI_TypeDef* SPI,
-                                struct stm32f0xx_spi_bus* stm32f0xx_spi,
-                                const char* spi_bus_name);
+struct stm32_spi_bus_cs {
+    void (*init)(struct stm32_spi_bus_cs* cs);
+    void (*take)(struct stm32_spi_bus_cs* cs);
+    void (*release)(struct stm32_spi_bus_cs* cs);
+};
 
+/* public function list */
+rt_err_t rt_hw_spi_bus_init(void);
 #ifdef __cplusplus
 }
 #endif
