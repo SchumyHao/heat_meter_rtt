@@ -48,3 +48,4 @@ build/
 project*.*
 project_rt-thread.dep
 project.uvprojx
+.sconsign.dblite
