@@ -752,7 +752,7 @@ out:
     return ret;
 };
 
-static struct rt_spi_ops stm32_spi_ops = {
+static const struct rt_spi_ops stm32_spi_ops = {
     stm32_spi_bus_configure,
     stm32_spi_bus_xfer
 };
@@ -1045,6 +1045,7 @@ rt_err_t rt_hw_spi_bus_init(void)
 
     return RT_EOK;
 }
+INIT_DEVICE_EXPORT(rt_hw_spi_bus_init);
 
 #ifdef RT_USING_SPI1
 void SPI1_IRQHandler(void)
