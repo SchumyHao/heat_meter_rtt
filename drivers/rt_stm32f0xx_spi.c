@@ -1047,7 +1047,6 @@ rt_err_t rt_hw_spi_bus_init(void)
 }
 
 #ifdef RT_USING_SPI1
-static struct stm32_spi_bus stm32_spi_bus_1;
 void SPI1_IRQHandler(void)
 {
     struct stm32_spi_bus* bus = &stm32_spi_bus_1;
@@ -1087,7 +1086,6 @@ void DMA1_Channel2_3_IRQHandler(void)
 #endif /* #ifdef RT_USING_SPI1 */
 
 #ifdef RT_USING_SPI2
-static struct stm32_spi_bus stm32_spi_bus_2;
 void SPI2_IRQHandler(void)
 {
     struct stm32_spi_bus* bus = &stm32_spi_bus_2;

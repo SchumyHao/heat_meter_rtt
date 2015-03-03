@@ -9,6 +9,10 @@ CPPPATH = [cwd]
 if GetDepend('RT_USING_SPI') & GetDepend('RT_USING_MUTEX'):
     src += ['rt_stm32f0xx_spi.c']
 
+if GetDepend('RT_USING_TDC_GP21') & GetDepend('RT_USING_SPI'):
+    src += ['spi_tdc_gp21.c']	
+
+
 group = DefineGroup('Drivers', src, depend = [''], CPPPATH = CPPPATH)
 
 Return('group')

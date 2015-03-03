@@ -87,6 +87,9 @@
 #endif /* RT_USING_SPI2 */
 #endif /* RT_USING_SPI */
 
+#define RT_USING_TDC_GP21
+#endif /* RT_USING_TDC_GP21 */
+
 /* SECTION: Console options */
 #define RT_USING_CONSOLE
 /* the buffer size of console*/

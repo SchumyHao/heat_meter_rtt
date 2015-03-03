@@ -21,17 +21,15 @@
     struct defination
 */
 struct spi_tdc_gp21 {
-    struct rt_device        tdc_device;
-    struct rt_spi_device*   rt_spi_device;
+    struct rt_spi_device        rt_spi_device;
+	struct spi_tdc_gp21_int_pin intpin;
+    float corr_factor;
 };
 struct spi_tdc_gp21_int_pin {
     GPIO_TypeDef* GPIOx;
     uint16_t GPIO_Pin;
 };
-struct spi_tdc_gp21_userdata {
-    struct spi_tdc_gp21_int_pin* intpin;
-    float corr_factor;
-};
+
 #define SPI_TDC_GP21_CTRL_MEASURE_TEMP   (0x01)
 #define SPI_TDC_GP21_CTRL_MEASURE_TOF2   (0x02)
 struct spi_tdc_gp21_temp_scales {
