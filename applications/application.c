@@ -25,7 +25,7 @@
 #ifdef  RT_USING_COMPONENTS_INIT
 #include <components.h>
 #endif  /* RT_USING_COMPONENTS_INIT */
-
+#if 0
 #include "led.h"
 #include "spi_tdc_gp21.h"
 
@@ -75,7 +75,7 @@ static void tdc_thread_entry(void* parameter)
         rt_thread_delay(20);
     }
 }
-
+#endif
 static void rt_init_thread_entry(void* parameter)
 {
     rt_thread_t tmp_thread;
@@ -90,12 +90,12 @@ static void rt_init_thread_entry(void* parameter)
     finsh_set_device(RT_CONSOLE_DEVICE_NAME);
 #endif  /* RT_USING_FINSH */
 
-    /* Create led thread */
+    /* Create led thread 
     tmp_thread = rt_thread_create("led",
                                   led_thread_entry, RT_NULL,
                                   256, 20, 20);
     if(tmp_thread != RT_NULL)
-        rt_thread_startup(tmp_thread);
+        rt_thread_startup(tmp_thread);*/
 
     /* Create TDC thread 
     tmp_thread = rt_thread_create("tdc",

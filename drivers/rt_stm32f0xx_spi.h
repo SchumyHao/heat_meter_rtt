@@ -25,7 +25,7 @@ struct stm32_spi_bus_cs {
 };
 
 /* public function list */
-int rt_hw_spi_bus_init(void);
+int rt_hw_spi_bus_register(void);
 #ifdef __cplusplus
 }
 #endif

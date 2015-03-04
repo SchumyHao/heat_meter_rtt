@@ -1,0 +1,9 @@
+from building import *
+
+src = Glob("*.c")
+
+group = DefineGroup('testcase', src,
+                    depend = ['RT_USING_TC'],
+                    CPPPATH=[GetCurrentDir()])
+
+Return('group')

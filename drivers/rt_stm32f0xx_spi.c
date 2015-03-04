@@ -263,6 +263,8 @@ static rt_err_t stm32_spi_bus_configure(struct rt_spi_device* dev, struct rt_spi
 
     RT_ASSERT(cfg != RT_NULL);
 
+    /* disable SPI bus */
+    SPI_Cmd(spi_bus->spix, DISABLE);
     SPI_StructInit(&spi_bus->init);
     stm32_spi_bus_get_InitTypeDef_from_configuration(&spi_bus->init, cfg);
     spi_bus->init.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
@@ -277,6 +279,9 @@ static rt_err_t stm32_spi_bus_configure(struct rt_spi_device* dev, struct rt_spi
     SPI_I2S_DeInit(SPIx);
     SPI_Init(SPIx, &spi_bus->init);
     SPI_CalculateCRC(SPIx, DISABLE);
+
+    /* enable SPI bus */
+    SPI_Cmd(spi_bus->spix, ENABLE);
 
     return RT_EOK;
 }
@@ -362,16 +367,16 @@ static void stm32_spi_bus_it_readn(struct stm32_spi_bus* bus, rt_uint8_t* rx_buf
     rt_size_t rx_len = len;
 
 
-	rt_kprintf("%s need read %d\n",bus->parent.parent.parent.name, (int)len);
+    rt_kprintf("%s need read %d\n",bus->parent.parent.parent.name, (int)len);
     do {
         if(RT_NULL != rx_buf) {
             rx_rb_readn = rt_ringbuffer_get(bus->rx_rb, rx_buf, rx_len);
-			rt_kprintf("%s read read %d\n",bus->parent.parent.parent.name, (int)rx_rb_readn);
+            rt_kprintf("%s read read %d\n",bus->parent.parent.parent.name, (int)rx_rb_readn);
             rx_buf += rx_rb_readn;
         }
         else {
             rx_rb_readn = rt_ringbuffer_discard_all(bus->rx_rb);
-			rt_kprintf("%s need read and leave %d\n",bus->parent.parent.parent.name, (int)rx_rb_readn);
+            rt_kprintf("%s need read and leave %d\n",bus->parent.parent.parent.name, (int)rx_rb_readn);
         }
         rx_len -= rx_rb_readn;
     }
@@ -667,7 +672,6 @@ static rt_err_t __stm32_spi_bus_transmit_receive(struct stm32_spi_bus* bus, cons
     /* check SPI bus is busy or not */
     if(RESET != SPI_I2S_GetFlagStatus(bus->spix, SPI_I2S_FLAG_BSY)) {
         return -RT_EBUSY;
-		rt_kprintf("%s busy!!!\n",bus->parent.parent.parent.name);
     }
 
     /* send data though dma/interrupt */
@@ -720,15 +724,10 @@ static rt_uint32_t stm32_spi_bus_xfer(struct rt_spi_device* dev, struct rt_spi_m
 {
     rt_uint32_t ret = 0;
     struct stm32_spi_bus* spi_bus = (struct stm32_spi_bus*)dev->bus;
-    SPI_TypeDef* SPIx = spi_bus->spix;
-
-    /* enable spi bus */
-    SPI_Cmd(SPIx, ENABLE);
-    rt_kprintf("%s on\n",dev->bus->parent.parent.name);
 
     if(stm32_spi_bus_is_master(spi_bus) && msg->cs_take) {
         stm32_spi_bus_take_cs(spi_bus);
-		rt_kprintf("%s take cs\n",dev->bus->parent.parent.name);
+        rt_kprintf("%s take cs\n",dev->bus->parent.parent.name);
     }
 
     spi_bus->xfer_size = (stm32_spi_bus_is_8bits(spi_bus))? msg->length: msg->length<<1;
@@ -762,11 +761,8 @@ static rt_uint32_t stm32_spi_bus_xfer(struct rt_spi_device* dev, struct rt_spi_m
 out:
     if(stm32_spi_bus_is_master(spi_bus) && msg->cs_release) {
         stm32_spi_bus_release_cs(spi_bus);
-		rt_kprintf("%s release cs\n",dev->bus->parent.parent.name);
+        rt_kprintf("%s release cs\n",dev->bus->parent.parent.name);
     }
-    /* disable spi bus */
-    SPI_Cmd(SPIx, DISABLE);
-	rt_kprintf("%s off\n",dev->bus->parent.parent.name);
 
     return ret;
 };
@@ -776,30 +772,12 @@ static const struct rt_spi_ops stm32_spi_ops = {
     stm32_spi_bus_xfer
 };
 
-static rt_err_t stm32_spi_bus_device_init(struct stm32_spi_bus* spi_bus, const char* spi_bus_name);
-
 static rt_err_t stm32_spi_bus_init(rt_device_t dev)
 {
     rt_err_t ret = RT_EOK;
 
     if(dev->type == RT_Device_Class_SPIBUS) {
-        struct stm32_spi_bus* spi_bus = (struct stm32_spi_bus*)dev;
-        if(spi_bus->spix == SPI1) {
-            ret = stm32_spi_bus_device_init(spi_bus, "spi1");
-            if(RT_EOK != ret) {
-                return ret;
-            }
-        }
-
-        if(spi_bus->spix == SPI2) {
-            ret = stm32_spi_bus_device_init(spi_bus, "spi2");
-            if(RT_EOK != ret) {
-                return ret;
-            }
-        }
-    }
-    else {
-        return -RT_ERROR;
+        return RT_EOK;
     }
 
     return RT_EOK;
@@ -807,11 +785,71 @@ static rt_err_t stm32_spi_bus_init(rt_device_t dev)
 
 static rt_err_t stm32_spi_bus_open(rt_device_t dev, rt_uint16_t oflag)
 {
+    GPIO_InitTypeDef SPI_GPIO;
+    struct stm32_spi_bus* spi_bus = (struct stm32_spi_bus*)dev;
+
     if(dev->type == RT_Device_Class_SPIBUS) {
         /* not open as read or write, return error */
         if(!(oflag & RT_DEVICE_OFLAG_RDWR)) {
             return -RT_ERROR;
         }
+
+
+        if(spi_bus->spix == SPI1) {
+            /* SPI1 RCC */
+            RCC_APB2PeriphClockCmd(SPI1_RCC, ENABLE);
+
+            /* SPI1 GPIO */
+            RCC_AHBPeriphClockCmd(SPI1_GPIO_PIN_RCC, ENABLE);
+            GPIO_StructInit(&SPI_GPIO);
+            SPI_GPIO.GPIO_Pin = SPI1_GPIO_MISO_PIN | SPI1_GPIO_MOSI_PIN | SPI1_GPIO_SCLK_PIN;
+            SPI_GPIO.GPIO_Mode = GPIO_Mode_AF;
+            SPI_GPIO.GPIO_PuPd = GPIO_PuPd_NOPULL;
+            SPI_GPIO.GPIO_Speed = GPIO_Speed_50MHz;
+            GPIO_Init(SPI1_GPIO_PIN_GROUP, &SPI_GPIO);
+            GPIO_PinAFConfig(SPI1_GPIO_PIN_GROUP, SPI1_GPIO_MISO_SOURCE, SPI1_GPIO_PIN_AF);
+            GPIO_PinAFConfig(SPI1_GPIO_PIN_GROUP, SPI1_GPIO_MOSI_SOURCE, SPI1_GPIO_PIN_AF);
+            GPIO_PinAFConfig(SPI1_GPIO_PIN_GROUP, SPI1_GPIO_SCLK_SOURCE, SPI1_GPIO_PIN_AF);
+
+            /* SPI1 Rx Tx DMA */
+            if(RT_NULL != SPI1_DMA_RX) {
+                RCC_AHBPeriphClockCmd(SPI1_DMA_RCC, ENABLE);
+            }
+            if(RT_NULL != SPI1_DMA_TX) {
+                RCC_AHBPeriphClockCmd(SPI1_DMA_RCC, ENABLE);
+            }
+        }
+        else if(spi_bus->spix == SPI2) {
+            /* SPI2 RCC */
+            RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
+
+            /* SPI2 GPIO */
+            RCC_AHBPeriphClockCmd(SPI2_GPIO_PIN_RCC, ENABLE);
+            GPIO_StructInit(&SPI_GPIO);
+            SPI_GPIO.GPIO_Pin = SPI2_GPIO_MISO_PIN | SPI2_GPIO_MOSI_PIN | SPI2_GPIO_SCLK_PIN;
+            SPI_GPIO.GPIO_Mode = GPIO_Mode_AF;
+            SPI_GPIO.GPIO_PuPd = GPIO_PuPd_NOPULL;
+            SPI_GPIO.GPIO_Speed = GPIO_Speed_50MHz;
+            GPIO_Init(SPI2_GPIO_PIN_GROUP, &SPI_GPIO);
+            GPIO_PinAFConfig(SPI2_GPIO_PIN_GROUP, SPI2_GPIO_MISO_SOURCE, SPI2_GPIO_PIN_AF);
+            GPIO_PinAFConfig(SPI2_GPIO_PIN_GROUP, SPI2_GPIO_MOSI_SOURCE, SPI2_GPIO_PIN_AF);
+            GPIO_PinAFConfig(SPI2_GPIO_PIN_GROUP, SPI2_GPIO_SCLK_SOURCE, SPI2_GPIO_PIN_AF);
+
+            /* SPI2 Rx Tx DMA */
+            if(RT_NULL != SPI2_DMA_RX) {
+                RCC_AHBPeriphClockCmd(SPI2_DMA_RCC, ENABLE);
+            }
+            if(RT_NULL != SPI2_DMA_TX) {
+                RCC_AHBPeriphClockCmd(SPI2_DMA_RCC, ENABLE);
+            }
+        }
+        else {
+            return -RT_ENOSYS;
+        }
+
+        /* enable SPI bus */
+        SPI_Cmd(spi_bus->spix, ENABLE);
+
         return RT_EOK;
     }
     else {
@@ -865,17 +903,17 @@ static rt_err_t stm32_spi_bus_register(struct rt_spi_bus* spi_bus, const char* s
     return RT_EOK;
 }
 
-rt_inline void STM32_spi_bus_rx_dma_isr(struct stm32_spi_bus* bus)
+static void STM32_spi_bus_rx_dma_isr(struct stm32_spi_bus* bus)
 {
     bus->rx_dma_tc_flag = RT_TRUE;
 }
 
-rt_inline void STM32_spi_bus_tx_dma_isr(struct stm32_spi_bus* bus)
+static void STM32_spi_bus_tx_dma_isr(struct stm32_spi_bus* bus)
 {
     bus->tx_dma_tc_flag = RT_TRUE;
 }
 
-rt_inline void STM32_spi_bus_rx_isr(struct stm32_spi_bus* bus)
+static void STM32_spi_bus_rx_isr(struct stm32_spi_bus* bus)
 {
     if(stm32_spi_bus_is_8bits(bus)) {
         uint8_t data = SPI_ReceiveData8(bus->spix);
@@ -889,7 +927,7 @@ rt_inline void STM32_spi_bus_rx_isr(struct stm32_spi_bus* bus)
     }
 }
 
-rt_inline void STM32_spi_bus_tx_isr(struct stm32_spi_bus* bus)
+static void STM32_spi_bus_tx_isr(struct stm32_spi_bus* bus)
 {
     if(stm32_spi_bus_is_8bits(bus)) {
         uint8_t data = 0;
@@ -915,10 +953,9 @@ rt_inline void STM32_spi_bus_tx_isr(struct stm32_spi_bus* bus)
     }
 }
 
-static rt_err_t stm32_spi_bus_device_init(struct stm32_spi_bus* spi_bus, const char* spi_bus_name)
+static rt_err_t stm32_spi_bus_device_register(struct stm32_spi_bus* spi_bus, const char* spi_bus_name)
 {
     rt_err_t ret = RT_EOK;
-    GPIO_InitTypeDef SPI_GPIO;
 
     ret = stm32_spi_bus_register(&(spi_bus->parent), spi_bus_name);
     if(RT_EOK != ret) {
@@ -926,24 +963,8 @@ static rt_err_t stm32_spi_bus_device_init(struct stm32_spi_bus* spi_bus, const c
     }
 
     if(spi_bus->spix == SPI1) {
-        /* SPI1 RCC */
-        RCC_APB2PeriphClockCmd(SPI1_RCC, ENABLE);
-
-        /* SPI1 GPIO */
-        RCC_AHBPeriphClockCmd(SPI1_GPIO_PIN_RCC, ENABLE);
-        GPIO_StructInit(&SPI_GPIO);
-        SPI_GPIO.GPIO_Pin = SPI1_GPIO_MISO_PIN | SPI1_GPIO_MOSI_PIN | SPI1_GPIO_SCLK_PIN;
-        SPI_GPIO.GPIO_Mode = GPIO_Mode_AF;
-        SPI_GPIO.GPIO_PuPd = GPIO_PuPd_NOPULL;
-        SPI_GPIO.GPIO_Speed = GPIO_Speed_50MHz;
-        GPIO_Init(SPI1_GPIO_PIN_GROUP, &SPI_GPIO);
-        GPIO_PinAFConfig(SPI1_GPIO_PIN_GROUP, SPI1_GPIO_MISO_SOURCE, SPI1_GPIO_PIN_AF);
-        GPIO_PinAFConfig(SPI1_GPIO_PIN_GROUP, SPI1_GPIO_MOSI_SOURCE, SPI1_GPIO_PIN_AF);
-        GPIO_PinAFConfig(SPI1_GPIO_PIN_GROUP, SPI1_GPIO_SCLK_SOURCE, SPI1_GPIO_PIN_AF);
-
         /* SPI1 Rx DMA */
         if(RT_NULL != SPI1_DMA_RX) {
-            RCC_AHBPeriphClockCmd(SPI1_DMA_RCC, ENABLE);
             spi_bus->rx_dma = SPI1_DMA_RX;
             spi_bus->RxDMAISR = STM32_spi_bus_rx_dma_isr;
             spi_bus->rx_dma_tc_flag = RT_FALSE;
@@ -955,12 +976,11 @@ static rt_err_t stm32_spi_bus_device_init(struct stm32_spi_bus* spi_bus, const c
             spi_bus->rx_dma_tc_flag = RT_FALSE;
             spi_bus->RxISR = STM32_spi_bus_rx_isr;
             rt_ringbuffer_init(&stm32_spi1_rx_rb, stm32_spi1_rx_buf, SPI_IT_XFER_ONEC_MAX_LEN);
-            spi_bus->tx_rb = &stm32_spi1_rx_rb;
+            spi_bus->rx_rb = &stm32_spi1_rx_rb;
         }
 
         /* SPI1 Tx DMA */
         if(RT_NULL != SPI1_DMA_TX) {
-            RCC_AHBPeriphClockCmd(SPI1_DMA_RCC, ENABLE);
             spi_bus->tx_dma = SPI1_DMA_TX;
             spi_bus->TxDMAISR = STM32_spi_bus_tx_dma_isr;
             spi_bus->tx_dma_tc_flag = RT_FALSE;
@@ -976,24 +996,8 @@ static rt_err_t stm32_spi_bus_device_init(struct stm32_spi_bus* spi_bus, const c
         }
     }
     else if(spi_bus->spix == SPI2) {
-        /* SPI2 RCC */
-        RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
-
-        /* SPI2 GPIO */
-        RCC_AHBPeriphClockCmd(SPI2_GPIO_PIN_RCC, ENABLE);
-        GPIO_StructInit(&SPI_GPIO);
-        SPI_GPIO.GPIO_Pin = SPI2_GPIO_MISO_PIN | SPI2_GPIO_MOSI_PIN | SPI2_GPIO_SCLK_PIN;
-        SPI_GPIO.GPIO_Mode = GPIO_Mode_AF;
-        SPI_GPIO.GPIO_PuPd = GPIO_PuPd_NOPULL;
-        SPI_GPIO.GPIO_Speed = GPIO_Speed_50MHz;
-        GPIO_Init(SPI2_GPIO_PIN_GROUP, &SPI_GPIO);
-        GPIO_PinAFConfig(SPI2_GPIO_PIN_GROUP, SPI2_GPIO_MISO_SOURCE, SPI2_GPIO_PIN_AF);
-        GPIO_PinAFConfig(SPI2_GPIO_PIN_GROUP, SPI2_GPIO_MOSI_SOURCE, SPI2_GPIO_PIN_AF);
-        GPIO_PinAFConfig(SPI2_GPIO_PIN_GROUP, SPI2_GPIO_SCLK_SOURCE, SPI2_GPIO_PIN_AF);
-
         /* SPI2 Rx DMA */
         if(RT_NULL != SPI2_DMA_RX) {
-            RCC_AHBPeriphClockCmd(SPI2_DMA_RCC, ENABLE);
             spi_bus->rx_dma = SPI2_DMA_RX;
             spi_bus->RxDMAISR = STM32_spi_bus_rx_dma_isr;
             spi_bus->rx_dma_tc_flag = RT_FALSE;
@@ -1005,12 +1009,11 @@ static rt_err_t stm32_spi_bus_device_init(struct stm32_spi_bus* spi_bus, const c
             spi_bus->rx_dma_tc_flag = RT_FALSE;
             spi_bus->RxISR = STM32_spi_bus_rx_isr;
             rt_ringbuffer_init(&stm32_spi2_rx_rb, stm32_spi2_rx_buf, SPI_IT_XFER_ONEC_MAX_LEN);
-            spi_bus->tx_rb = &stm32_spi2_rx_rb;
+            spi_bus->rx_rb = &stm32_spi2_rx_rb;
         }
 
         /* SPI2 Tx DMA */
         if(RT_NULL != SPI2_DMA_TX) {
-            RCC_AHBPeriphClockCmd(SPI2_DMA_RCC, ENABLE);
             spi_bus->tx_dma = SPI2_DMA_TX;
             spi_bus->TxDMAISR = STM32_spi_bus_tx_dma_isr;
             spi_bus->tx_dma_tc_flag = RT_FALSE;
@@ -1040,31 +1043,35 @@ static struct stm32_spi_bus stm32_spi_bus_1;
 static struct stm32_spi_bus stm32_spi_bus_2;
 #endif /* #ifdef RT_USING_SPI2 */
 
-int rt_hw_spi_bus_init(void)
+int rt_hw_spi_bus_register(void)
 {
     rt_err_t ret = RT_EOK;
 
 #ifdef RT_USING_SPI1
     stm32_spi_bus_1.spix = SPI1;
-    ret = stm32_spi_bus_device_init(&stm32_spi_bus_1, "spi1");
+    ret = stm32_spi_bus_device_register(&stm32_spi_bus_1, "spi1");
     if(RT_EOK != ret) {
         return ret;
     }
+    stm32_spi_bus_1.parent.parent.flag |= (RT_NULL!=SPI1_DMA_RX)? RT_DEVICE_FLAG_DMA_RX: RT_DEVICE_FLAG_INT_RX;
+    stm32_spi_bus_1.parent.parent.flag |= (RT_NULL!=SPI1_DMA_TX)? RT_DEVICE_FLAG_DMA_TX: RT_DEVICE_FLAG_INT_TX;
     stm32_spi_bus_1.parent.parent.flag |= RT_DEVICE_FLAG_ACTIVATED;
 #endif /* RT_USING_SPI1 */
 
 #ifdef RT_USING_SPI2
     stm32_spi_bus_2.spix = SPI2;
-    ret = stm32_spi_bus_device_init(&stm32_spi_bus_2, "spi2");
+    ret = stm32_spi_bus_device_register(&stm32_spi_bus_2, "spi2");
     if(RT_EOK != ret) {
         return ret;
     }
+    stm32_spi_bus_2.parent.parent.flag |= (RT_NULL!=SPI2_DMA_RX)? RT_DEVICE_FLAG_DMA_RX: RT_DEVICE_FLAG_INT_RX;
+    stm32_spi_bus_2.parent.parent.flag |= (RT_NULL!=SPI2_DMA_TX)? RT_DEVICE_FLAG_DMA_TX: RT_DEVICE_FLAG_INT_TX;
     stm32_spi_bus_2.parent.parent.flag |= RT_DEVICE_FLAG_ACTIVATED;
 #endif /* RT_USING_SPI2 */
 
     return RT_EOK;
 }
-//INIT_DEVICE_EXPORT(rt_hw_spi_bus_init);
+INIT_DEVICE_EXPORT(rt_hw_spi_bus_register);
 
 #ifdef RT_USING_SPI1
 void SPI1_IRQHandler(void)
@@ -1143,4 +1150,148 @@ void DMA1_Channel4_5_IRQHandler(void)
     rt_interrupt_leave();
 }
 #endif /* #ifdef RT_USING_SPI2 */
+
+/* TC test case */
+#ifdef RT_USING_TC
+#include "tc_comm.h"
+static void _tc_cleanup(void)
+{
+    tc_done(TC_STAT_PASSED);
+}
+
+int test_spi_bus_register_inter(void)
+{
+
+#ifdef RT_USING_SPI1
+    if(stm32_spi_bus_1.spix != SPI1) {
+        return -RT_ERROR;
+    }
+    if((stm32_spi_bus_1.parent.ops != &stm32_spi_ops)||
+       (stm32_spi_bus_1.parent.owner != RT_NULL)) {
+        return -RT_ERROR;
+    }
+    if(stm32_spi_bus_1.parent.parent.flag & RT_DEVICE_FLAG_DMA_RX) {
+        if((stm32_spi_bus_1.RxDMAISR != STM32_spi_bus_rx_dma_isr) ||
+           (stm32_spi_bus_1.rx_dma != SPI1_DMA_RX) ||
+           (stm32_spi_bus_1.rx_dma_tc_flag != RT_FALSE)) {
+            return -RT_ERROR;
+        }
+    }
+    if(stm32_spi_bus_1.parent.parent.flag & RT_DEVICE_FLAG_INT_RX) {
+        if((stm32_spi_bus_1.RxISR != STM32_spi_bus_rx_isr)||
+           (stm32_spi_bus_1.rx_it_count != 0)||
+           (stm32_spi_bus_1.rx_rb != &stm32_spi1_rx_rb)||
+           (rt_ringbuffer_data_len(stm32_spi_bus_1.rx_rb) != 0)) {
+            return -RT_ERROR;
+        }
+    }
+    if(stm32_spi_bus_1.parent.parent.flag & RT_DEVICE_FLAG_DMA_TX) {
+        if((stm32_spi_bus_1.TxDMAISR != STM32_spi_bus_tx_dma_isr) ||
+           (stm32_spi_bus_1.tx_dma != SPI1_DMA_TX) ||
+           (stm32_spi_bus_1.tx_dma_tc_flag != RT_FALSE)) {
+            return -RT_ERROR;
+        }
+    }
+    if(stm32_spi_bus_1.parent.parent.flag & RT_DEVICE_FLAG_INT_TX) {
+        if((stm32_spi_bus_1.TxISR != STM32_spi_bus_tx_isr)||
+           (stm32_spi_bus_1.tx_it_count != 0)||
+           (stm32_spi_bus_1.tx_rb != &stm32_spi1_tx_rb)||
+           (rt_ringbuffer_data_len(stm32_spi_bus_1.tx_rb) != 0)) {
+            return -RT_ERROR;
+        }
+    }
+#endif /* RT_USING_SPI1 */
+
+#ifdef RT_USING_SPI2
+    if(stm32_spi_bus_2.spix != SPI2) {
+        return -RT_ERROR;
+    }
+    if((stm32_spi_bus_2.parent.ops != &stm32_spi_ops)||
+       (stm32_spi_bus_2.parent.owner != RT_NULL)) {
+        return -RT_ERROR;
+    }
+    if(stm32_spi_bus_2.parent.parent.flag & RT_DEVICE_FLAG_DMA_RX) {
+        if((stm32_spi_bus_2.RxDMAISR != STM32_spi_bus_rx_dma_isr) ||
+           (stm32_spi_bus_2.rx_dma != SPI2_DMA_RX) ||
+           (stm32_spi_bus_2.rx_dma_tc_flag != RT_FALSE)) {
+            return -RT_ERROR;
+        }
+    }
+    if(stm32_spi_bus_2.parent.parent.flag & RT_DEVICE_FLAG_INT_RX) {
+        if((stm32_spi_bus_2.RxISR != STM32_spi_bus_rx_isr)||
+           (stm32_spi_bus_2.rx_it_count != 0)||
+           (stm32_spi_bus_2.rx_rb != &stm32_spi2_rx_rb)||
+           (rt_ringbuffer_data_len(stm32_spi_bus_2.rx_rb) != 0)) {
+            return -RT_ERROR;
+        }
+    }
+    if(stm32_spi_bus_2.parent.parent.flag & RT_DEVICE_FLAG_DMA_TX) {
+        if((stm32_spi_bus_2.TxDMAISR != STM32_spi_bus_tx_dma_isr) ||
+           (stm32_spi_bus_2.tx_dma != SPI2_DMA_TX) ||
+           (stm32_spi_bus_2.tx_dma_tc_flag != RT_FALSE)) {
+            return -RT_ERROR;
+        }
+    }
+    if(stm32_spi_bus_2.parent.parent.flag & RT_DEVICE_FLAG_INT_TX) {
+        if((stm32_spi_bus_2.TxISR != STM32_spi_bus_tx_isr)||
+           (stm32_spi_bus_2.tx_it_count != 0)||
+           (stm32_spi_bus_2.tx_rb != &stm32_spi2_tx_rb)||
+           (rt_ringbuffer_data_len(stm32_spi_bus_2.tx_rb) != 0)) {
+            return -RT_ERROR;
+        }
+    }
+#endif /* RT_USING_SPI2 */
+
+    return RT_EOK;
+}
+FINSH_FUNCTION_EXPORT(test_spi_bus_register_inter, test spi bus register inter);
+
+int _tc_test_spi_bus_register_inter(void)
+{
+    tc_cleanup(_tc_cleanup);
+
+    if(RT_EOK != test_spi_bus_register_inter()) {
+        tc_stat(TC_STAT_FAILED);
+    }
+
+    return 100;
+}
+FINSH_FUNCTION_EXPORT(_tc_test_spi_bus_register_inter, TC);
+
+int test_spi_bus_open_close_inter(void)
+{
+    struct stm32_spi_bus* spi_bus = RT_NULL;
+
+#ifdef RT_USING_SPI1
+    spi_bus = (struct stm32_spi_bus*)rt_device_find("spi1");
+    if(spi_bus == RT_NULL) {
+        return -RT_ERROR;
+    }
+    
+#endif /* RT_USING_SPI1 */
+
+#ifdef RT_USING_SPI2
+    spi_bus = (struct stm32_spi_bus*)rt_device_find("spi2");
+    if(spi_bus == RT_NULL) {
+        return -RT_ERROR;
+    }
+    
+#endif /* RT_USING_SPI2 */
+
+    return RT_EOK;
+}
+FINSH_FUNCTION_EXPORT(test_spi_bus_open_close_inter, test spi bus open and close);
+
+int _tc_test_spi_bus_open_close_inter(void)
+{
+    tc_cleanup(_tc_cleanup);
+
+    if(RT_EOK != test_spi_bus_open_close_inter()) {
+        tc_stat(TC_STAT_FAILED);
+    }
+    return 100;
+}
+FINSH_FUNCTION_EXPORT(_tc_test_spi_bus_open_close_inter, TC);
+
+#endif /* RT_USING_TC */
 

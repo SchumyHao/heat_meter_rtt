@@ -109,6 +109,9 @@
 #define FINSH_USING_SYMTAB
 #define FINSH_USING_DESCRIPTION
 
+/* SECTION: TC, a unit test component */
+#define RT_USING_TC
+
 /* SECTION: libc management */
 #define RT_USING_LIBC
 
