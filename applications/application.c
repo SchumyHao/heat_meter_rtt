@@ -97,12 +97,12 @@ static void rt_init_thread_entry(void* parameter)
     if(tmp_thread != RT_NULL)
         rt_thread_startup(tmp_thread);
 
-    /* Create TDC thread */
+    /* Create TDC thread 
     tmp_thread = rt_thread_create("tdc",
                                   tdc_thread_entry, RT_NULL,
-                                  256, 10, 20);
+                                  512, 10, 20);
     if(tmp_thread != RT_NULL)
-        rt_thread_startup(tmp_thread);
+        rt_thread_startup(tmp_thread);*/
 }
 
 int rt_application_init()
@@ -112,11 +112,11 @@ int rt_application_init()
 #if (RT_THREAD_PRIORITY_MAX == 32)
     init_thread = rt_thread_create("init",
                                    rt_init_thread_entry, RT_NULL,
-                                   512, 8, 20);
+                                   256, 8, 20);
 #else
     init_thread = rt_thread_create("init",
                                    rt_init_thread_entry, RT_NULL,
-                                   512, 80, 20);
+                                   256, 80, 20);
 #endif
     if(init_thread != RT_NULL)
         rt_thread_startup(init_thread);

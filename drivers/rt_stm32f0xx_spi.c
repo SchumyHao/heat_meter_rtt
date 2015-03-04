@@ -240,19 +240,19 @@ static void stm32_spi_bus_cs_pin_init(struct stm32_spi_bus* bus)
     GPIO_StructInit(&SPI_GPIO);
     if(bus->spix == SPI1) {
         SPI_GPIO.GPIO_Pin = SPI1_GPIO_NSS_PIN;
-        SPI_GPIO.GPIO_Mode = GPIO_Mode_AF;
-        SPI_GPIO.GPIO_PuPd = GPIO_PuPd_NOPULL;
+        SPI_GPIO.GPIO_Mode = GPIO_Mode_OUT;
+        SPI_GPIO.GPIO_PuPd = GPIO_PuPd_UP;
         SPI_GPIO.GPIO_Speed = GPIO_Speed_50MHz;
         GPIO_Init(SPI1_GPIO_PIN_GROUP, &SPI_GPIO);
-        GPIO_PinAFConfig(SPI1_GPIO_PIN_GROUP, SPI1_GPIO_NSS_SOURCE, SPI1_GPIO_PIN_AF);
+        GPIO_SetBits(SPI1_GPIO_PIN_GROUP, SPI1_GPIO_NSS_PIN);
     }
     else if(bus->spix == SPI2) {
         SPI_GPIO.GPIO_Pin = SPI2_GPIO_NSS_PIN;
-        SPI_GPIO.GPIO_Mode = GPIO_Mode_AF;
-        SPI_GPIO.GPIO_PuPd = GPIO_PuPd_NOPULL;
+        SPI_GPIO.GPIO_Mode = GPIO_Mode_OUT;
+        SPI_GPIO.GPIO_PuPd = GPIO_PuPd_UP;
         SPI_GPIO.GPIO_Speed = GPIO_Speed_50MHz;
         GPIO_Init(SPI2_GPIO_PIN_GROUP, &SPI_GPIO);
-        GPIO_PinAFConfig(SPI2_GPIO_PIN_GROUP, SPI2_GPIO_NSS_SOURCE, SPI2_GPIO_PIN_AF);
+        GPIO_SetBits(SPI2_GPIO_PIN_GROUP, SPI2_GPIO_NSS_PIN);
     }
 }
 
@@ -288,7 +288,12 @@ rt_inline void stm32_spi_bus_take_cs(struct stm32_spi_bus* bus)
         cs->take(cs);
     }
     else {
-        SPI_NSSInternalSoftwareConfig(bus->spix, SPI_NSSInternalSoft_Reset);
+        if(bus->spix == SPI1) {
+            GPIO_ResetBits(SPI1_GPIO_PIN_GROUP, SPI1_GPIO_NSS_PIN);
+        }
+        else if(bus->spix == SPI2) {
+            GPIO_ResetBits(SPI2_GPIO_PIN_GROUP, SPI2_GPIO_NSS_PIN);
+        }
     }
 }
 
@@ -299,7 +304,12 @@ rt_inline void stm32_spi_bus_release_cs(struct stm32_spi_bus* bus)
         cs->release(cs);
     }
     else {
-        SPI_NSSInternalSoftwareConfig(bus->spix, SPI_NSSInternalSoft_Set);
+        if(bus->spix == SPI1) {
+            GPIO_SetBits(SPI1_GPIO_PIN_GROUP, SPI1_GPIO_NSS_PIN);
+        }
+        else if(bus->spix == SPI2) {
+            GPIO_SetBits(SPI2_GPIO_PIN_GROUP, SPI2_GPIO_NSS_PIN);
+        }
     }
 }
 
@@ -351,13 +361,17 @@ static void stm32_spi_bus_it_readn(struct stm32_spi_bus* bus, rt_uint8_t* rx_buf
     rt_size_t rx_rb_readn = 0;
     rt_size_t rx_len = len;
 
+
+	rt_kprintf("%s need read %d\n",bus->parent.parent.parent.name, (int)len);
     do {
         if(RT_NULL != rx_buf) {
             rx_rb_readn = rt_ringbuffer_get(bus->rx_rb, rx_buf, rx_len);
+			rt_kprintf("%s read read %d\n",bus->parent.parent.parent.name, (int)rx_rb_readn);
             rx_buf += rx_rb_readn;
         }
         else {
             rx_rb_readn = rt_ringbuffer_discard_all(bus->rx_rb);
+			rt_kprintf("%s need read and leave %d\n",bus->parent.parent.parent.name, (int)rx_rb_readn);
         }
         rx_len -= rx_rb_readn;
     }
@@ -653,6 +667,7 @@ static rt_err_t __stm32_spi_bus_transmit_receive(struct stm32_spi_bus* bus, cons
     /* check SPI bus is busy or not */
     if(RESET != SPI_I2S_GetFlagStatus(bus->spix, SPI_I2S_FLAG_BSY)) {
         return -RT_EBUSY;
+		rt_kprintf("%s busy!!!\n",bus->parent.parent.parent.name);
     }
 
     /* send data though dma/interrupt */
@@ -709,9 +724,11 @@ static rt_uint32_t stm32_spi_bus_xfer(struct rt_spi_device* dev, struct rt_spi_m
 
     /* enable spi bus */
     SPI_Cmd(SPIx, ENABLE);
+    rt_kprintf("%s on\n",dev->bus->parent.parent.name);
 
     if(stm32_spi_bus_is_master(spi_bus) && msg->cs_take) {
         stm32_spi_bus_take_cs(spi_bus);
+		rt_kprintf("%s take cs\n",dev->bus->parent.parent.name);
     }
 
     spi_bus->xfer_size = (stm32_spi_bus_is_8bits(spi_bus))? msg->length: msg->length<<1;
@@ -745,9 +762,11 @@ static rt_uint32_t stm32_spi_bus_xfer(struct rt_spi_device* dev, struct rt_spi_m
 out:
     if(stm32_spi_bus_is_master(spi_bus) && msg->cs_release) {
         stm32_spi_bus_release_cs(spi_bus);
+		rt_kprintf("%s release cs\n",dev->bus->parent.parent.name);
     }
     /* disable spi bus */
     SPI_Cmd(SPIx, DISABLE);
+	rt_kprintf("%s off\n",dev->bus->parent.parent.name);
 
     return ret;
 };
@@ -1021,7 +1040,7 @@ static struct stm32_spi_bus stm32_spi_bus_1;
 static struct stm32_spi_bus stm32_spi_bus_2;
 #endif /* #ifdef RT_USING_SPI2 */
 
-rt_err_t rt_hw_spi_bus_init(void)
+int rt_hw_spi_bus_init(void)
 {
     rt_err_t ret = RT_EOK;
 
@@ -1045,7 +1064,7 @@ rt_err_t rt_hw_spi_bus_init(void)
 
     return RT_EOK;
 }
-INIT_DEVICE_EXPORT(rt_hw_spi_bus_init);
+//INIT_DEVICE_EXPORT(rt_hw_spi_bus_init);
 
 #ifdef RT_USING_SPI1
 void SPI1_IRQHandler(void)
