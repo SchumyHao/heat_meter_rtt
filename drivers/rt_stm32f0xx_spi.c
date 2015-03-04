@@ -411,6 +411,7 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_dma(struct stm32_spi_bus*
 {
     SPI_TypeDef* SPIx = bus->spix;
     DMA_InitTypeDef SPI_DMA;
+    NVIC_InitTypeDef SPI_NVIC;
     uint16_t dump = SPI_DUMP;
 
     if(stm32_spi_bus_is_8bits(bus)) {
@@ -424,7 +425,7 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_dma(struct stm32_spi_bus*
         SPI_DMA.DMA_Priority = DMA_Priority_Low;
         SPI_DMA.DMA_BufferSize = len;
         SPI_DMA.DMA_M2M = DMA_M2M_Disable;
-        SPI_DMA.DMA_PeripheralBaseAddr = SPIx->DR;
+        SPI_DMA.DMA_PeripheralBaseAddr = (uint32_t)&SPIx->DR;
         if(tx_buf!=RT_NULL) {
             SPI_DMA.DMA_MemoryInc = DMA_MemoryInc_Enable;
             SPI_DMA.DMA_MemoryBaseAddr = (uint32_t)tx_buf;
@@ -456,7 +457,7 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_dma(struct stm32_spi_bus*
         SPI_DMA.DMA_Priority = DMA_Priority_Low;
         SPI_DMA.DMA_BufferSize = len>>1;
         SPI_DMA.DMA_M2M = DMA_M2M_Disable;
-        SPI_DMA.DMA_PeripheralBaseAddr = SPIx->DR;
+        SPI_DMA.DMA_PeripheralBaseAddr = (uint32_t)&SPIx->DR;
         if(tx_buf!=RT_NULL) {
             SPI_DMA.DMA_MemoryInc = DMA_MemoryInc_Enable;
             SPI_DMA.DMA_MemoryBaseAddr = (uint32_t)tx_buf;
@@ -481,6 +482,16 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_dma(struct stm32_spi_bus*
     SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, ENABLE);
     DMA_ITConfig(bus->rx_dma, DMA_IT_TC, ENABLE);
     DMA_ITConfig(bus->tx_dma, DMA_IT_TC, ENABLE);
+    if(SPIx == SPI1){
+        SPI_NVIC.NVIC_IRQChannel = DMA1_Channel2_3_IRQn;
+    }
+    else{
+        SPI_NVIC.NVIC_IRQChannel = DMA1_Channel4_5_IRQn;
+    }
+    SPI_NVIC.NVIC_IRQChannelCmd = ENABLE;
+    SPI_NVIC.NVIC_IRQChannelPriority = 0;
+    NVIC_Init(&SPI_NVIC);
+
     DMA_Cmd(bus->rx_dma, ENABLE);
     DMA_Cmd(bus->tx_dma, ENABLE);
 
@@ -494,6 +505,14 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_dma(struct stm32_spi_bus*
     DMA_ITConfig(bus->rx_dma, DMA_IT_TC, DISABLE);
     DMA_Cmd(bus->rx_dma, DISABLE);
     bus->rx_dma_tc_flag = RT_FALSE;
+    if(SPIx == SPI1){
+        SPI_NVIC.NVIC_IRQChannel = DMA1_Channel2_3_IRQn;
+    }
+    else{
+        SPI_NVIC.NVIC_IRQChannel = DMA1_Channel4_5_IRQn;
+    }
+    SPI_NVIC.NVIC_IRQChannelCmd = DISABLE;
+    NVIC_Init(&SPI_NVIC);
 
     return RT_EOK;
 }
@@ -502,6 +521,7 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_it_receive_dma(struct stm32_spi_bus* 
 {
     SPI_TypeDef* SPIx = bus->spix;
     DMA_InitTypeDef SPI_DMA;
+    NVIC_InitTypeDef SPI_NVIC;
     uint16_t dump = 0;
 
     if(stm32_spi_bus_is_8bits(bus)) {
@@ -515,7 +535,7 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_it_receive_dma(struct stm32_spi_bus* 
         SPI_DMA.DMA_Priority = DMA_Priority_Low;
         SPI_DMA.DMA_BufferSize = len;
         SPI_DMA.DMA_M2M = DMA_M2M_Disable;
-        SPI_DMA.DMA_PeripheralBaseAddr = SPIx->DR;
+        SPI_DMA.DMA_PeripheralBaseAddr = (uint32_t)&SPIx->DR;
         if(rx_buf!=RT_NULL) {
             SPI_DMA.DMA_MemoryInc = DMA_MemoryInc_Enable;
             SPI_DMA.DMA_MemoryBaseAddr = (uint32_t)rx_buf;
@@ -537,7 +557,7 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_it_receive_dma(struct stm32_spi_bus* 
         SPI_DMA.DMA_Priority = DMA_Priority_Low;
         SPI_DMA.DMA_BufferSize = len>>1;
         SPI_DMA.DMA_M2M = DMA_M2M_Disable;
-        SPI_DMA.DMA_PeripheralBaseAddr = SPIx->DR;
+        SPI_DMA.DMA_PeripheralBaseAddr = (uint32_t)&SPIx->DR;
         if(rx_buf!=RT_NULL) {
             SPI_DMA.DMA_MemoryInc = DMA_MemoryInc_Enable;
             SPI_DMA.DMA_MemoryBaseAddr = (uint32_t)rx_buf;
@@ -553,7 +573,25 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_it_receive_dma(struct stm32_spi_bus* 
     SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_RXNE, DISABLE);
     SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Rx, ENABLE);
     DMA_ITConfig(bus->rx_dma, DMA_IT_TC, ENABLE);
+    if(SPIx == SPI1){
+        SPI_NVIC.NVIC_IRQChannel = DMA1_Channel2_3_IRQn;
+    }
+    else{
+        SPI_NVIC.NVIC_IRQChannel = DMA1_Channel4_5_IRQn;
+    }
+    SPI_NVIC.NVIC_IRQChannelCmd = ENABLE;
+    SPI_NVIC.NVIC_IRQChannelPriority = 0;
+    NVIC_Init(&SPI_NVIC);
     DMA_Cmd(bus->rx_dma, ENABLE);
+    if(SPIx == SPI1){
+        SPI_NVIC.NVIC_IRQChannel = SPI1_IRQn;
+    }
+    else{
+        SPI_NVIC.NVIC_IRQChannel = SPI2_IRQn;
+    }
+    SPI_NVIC.NVIC_IRQChannelCmd = ENABLE;
+    SPI_NVIC.NVIC_IRQChannelPriority = 1;
+    NVIC_Init(&SPI_NVIC);
 
     /* Tx data use interrupt */
     stm32_spi_bus_it_writen(bus, tx_buf, len);
@@ -564,6 +602,21 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_it_receive_dma(struct stm32_spi_bus* 
     DMA_ITConfig(bus->rx_dma, DMA_IT_TC, DISABLE);
     DMA_Cmd(bus->rx_dma, DISABLE);
     bus->rx_dma_tc_flag = RT_FALSE;
+    if(SPIx == SPI1){
+        SPI_NVIC.NVIC_IRQChannel = DMA1_Channel2_3_IRQn;
+    }
+    else{
+        SPI_NVIC.NVIC_IRQChannel = DMA1_Channel4_5_IRQn;
+    }
+    SPI_NVIC.NVIC_IRQChannelCmd = DISABLE;
+    NVIC_Init(&SPI_NVIC);
+    if(SPIx == SPI1){
+        SPI_NVIC.NVIC_IRQChannel = SPI1_IRQn;
+    }
+    else{
+        SPI_NVIC.NVIC_IRQChannel = SPI2_IRQn;
+    }
+    NVIC_Init(&SPI_NVIC);
 
     return RT_EOK;
 }
@@ -572,6 +625,7 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_it(struct stm32_spi_bus* 
 {
     SPI_TypeDef* SPIx = bus->spix;
     DMA_InitTypeDef SPI_DMA;
+    NVIC_InitTypeDef SPI_NVIC;
     uint16_t dump = SPI_DUMP;
 
     if(stm32_spi_bus_is_8bits(bus)) {
@@ -585,7 +639,7 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_it(struct stm32_spi_bus* 
         SPI_DMA.DMA_Priority = DMA_Priority_Low;
         SPI_DMA.DMA_BufferSize = len;
         SPI_DMA.DMA_M2M = DMA_M2M_Disable;
-        SPI_DMA.DMA_PeripheralBaseAddr = SPIx->DR;
+        SPI_DMA.DMA_PeripheralBaseAddr = (uint32_t)&SPIx->DR;
         if(tx_buf!=RT_NULL) {
             SPI_DMA.DMA_MemoryInc = DMA_MemoryInc_Enable;
             SPI_DMA.DMA_MemoryBaseAddr = (uint32_t)tx_buf;
@@ -607,7 +661,7 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_it(struct stm32_spi_bus* 
         SPI_DMA.DMA_Priority = DMA_Priority_Low;
         SPI_DMA.DMA_BufferSize = len>>1;
         SPI_DMA.DMA_M2M = DMA_M2M_Disable;
-        SPI_DMA.DMA_PeripheralBaseAddr = SPIx->DR;
+        SPI_DMA.DMA_PeripheralBaseAddr = (uint32_t)&SPIx->DR;
         if(tx_buf!=RT_NULL) {
             SPI_DMA.DMA_MemoryInc = DMA_MemoryInc_Enable;
             SPI_DMA.DMA_MemoryBaseAddr = (uint32_t)tx_buf;
@@ -624,6 +678,24 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_it(struct stm32_spi_bus* 
     SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Tx, ENABLE);
     SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_RXNE, ENABLE);
     DMA_ITConfig(bus->tx_dma, DMA_IT_TC, ENABLE);
+    if(SPIx == SPI1){
+        SPI_NVIC.NVIC_IRQChannel = SPI1_IRQn;
+    }
+    else{
+        SPI_NVIC.NVIC_IRQChannel = SPI2_IRQn;
+    }
+    SPI_NVIC.NVIC_IRQChannelCmd = ENABLE;
+    SPI_NVIC.NVIC_IRQChannelPriority = 0;
+    NVIC_Init(&SPI_NVIC);
+    if(SPIx == SPI1){
+        SPI_NVIC.NVIC_IRQChannel = DMA1_Channel2_3_IRQn;
+    }
+    else{
+        SPI_NVIC.NVIC_IRQChannel = DMA1_Channel4_5_IRQn;
+    }
+    SPI_NVIC.NVIC_IRQChannelCmd = ENABLE;
+    SPI_NVIC.NVIC_IRQChannelPriority = 1;
+    NVIC_Init(&SPI_NVIC);
 
     /* Tx data use DMA */
     DMA_Cmd(bus->tx_dma, ENABLE);
@@ -638,6 +710,21 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_it(struct stm32_spi_bus* 
     bus->tx_dma_tc_flag = RT_FALSE;
     SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_RXNE, DISABLE);
     bus->rx_it_count = 0;
+    if(SPIx == SPI1){
+        SPI_NVIC.NVIC_IRQChannel = SPI1_IRQn;
+    }
+    else{
+        SPI_NVIC.NVIC_IRQChannel = SPI2_IRQn;
+    }
+    SPI_NVIC.NVIC_IRQChannelCmd = DISABLE;
+    NVIC_Init(&SPI_NVIC);
+    if(SPIx == SPI1){
+        SPI_NVIC.NVIC_IRQChannel = DMA1_Channel2_3_IRQn;
+    }
+    else{
+        SPI_NVIC.NVIC_IRQChannel = DMA1_Channel4_5_IRQn;
+    }
+    NVIC_Init(&SPI_NVIC);
 
     return RT_EOK;
 }
@@ -645,6 +732,7 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_it(struct stm32_spi_bus* 
 rt_inline rt_err_t _stm32_spi_bus_transmit_it_receive_it(struct stm32_spi_bus* bus, const rt_uint8_t* tx_buf, rt_uint8_t* rx_buf, rt_size_t len)
 {
     SPI_TypeDef* SPIx = bus->spix;
+    NVIC_InitTypeDef SPI_NVIC;
 
     if(stm32_spi_bus_is_8bits(bus)) {
         SPI_RxFIFOThresholdConfig(SPIx, SPI_RxFIFOThreshold_QF);
@@ -657,12 +745,30 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_it_receive_it(struct stm32_spi_bus* b
     SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, DISABLE);
     SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_RXNE, ENABLE);
 
+    if(SPIx == SPI1){
+        SPI_NVIC.NVIC_IRQChannel = SPI1_IRQn;
+    }
+    else{
+        SPI_NVIC.NVIC_IRQChannel = SPI2_IRQn;
+    }
+    SPI_NVIC.NVIC_IRQChannelCmd = ENABLE;
+    SPI_NVIC.NVIC_IRQChannelPriority = 0;
+    NVIC_Init(&SPI_NVIC);
+
     /* Tx data use interrupt */
     stm32_spi_bus_it_writen_and_readn(bus, tx_buf, rx_buf, len);
 
     /* Tx Rx over */
     SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_RXNE, DISABLE);
     bus->rx_it_count = 0;
+    if(SPIx == SPI1){
+        SPI_NVIC.NVIC_IRQChannel = SPI1_IRQn;
+    }
+    else{
+        SPI_NVIC.NVIC_IRQChannel = SPI2_IRQn;
+    }
+    SPI_NVIC.NVIC_IRQChannelCmd = DISABLE;
+    NVIC_Init(&SPI_NVIC);
 
     return RT_EOK;
 }
@@ -793,7 +899,6 @@ static rt_err_t stm32_spi_bus_open(rt_device_t dev, rt_uint16_t oflag)
         if(!(oflag & RT_DEVICE_OFLAG_RDWR)) {
             return -RT_ERROR;
         }
-
 
         if(spi_bus->spix == SPI1) {
             /* SPI1 RCC */
@@ -1267,7 +1372,23 @@ int test_spi_bus_open_close_inter(void)
     if(spi_bus == RT_NULL) {
         return -RT_ERROR;
     }
-    
+	if(RT_EOK != rt_device_open((rt_device_t)spi_bus, RT_DEVICE_OFLAG_RDWR)){
+		return -RT_ERROR;
+	}
+	if(!((RCC->AHBENR & (SPI1_GPIO_PIN_RCC))&&
+		(RCC->AHBENR & (SPI1_DMA_RCC))&&
+		(RCC->APB2ENR & (RCC_APB2Periph_SPI1)))){
+		return -RT_ERROR;
+	}
+	if(!(spi_bus->spix->CR1 & SPI_CR1_SPE)){
+		return -RT_ERROR;
+	}
+	if(RT_EOK != rt_device_close((rt_device_t)spi_bus)){
+		return -RT_ERROR;
+	}
+	if(spi_bus->spix->CR1 & SPI_CR1_SPE){
+		return -RT_ERROR;
+	}
 #endif /* RT_USING_SPI1 */
 
 #ifdef RT_USING_SPI2
@@ -1275,7 +1396,23 @@ int test_spi_bus_open_close_inter(void)
     if(spi_bus == RT_NULL) {
         return -RT_ERROR;
     }
-    
+	if(RT_EOK != rt_device_open((rt_device_t)spi_bus, RT_DEVICE_OFLAG_RDWR)){
+		return -RT_ERROR;
+	}
+	if(!((RCC->AHBENR & (SPI2_GPIO_PIN_RCC))&&
+		(RCC->AHBENR & (SPI2_DMA_RCC))&&
+		(RCC->APB1ENR & (RCC_APB1Periph_SPI2)))){
+		return -RT_ERROR;
+	}
+	if(!(spi_bus->spix->CR1 & SPI_CR1_SPE)){
+		return -RT_ERROR;
+	}
+	if(RT_EOK != rt_device_close((rt_device_t)spi_bus)){
+		return -RT_ERROR;
+	}
+	if(spi_bus->spix->CR1 & SPI_CR1_SPE){
+		return -RT_ERROR;
+	}
 #endif /* RT_USING_SPI2 */
 
     return RT_EOK;
