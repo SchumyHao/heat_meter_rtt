@@ -13,7 +13,8 @@ int test_spi_dev(void)
     struct rt_spi_device spi_dev;
     struct rt_spi_configuration cfg;
     rt_device_t spi_bus = RT_NULL;
-    rt_uint8_t tmp = 0;
+    rt_uint32_t tmp[2] = {0,0};
+	const rt_uint32_t data[2] = {0x12345678,0x87654321};
 
 #ifdef RT_USING_SPI1
     spi_bus = rt_device_find("spi1");
@@ -33,7 +34,7 @@ int test_spi_dev(void)
         return -RT_ERROR;
     }
     cfg.data_width = 8;
-    cfg.mode = RT_SPI_MODE_1 | RT_SPI_MSB;
+    cfg.mode = RT_SPI_MODE_0 | RT_SPI_MSB;
     cfg.max_hz = 20000000;
     if(RT_EOK != rt_spi_configure(&spi_dev, &cfg)) {
         return -RT_ERROR;
@@ -47,12 +48,10 @@ int test_spi_dev(void)
     if(RT_EOK != rt_spi_release(&spi_dev)) {
         return -RT_ERROR;
     }
-#if 0
-    if(1 != rt_spi_transfer(&spi_dev, "0xff", RT_NULL, 1)) {
-        return -RT_ERROR;
-    }
-    if(1 != rt_spi_transfer(&spi_dev, "0xff", &tmp, 1) ||
-       (0xff != tmp)) {
+#if 1
+    if(1 != rt_spi_transfer(&spi_dev, data, tmp, sizeof(data)) ||
+       (data[0] != tmp[0]) ||
+       (data[1] != tmp[1])) {
         return -RT_ERROR;
     }
 #endif

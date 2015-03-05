@@ -115,6 +115,7 @@
 /* SECTION: libc management */
 #define RT_USING_LIBC
 
+#if 0
 /* SECTION: device filesystem */
 /* #define RT_USING_DFS */
 //#define RT_USING_DFS_ELMFAT
@@ -134,5 +135,6 @@
 #define DFS_FILESYSTEMS_MAX			2
 /* the max number of opened files 		*/
 #define DFS_FD_MAX					4
+#endif /* 0 */
 
 #endif

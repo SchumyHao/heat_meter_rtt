@@ -15,6 +15,9 @@ int test_spi_bus_register(void)
     if(spi_bus == RT_NULL) {
         return -RT_ERROR;
     }
+    if(RT_EOK != rt_device_open(spi_bus, RT_DEVICE_OFLAG_RDWR)) {
+        return -RT_ERROR;
+    }
     if((spi_bus->write == RT_NULL) ||
        (spi_bus->close == RT_NULL) ||
        (spi_bus->open == RT_NULL) ||
@@ -51,12 +54,18 @@ int test_spi_bus_register(void)
         return -RT_ERROR;
     }
 #endif /* defined(RT_USING_SPI1_TX_DMA)&&defined(RT_USING_SPI1_RX_DMA) */
+    if(RT_EOK != rt_device_close(spi_bus)) {
+        return -RT_ERROR;
+    }
 #endif /* RT_USING_SPI1 */
 
 
 #ifdef RT_USING_SPI2
     spi_bus = rt_device_find("spi2");
     if(spi_bus == RT_NULL) {
+        return -RT_ERROR;
+    }
+    if(RT_EOK != rt_device_open(spi_bus, RT_DEVICE_OFLAG_RDWR)) {
         return -RT_ERROR;
     }
     if((spi_bus->write == RT_NULL) ||
@@ -95,6 +104,9 @@ int test_spi_bus_register(void)
         return -RT_ERROR;
     }
 #endif /* defined(RT_USING_SPI2_TX_DMA)&&defined(RT_USING_SPI2_RX_DMA) */
+    if(RT_EOK != rt_device_close(spi_bus)) {
+        return -RT_ERROR;
+    }
 #endif /* RT_USING_SPI2 */
 
     return RT_EOK;

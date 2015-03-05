@@ -15,17 +15,19 @@
 #define SPI_IT_XFER_ONEC_MAX_LEN (32)
 
 /* SPI1 */
-#define SPI1_GPIO_MISO_PIN       GPIO_Pin_6
-#define SPI1_GPIO_MISO_SOURCE    GPIO_PinSource6
-#define SPI1_GPIO_MOSI_PIN       GPIO_Pin_7
-#define SPI1_GPIO_MOSI_SOURCE    GPIO_PinSource7
-#define SPI1_GPIO_SCLK_PIN       GPIO_Pin_5
-#define SPI1_GPIO_SCLK_SOURCE    GPIO_PinSource5
-#define SPI1_GPIO_NSS_PIN        GPIO_Pin_4
-#define SPI1_GPIO_NSS_SOURCE     GPIO_PinSource4
-#define SPI1_GPIO_PIN_GROUP      GPIOA
-#define SPI1_GPIO_PIN_RCC        RCC_AHBPeriph_GPIOA
+#define SPI1_GPIO_MISO_PIN       GPIO_Pin_4
+#define SPI1_GPIO_MISO_SOURCE    GPIO_PinSource4
+#define SPI1_GPIO_MOSI_PIN       GPIO_Pin_5
+#define SPI1_GPIO_MOSI_SOURCE    GPIO_PinSource5
+#define SPI1_GPIO_SCLK_PIN       GPIO_Pin_3
+#define SPI1_GPIO_SCLK_SOURCE    GPIO_PinSource3
+#define SPI1_GPIO_PIN_GROUP      GPIOB
+#define SPI1_GPIO_PIN_RCC        RCC_AHBPeriph_GPIOB
 #define SPI1_GPIO_PIN_AF         GPIO_AF_0
+#define SPI1_GPIO_NSS_PIN        GPIO_Pin_1
+#define SPI1_GPIO_NSS_SOURCE     GPIO_PinSource1
+#define SPI1_GPIO_NSS_PIN_GROUP  GPIOC
+#define SPI1_GPIO_NSS_PIN_RCC    RCC_AHBPeriph_GPIOC
 #define SPI1_RCC                 RCC_APB2Periph_SPI1
 #define SPI1_DMA_RCC             RCC_AHBPeriph_DMA1
 #ifdef RT_USING_SPI1_TX_DMA
@@ -50,11 +52,13 @@ static struct rt_ringbuffer stm32_spi1_rx_rb;
 #define SPI2_GPIO_MOSI_SOURCE    GPIO_PinSource15
 #define SPI2_GPIO_SCLK_PIN       GPIO_Pin_13
 #define SPI2_GPIO_SCLK_SOURCE    GPIO_PinSource13
-#define SPI2_GPIO_NSS_PIN        GPIO_Pin_12
-#define SPI2_GPIO_NSS_SOURCE     GPIO_PinSource12
 #define SPI2_GPIO_PIN_GROUP      GPIOB
 #define SPI2_GPIO_PIN_RCC        RCC_AHBPeriph_GPIOB
 #define SPI2_GPIO_PIN_AF         GPIO_AF_0
+#define SPI2_GPIO_NSS_PIN        GPIO_Pin_5
+#define SPI2_GPIO_NSS_SOURCE     GPIO_PinSource5
+#define SPI2_GPIO_NSS_PIN_GROUP  GPIOA
+#define SPI2_GPIO_NSS_PIN_RCC    RCC_AHBPeriph_GPIOA
 #define SPI2_RCC                 RCC_APB1Periph_SPI2
 #define SPI2_DMA_RCC             RCC_AHBPeriph_DMA1
 #ifdef RT_USING_SPI2_TX_DMA
@@ -226,12 +230,12 @@ rt_inline rt_bool_t stm32_spi_bus_is_8bits(struct stm32_spi_bus* bus)
 
 rt_inline rt_bool_t stm32_spi_bus_is_tx_dma(struct stm32_spi_bus* bus)
 {
-    return (RT_NULL==bus->tx_dma)? RT_FALSE: RT_TRUE;
+    return (bus->parent.parent.flag & RT_DEVICE_FLAG_DMA_TX)? RT_TRUE: RT_FALSE;
 }
 
 rt_inline rt_bool_t stm32_spi_bus_is_rx_dma(struct stm32_spi_bus* bus)
 {
-    return (RT_NULL==bus->rx_dma)? RT_FALSE: RT_TRUE;
+    return (bus->parent.parent.flag & RT_DEVICE_FLAG_DMA_RX)? RT_TRUE: RT_FALSE;
 }
 
 static void stm32_spi_bus_cs_pin_init(struct stm32_spi_bus* bus)
@@ -243,16 +247,16 @@ static void stm32_spi_bus_cs_pin_init(struct stm32_spi_bus* bus)
         SPI_GPIO.GPIO_Mode = GPIO_Mode_OUT;
         SPI_GPIO.GPIO_PuPd = GPIO_PuPd_UP;
         SPI_GPIO.GPIO_Speed = GPIO_Speed_50MHz;
-        GPIO_Init(SPI1_GPIO_PIN_GROUP, &SPI_GPIO);
-        GPIO_SetBits(SPI1_GPIO_PIN_GROUP, SPI1_GPIO_NSS_PIN);
+        GPIO_Init(SPI1_GPIO_NSS_PIN_GROUP, &SPI_GPIO);
+        GPIO_SetBits(SPI1_GPIO_NSS_PIN_GROUP, SPI1_GPIO_NSS_PIN);
     }
     else if(bus->spix == SPI2) {
         SPI_GPIO.GPIO_Pin = SPI2_GPIO_NSS_PIN;
         SPI_GPIO.GPIO_Mode = GPIO_Mode_OUT;
         SPI_GPIO.GPIO_PuPd = GPIO_PuPd_UP;
         SPI_GPIO.GPIO_Speed = GPIO_Speed_50MHz;
-        GPIO_Init(SPI2_GPIO_PIN_GROUP, &SPI_GPIO);
-        GPIO_SetBits(SPI2_GPIO_PIN_GROUP, SPI2_GPIO_NSS_PIN);
+        GPIO_Init(SPI2_GPIO_NSS_PIN_GROUP, &SPI_GPIO);
+        GPIO_SetBits(SPI2_GPIO_NSS_PIN_GROUP, SPI2_GPIO_NSS_PIN);
     }
 }
 
@@ -294,10 +298,10 @@ rt_inline void stm32_spi_bus_take_cs(struct stm32_spi_bus* bus)
     }
     else {
         if(bus->spix == SPI1) {
-            GPIO_ResetBits(SPI1_GPIO_PIN_GROUP, SPI1_GPIO_NSS_PIN);
+            GPIO_ResetBits(SPI1_GPIO_NSS_PIN_GROUP, SPI1_GPIO_NSS_PIN);
         }
         else if(bus->spix == SPI2) {
-            GPIO_ResetBits(SPI2_GPIO_PIN_GROUP, SPI2_GPIO_NSS_PIN);
+            GPIO_ResetBits(SPI2_GPIO_NSS_PIN_GROUP, SPI2_GPIO_NSS_PIN);
         }
     }
 }
@@ -310,10 +314,10 @@ rt_inline void stm32_spi_bus_release_cs(struct stm32_spi_bus* bus)
     }
     else {
         if(bus->spix == SPI1) {
-            GPIO_SetBits(SPI1_GPIO_PIN_GROUP, SPI1_GPIO_NSS_PIN);
+            GPIO_SetBits(SPI1_GPIO_NSS_PIN_GROUP, SPI1_GPIO_NSS_PIN);
         }
         else if(bus->spix == SPI2) {
-            GPIO_SetBits(SPI2_GPIO_PIN_GROUP, SPI2_GPIO_NSS_PIN);
+            GPIO_SetBits(SPI2_GPIO_NSS_PIN_GROUP, SPI2_GPIO_NSS_PIN);
         }
     }
 }
@@ -407,7 +411,6 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_dma(struct stm32_spi_bus*
 {
     SPI_TypeDef* SPIx = bus->spix;
     DMA_InitTypeDef SPI_DMA;
-    NVIC_InitTypeDef SPI_NVIC;
     uint16_t dump = SPI_DUMP;
 
     if(stm32_spi_bus_is_8bits(bus)) {
@@ -478,15 +481,6 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_dma(struct stm32_spi_bus*
     SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, ENABLE);
     DMA_ITConfig(bus->rx_dma, DMA_IT_TC, ENABLE);
     DMA_ITConfig(bus->tx_dma, DMA_IT_TC, ENABLE);
-    if(SPIx == SPI1) {
-        SPI_NVIC.NVIC_IRQChannel = DMA1_Channel2_3_IRQn;
-    }
-    else {
-        SPI_NVIC.NVIC_IRQChannel = DMA1_Channel4_5_IRQn;
-    }
-    SPI_NVIC.NVIC_IRQChannelCmd = ENABLE;
-    SPI_NVIC.NVIC_IRQChannelPriority = 0;
-    NVIC_Init(&SPI_NVIC);
 
     DMA_Cmd(bus->rx_dma, ENABLE);
     DMA_Cmd(bus->tx_dma, ENABLE);
@@ -501,14 +495,6 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_dma(struct stm32_spi_bus*
     DMA_ITConfig(bus->rx_dma, DMA_IT_TC, DISABLE);
     DMA_Cmd(bus->rx_dma, DISABLE);
     bus->rx_dma_tc_flag = RT_FALSE;
-    if(SPIx == SPI1) {
-        SPI_NVIC.NVIC_IRQChannel = DMA1_Channel2_3_IRQn;
-    }
-    else {
-        SPI_NVIC.NVIC_IRQChannel = DMA1_Channel4_5_IRQn;
-    }
-    SPI_NVIC.NVIC_IRQChannelCmd = DISABLE;
-    NVIC_Init(&SPI_NVIC);
 
     return RT_EOK;
 }
@@ -517,7 +503,6 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_it_receive_dma(struct stm32_spi_bus* 
 {
     SPI_TypeDef* SPIx = bus->spix;
     DMA_InitTypeDef SPI_DMA;
-    NVIC_InitTypeDef SPI_NVIC;
     uint16_t dump = 0;
 
     if(stm32_spi_bus_is_8bits(bus)) {
@@ -569,25 +554,7 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_it_receive_dma(struct stm32_spi_bus* 
     SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_RXNE, DISABLE);
     SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Rx, ENABLE);
     DMA_ITConfig(bus->rx_dma, DMA_IT_TC, ENABLE);
-    if(SPIx == SPI1) {
-        SPI_NVIC.NVIC_IRQChannel = DMA1_Channel2_3_IRQn;
-    }
-    else {
-        SPI_NVIC.NVIC_IRQChannel = DMA1_Channel4_5_IRQn;
-    }
-    SPI_NVIC.NVIC_IRQChannelCmd = ENABLE;
-    SPI_NVIC.NVIC_IRQChannelPriority = 0;
-    NVIC_Init(&SPI_NVIC);
     DMA_Cmd(bus->rx_dma, ENABLE);
-    if(SPIx == SPI1) {
-        SPI_NVIC.NVIC_IRQChannel = SPI1_IRQn;
-    }
-    else {
-        SPI_NVIC.NVIC_IRQChannel = SPI2_IRQn;
-    }
-    SPI_NVIC.NVIC_IRQChannelCmd = ENABLE;
-    SPI_NVIC.NVIC_IRQChannelPriority = 1;
-    NVIC_Init(&SPI_NVIC);
 
     /* Tx data use interrupt */
     stm32_spi_bus_it_writen(bus, tx_buf, len);
@@ -598,21 +565,6 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_it_receive_dma(struct stm32_spi_bus* 
     DMA_ITConfig(bus->rx_dma, DMA_IT_TC, DISABLE);
     DMA_Cmd(bus->rx_dma, DISABLE);
     bus->rx_dma_tc_flag = RT_FALSE;
-    if(SPIx == SPI1) {
-        SPI_NVIC.NVIC_IRQChannel = DMA1_Channel2_3_IRQn;
-    }
-    else {
-        SPI_NVIC.NVIC_IRQChannel = DMA1_Channel4_5_IRQn;
-    }
-    SPI_NVIC.NVIC_IRQChannelCmd = DISABLE;
-    NVIC_Init(&SPI_NVIC);
-    if(SPIx == SPI1) {
-        SPI_NVIC.NVIC_IRQChannel = SPI1_IRQn;
-    }
-    else {
-        SPI_NVIC.NVIC_IRQChannel = SPI2_IRQn;
-    }
-    NVIC_Init(&SPI_NVIC);
 
     return RT_EOK;
 }
@@ -621,7 +573,6 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_it(struct stm32_spi_bus* 
 {
     SPI_TypeDef* SPIx = bus->spix;
     DMA_InitTypeDef SPI_DMA;
-    NVIC_InitTypeDef SPI_NVIC;
     uint16_t dump = SPI_DUMP;
 
     if(stm32_spi_bus_is_8bits(bus)) {
@@ -674,24 +625,6 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_it(struct stm32_spi_bus* 
     SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Tx, ENABLE);
     SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_RXNE, ENABLE);
     DMA_ITConfig(bus->tx_dma, DMA_IT_TC, ENABLE);
-    if(SPIx == SPI1) {
-        SPI_NVIC.NVIC_IRQChannel = SPI1_IRQn;
-    }
-    else {
-        SPI_NVIC.NVIC_IRQChannel = SPI2_IRQn;
-    }
-    SPI_NVIC.NVIC_IRQChannelCmd = ENABLE;
-    SPI_NVIC.NVIC_IRQChannelPriority = 0;
-    NVIC_Init(&SPI_NVIC);
-    if(SPIx == SPI1) {
-        SPI_NVIC.NVIC_IRQChannel = DMA1_Channel2_3_IRQn;
-    }
-    else {
-        SPI_NVIC.NVIC_IRQChannel = DMA1_Channel4_5_IRQn;
-    }
-    SPI_NVIC.NVIC_IRQChannelCmd = ENABLE;
-    SPI_NVIC.NVIC_IRQChannelPriority = 1;
-    NVIC_Init(&SPI_NVIC);
 
     /* Tx data use DMA */
     DMA_Cmd(bus->tx_dma, ENABLE);
@@ -706,21 +639,6 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_it(struct stm32_spi_bus* 
     bus->tx_dma_tc_flag = RT_FALSE;
     SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_RXNE, DISABLE);
     bus->rx_it_count = 0;
-    if(SPIx == SPI1) {
-        SPI_NVIC.NVIC_IRQChannel = SPI1_IRQn;
-    }
-    else {
-        SPI_NVIC.NVIC_IRQChannel = SPI2_IRQn;
-    }
-    SPI_NVIC.NVIC_IRQChannelCmd = DISABLE;
-    NVIC_Init(&SPI_NVIC);
-    if(SPIx == SPI1) {
-        SPI_NVIC.NVIC_IRQChannel = DMA1_Channel2_3_IRQn;
-    }
-    else {
-        SPI_NVIC.NVIC_IRQChannel = DMA1_Channel4_5_IRQn;
-    }
-    NVIC_Init(&SPI_NVIC);
 
     return RT_EOK;
 }
@@ -728,7 +646,6 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_it(struct stm32_spi_bus* 
 rt_inline rt_err_t _stm32_spi_bus_transmit_it_receive_it(struct stm32_spi_bus* bus, const rt_uint8_t* tx_buf, rt_uint8_t* rx_buf, rt_size_t len)
 {
     SPI_TypeDef* SPIx = bus->spix;
-    NVIC_InitTypeDef SPI_NVIC;
 
     if(stm32_spi_bus_is_8bits(bus)) {
         SPI_RxFIFOThresholdConfig(SPIx, SPI_RxFIFOThreshold_QF);
@@ -741,30 +658,12 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_it_receive_it(struct stm32_spi_bus* b
     SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, DISABLE);
     SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_RXNE, ENABLE);
 
-    if(SPIx == SPI1) {
-        SPI_NVIC.NVIC_IRQChannel = SPI1_IRQn;
-    }
-    else {
-        SPI_NVIC.NVIC_IRQChannel = SPI2_IRQn;
-    }
-    SPI_NVIC.NVIC_IRQChannelCmd = ENABLE;
-    SPI_NVIC.NVIC_IRQChannelPriority = 0;
-    NVIC_Init(&SPI_NVIC);
-
     /* Tx data use interrupt */
     stm32_spi_bus_it_writen_and_readn(bus, tx_buf, rx_buf, len);
 
     /* Tx Rx over */
     SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_RXNE, DISABLE);
     bus->rx_it_count = 0;
-    if(SPIx == SPI1) {
-        SPI_NVIC.NVIC_IRQChannel = SPI1_IRQn;
-    }
-    else {
-        SPI_NVIC.NVIC_IRQChannel = SPI2_IRQn;
-    }
-    SPI_NVIC.NVIC_IRQChannelCmd = DISABLE;
-    NVIC_Init(&SPI_NVIC);
 
     return RT_EOK;
 }
@@ -874,110 +773,173 @@ static const struct rt_spi_ops stm32_spi_ops = {
 
 static rt_err_t stm32_spi_bus_init(rt_device_t dev)
 {
-    if(dev->type == RT_Device_Class_SPIBUS) {
-        return RT_EOK;
+    GPIO_InitTypeDef SPI_GPIO;
+    NVIC_InitTypeDef SPI_NVIC;
+    struct stm32_spi_bus* spi_bus = (struct stm32_spi_bus*)dev;
+
+    if(dev->type != RT_Device_Class_SPIBUS) {
+        return -RT_ERROR;
     }
 
+    if(spi_bus->spix == SPI1) {
+        /* SPI1 RCC */
+        RCC_APB2PeriphClockCmd(SPI1_RCC, ENABLE);
+
+        /* SPI1 GPIO */
+        RCC_AHBPeriphClockCmd(SPI1_GPIO_PIN_RCC, ENABLE);
+        GPIO_StructInit(&SPI_GPIO);
+        SPI_GPIO.GPIO_Pin = SPI1_GPIO_MISO_PIN | SPI1_GPIO_MOSI_PIN | SPI1_GPIO_SCLK_PIN;
+        SPI_GPIO.GPIO_Mode = GPIO_Mode_AF;
+        SPI_GPIO.GPIO_PuPd = GPIO_PuPd_NOPULL;
+        SPI_GPIO.GPIO_Speed = GPIO_Speed_50MHz;
+        GPIO_Init(SPI1_GPIO_PIN_GROUP, &SPI_GPIO);
+        GPIO_PinAFConfig(SPI1_GPIO_PIN_GROUP, SPI1_GPIO_MISO_SOURCE, SPI1_GPIO_PIN_AF);
+        GPIO_PinAFConfig(SPI1_GPIO_PIN_GROUP, SPI1_GPIO_MOSI_SOURCE, SPI1_GPIO_PIN_AF);
+        GPIO_PinAFConfig(SPI1_GPIO_PIN_GROUP, SPI1_GPIO_SCLK_SOURCE, SPI1_GPIO_PIN_AF);
+
+        /* SPI1 Rx Tx DMA */
+        if(RT_NULL != SPI1_DMA_RX) {
+            RCC_AHBPeriphClockCmd(SPI1_DMA_RCC, ENABLE);
+        }
+        if(RT_NULL != SPI1_DMA_TX) {
+            RCC_AHBPeriphClockCmd(SPI1_DMA_RCC, ENABLE);
+        }
+
+        /* SPI1 NVIC */
+        if(spi_bus->parent.parent.flag &
+           (RT_DEVICE_FLAG_INT_RX | RT_DEVICE_FLAG_INT_TX)) {
+            SPI_NVIC.NVIC_IRQChannel = SPI1_IRQn;
+            SPI_NVIC.NVIC_IRQChannelCmd = ENABLE;
+            SPI_NVIC.NVIC_IRQChannelPriority = 0;
+            NVIC_Init(&SPI_NVIC);
+        }
+        if(spi_bus->parent.parent.flag &
+           (RT_DEVICE_FLAG_DMA_RX | RT_DEVICE_FLAG_DMA_TX)) {
+            SPI_NVIC.NVIC_IRQChannel = DMA1_Channel2_3_IRQn;
+            SPI_NVIC.NVIC_IRQChannelCmd = ENABLE;
+            SPI_NVIC.NVIC_IRQChannelPriority = 0;
+            NVIC_Init(&SPI_NVIC);
+        }
+    }
+    else if(spi_bus->spix == SPI2) {
+        /* SPI2 RCC */
+        RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
+
+        /* SPI2 GPIO */
+        RCC_AHBPeriphClockCmd(SPI2_GPIO_PIN_RCC, ENABLE);
+        GPIO_StructInit(&SPI_GPIO);
+        SPI_GPIO.GPIO_Pin = SPI2_GPIO_MISO_PIN | SPI2_GPIO_MOSI_PIN | SPI2_GPIO_SCLK_PIN;
+        SPI_GPIO.GPIO_Mode = GPIO_Mode_AF;
+        SPI_GPIO.GPIO_PuPd = GPIO_PuPd_NOPULL;
+        SPI_GPIO.GPIO_Speed = GPIO_Speed_50MHz;
+        GPIO_Init(SPI2_GPIO_PIN_GROUP, &SPI_GPIO);
+        GPIO_PinAFConfig(SPI2_GPIO_PIN_GROUP, SPI2_GPIO_MISO_SOURCE, SPI2_GPIO_PIN_AF);
+        GPIO_PinAFConfig(SPI2_GPIO_PIN_GROUP, SPI2_GPIO_MOSI_SOURCE, SPI2_GPIO_PIN_AF);
+        GPIO_PinAFConfig(SPI2_GPIO_PIN_GROUP, SPI2_GPIO_SCLK_SOURCE, SPI2_GPIO_PIN_AF);
+
+        /* SPI2 Rx Tx DMA */
+        if(RT_NULL != SPI2_DMA_RX) {
+            RCC_AHBPeriphClockCmd(SPI2_DMA_RCC, ENABLE);
+        }
+        if(RT_NULL != SPI2_DMA_TX) {
+            RCC_AHBPeriphClockCmd(SPI2_DMA_RCC, ENABLE);
+        }
+
+        /* SPI2 NVIC */
+        if(spi_bus->parent.parent.flag &
+           (RT_DEVICE_FLAG_INT_RX | RT_DEVICE_FLAG_INT_TX)) {
+            SPI_NVIC.NVIC_IRQChannel = SPI2_IRQn;
+            SPI_NVIC.NVIC_IRQChannelCmd = ENABLE;
+            SPI_NVIC.NVIC_IRQChannelPriority = 1;
+            NVIC_Init(&SPI_NVIC);
+        }
+        if(spi_bus->parent.parent.flag &
+           (RT_DEVICE_FLAG_DMA_RX | RT_DEVICE_FLAG_DMA_TX)) {
+            SPI_NVIC.NVIC_IRQChannel = DMA1_Channel4_5_IRQn;
+            SPI_NVIC.NVIC_IRQChannelCmd = ENABLE;
+            SPI_NVIC.NVIC_IRQChannelPriority = 1;
+            NVIC_Init(&SPI_NVIC);
+        }
+    }
+    else {
+        return -RT_ERROR;
+    }
     return RT_EOK;
 }
 
 static rt_err_t stm32_spi_bus_open(rt_device_t dev, rt_uint16_t oflag)
 {
-    GPIO_InitTypeDef SPI_GPIO;
     struct stm32_spi_bus* spi_bus = (struct stm32_spi_bus*)dev;
 
-    if(dev->type == RT_Device_Class_SPIBUS) {
-        /* not open as read or write, return error */
-        if(!(oflag & RT_DEVICE_OFLAG_RDWR)) {
-            return -RT_ERROR;
-        }
-
-        if(spi_bus->spix == SPI1) {
-            /* SPI1 RCC */
-            RCC_APB2PeriphClockCmd(SPI1_RCC, ENABLE);
-
-            /* SPI1 GPIO */
-            RCC_AHBPeriphClockCmd(SPI1_GPIO_PIN_RCC, ENABLE);
-            GPIO_StructInit(&SPI_GPIO);
-            SPI_GPIO.GPIO_Pin = SPI1_GPIO_MISO_PIN | SPI1_GPIO_MOSI_PIN | SPI1_GPIO_SCLK_PIN;
-            SPI_GPIO.GPIO_Mode = GPIO_Mode_AF;
-            SPI_GPIO.GPIO_PuPd = GPIO_PuPd_NOPULL;
-            SPI_GPIO.GPIO_Speed = GPIO_Speed_50MHz;
-            GPIO_Init(SPI1_GPIO_PIN_GROUP, &SPI_GPIO);
-            GPIO_PinAFConfig(SPI1_GPIO_PIN_GROUP, SPI1_GPIO_MISO_SOURCE, SPI1_GPIO_PIN_AF);
-            GPIO_PinAFConfig(SPI1_GPIO_PIN_GROUP, SPI1_GPIO_MOSI_SOURCE, SPI1_GPIO_PIN_AF);
-            GPIO_PinAFConfig(SPI1_GPIO_PIN_GROUP, SPI1_GPIO_SCLK_SOURCE, SPI1_GPIO_PIN_AF);
-
-            /* SPI1 Rx Tx DMA */
-            if(RT_NULL != SPI1_DMA_RX) {
-                RCC_AHBPeriphClockCmd(SPI1_DMA_RCC, ENABLE);
-            }
-            if(RT_NULL != SPI1_DMA_TX) {
-                RCC_AHBPeriphClockCmd(SPI1_DMA_RCC, ENABLE);
-            }
-        }
-        else if(spi_bus->spix == SPI2) {
-            /* SPI2 RCC */
-            RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
-
-            /* SPI2 GPIO */
-            RCC_AHBPeriphClockCmd(SPI2_GPIO_PIN_RCC, ENABLE);
-            GPIO_StructInit(&SPI_GPIO);
-            SPI_GPIO.GPIO_Pin = SPI2_GPIO_MISO_PIN | SPI2_GPIO_MOSI_PIN | SPI2_GPIO_SCLK_PIN;
-            SPI_GPIO.GPIO_Mode = GPIO_Mode_AF;
-            SPI_GPIO.GPIO_PuPd = GPIO_PuPd_NOPULL;
-            SPI_GPIO.GPIO_Speed = GPIO_Speed_50MHz;
-            GPIO_Init(SPI2_GPIO_PIN_GROUP, &SPI_GPIO);
-            GPIO_PinAFConfig(SPI2_GPIO_PIN_GROUP, SPI2_GPIO_MISO_SOURCE, SPI2_GPIO_PIN_AF);
-            GPIO_PinAFConfig(SPI2_GPIO_PIN_GROUP, SPI2_GPIO_MOSI_SOURCE, SPI2_GPIO_PIN_AF);
-            GPIO_PinAFConfig(SPI2_GPIO_PIN_GROUP, SPI2_GPIO_SCLK_SOURCE, SPI2_GPIO_PIN_AF);
-
-            /* SPI2 Rx Tx DMA */
-            if(RT_NULL != SPI2_DMA_RX) {
-                RCC_AHBPeriphClockCmd(SPI2_DMA_RCC, ENABLE);
-            }
-            if(RT_NULL != SPI2_DMA_TX) {
-                RCC_AHBPeriphClockCmd(SPI2_DMA_RCC, ENABLE);
-            }
-        }
-        else {
-            return -RT_ENOSYS;
-        }
-
-        /* enable SPI bus */
-        SPI_Cmd(spi_bus->spix, ENABLE);
-
-        return RT_EOK;
-    }
-    else {
+    if(dev->type != RT_Device_Class_SPIBUS) {
         return -RT_ERROR;
     }
+
+    /* not open as read or write, return error */
+    if(!(oflag & RT_DEVICE_OFLAG_RDWR)) {
+        return -RT_ERROR;
+    }
+
+    /* enable SPI bus */
+    SPI_Cmd(spi_bus->spix, ENABLE);
+
+    return RT_EOK;
 }
 
 static rt_err_t stm32_spi_bus_close(rt_device_t dev)
 {
-    if(dev->type == RT_Device_Class_SPIBUS) {
-        struct stm32_spi_bus* bus = (struct stm32_spi_bus*)dev;
-        if(RT_NULL != bus->rx_dma) { /* use dma */
-            DMA_ITConfig(bus->rx_dma, DMA_IT_TC, DISABLE);
-            DMA_Cmd(bus->rx_dma, DISABLE);
+    NVIC_InitTypeDef SPI_NVIC;
+    struct stm32_spi_bus* spi_bus = (struct stm32_spi_bus*)dev;
+
+    if(dev->type != RT_Device_Class_SPIBUS) {
+        return -RT_ERROR;
+    }
+    if(spi_bus->spix == SPI1) {
+        if(spi_bus->parent.parent.flag &
+           (RT_DEVICE_FLAG_INT_RX | RT_DEVICE_FLAG_INT_TX)) {
+            SPI_NVIC.NVIC_IRQChannel = SPI1_IRQn;
+            SPI_NVIC.NVIC_IRQChannelCmd = DISABLE;
+            NVIC_Init(&SPI_NVIC);
         }
-        else { /* use interrupt */
-            SPI_I2S_ITConfig(bus->spix, SPI_I2S_IT_RXNE, DISABLE);
+        if(spi_bus->parent.parent.flag &
+           (RT_DEVICE_FLAG_DMA_RX | RT_DEVICE_FLAG_DMA_TX)) {
+            SPI_NVIC.NVIC_IRQChannel = DMA1_Channel2_3_IRQn;
+            SPI_NVIC.NVIC_IRQChannelCmd = DISABLE;
+            NVIC_Init(&SPI_NVIC);
         }
-        if(RT_NULL != bus->tx_dma) { /* use dma */
-            DMA_ITConfig(bus->tx_dma, DMA_IT_TC, DISABLE);
-            DMA_Cmd(bus->tx_dma, DISABLE);
+    }
+    else if(spi_bus->spix == SPI2) {
+        if(spi_bus->parent.parent.flag &
+           (RT_DEVICE_FLAG_INT_RX | RT_DEVICE_FLAG_INT_TX)) {
+            SPI_NVIC.NVIC_IRQChannel = SPI2_IRQn;
+            SPI_NVIC.NVIC_IRQChannelCmd = DISABLE;
+            NVIC_Init(&SPI_NVIC);
         }
-        else { /* use interrupt */
-            SPI_I2S_ITConfig(bus->spix, SPI_I2S_IT_TXE, DISABLE);
+        if(spi_bus->parent.parent.flag &
+           (RT_DEVICE_FLAG_DMA_RX | RT_DEVICE_FLAG_DMA_TX)) {
+            SPI_NVIC.NVIC_IRQChannel = DMA1_Channel4_5_IRQn;
+            SPI_NVIC.NVIC_IRQChannelCmd = DISABLE;
+            NVIC_Init(&SPI_NVIC);
         }
-        SPI_Cmd(bus->spix, DISABLE);
     }
     else {
         return -RT_ERROR;
     }
-
+    if(spi_bus->parent.parent.flag & RT_DEVICE_FLAG_DMA_RX) {
+        DMA_ITConfig(spi_bus->rx_dma, DMA_IT_TC, DISABLE);
+        DMA_Cmd(spi_bus->rx_dma, DISABLE);
+    }
+    if(spi_bus->parent.parent.flag & RT_DEVICE_FLAG_INT_RX) {
+        SPI_I2S_ITConfig(spi_bus->spix, SPI_I2S_IT_RXNE, DISABLE);
+    }
+    if(spi_bus->parent.parent.flag & RT_DEVICE_FLAG_DMA_TX) {
+        DMA_ITConfig(spi_bus->tx_dma, DMA_IT_TC, DISABLE);
+        DMA_Cmd(spi_bus->tx_dma, DISABLE);
+    }
+    if(spi_bus->parent.parent.flag & RT_DEVICE_FLAG_INT_TX)  {
+        SPI_I2S_ITConfig(spi_bus->spix, SPI_I2S_IT_TXE, DISABLE);
+    }
+    SPI_Cmd(spi_bus->spix, DISABLE);
     return RT_EOK;
 }
 
@@ -1066,6 +1028,7 @@ static rt_err_t stm32_spi_bus_device_register(struct stm32_spi_bus* spi_bus, con
             spi_bus->RxDMAISR = STM32_spi_bus_rx_dma_isr;
             spi_bus->rx_dma_tc_flag = RT_FALSE;
             spi_bus->RxISR = RT_NULL;
+            spi_bus->parent.parent.flag |= RT_DEVICE_FLAG_DMA_RX;
         }
         else {
             spi_bus->rx_dma = RT_NULL;
@@ -1074,14 +1037,15 @@ static rt_err_t stm32_spi_bus_device_register(struct stm32_spi_bus* spi_bus, con
             spi_bus->RxISR = STM32_spi_bus_rx_isr;
             rt_ringbuffer_init(&stm32_spi1_rx_rb, stm32_spi1_rx_buf, SPI_IT_XFER_ONEC_MAX_LEN);
             spi_bus->rx_rb = &stm32_spi1_rx_rb;
+            spi_bus->parent.parent.flag |= RT_DEVICE_FLAG_INT_RX;
         }
-
         /* SPI1 Tx DMA */
         if(RT_NULL != SPI1_DMA_TX) {
             spi_bus->tx_dma = SPI1_DMA_TX;
             spi_bus->TxDMAISR = STM32_spi_bus_tx_dma_isr;
             spi_bus->tx_dma_tc_flag = RT_FALSE;
             spi_bus->TxISR = RT_NULL;
+            spi_bus->parent.parent.flag |= RT_DEVICE_FLAG_DMA_TX;
         }
         else {
             spi_bus->tx_dma = RT_NULL;
@@ -1090,6 +1054,7 @@ static rt_err_t stm32_spi_bus_device_register(struct stm32_spi_bus* spi_bus, con
             spi_bus->TxISR = STM32_spi_bus_tx_isr;
             rt_ringbuffer_init(&stm32_spi1_tx_rb, stm32_spi1_tx_buf, SPI_IT_XFER_ONEC_MAX_LEN);
             spi_bus->tx_rb = &stm32_spi1_tx_rb;
+            spi_bus->parent.parent.flag |= RT_DEVICE_FLAG_INT_TX;
         }
     }
     else if(spi_bus->spix == SPI2) {
@@ -1099,6 +1064,7 @@ static rt_err_t stm32_spi_bus_device_register(struct stm32_spi_bus* spi_bus, con
             spi_bus->RxDMAISR = STM32_spi_bus_rx_dma_isr;
             spi_bus->rx_dma_tc_flag = RT_FALSE;
             spi_bus->RxISR = RT_NULL;
+            spi_bus->parent.parent.flag |= RT_DEVICE_FLAG_DMA_RX;
         }
         else {
             spi_bus->rx_dma = RT_NULL;
@@ -1107,6 +1073,7 @@ static rt_err_t stm32_spi_bus_device_register(struct stm32_spi_bus* spi_bus, con
             spi_bus->RxISR = STM32_spi_bus_rx_isr;
             rt_ringbuffer_init(&stm32_spi2_rx_rb, stm32_spi2_rx_buf, SPI_IT_XFER_ONEC_MAX_LEN);
             spi_bus->rx_rb = &stm32_spi2_rx_rb;
+            spi_bus->parent.parent.flag |= RT_DEVICE_FLAG_INT_RX;
         }
 
         /* SPI2 Tx DMA */
@@ -1115,6 +1082,7 @@ static rt_err_t stm32_spi_bus_device_register(struct stm32_spi_bus* spi_bus, con
             spi_bus->TxDMAISR = STM32_spi_bus_tx_dma_isr;
             spi_bus->tx_dma_tc_flag = RT_FALSE;
             spi_bus->TxISR = RT_NULL;
+            spi_bus->parent.parent.flag |= RT_DEVICE_FLAG_DMA_TX;
         }
         else {
             spi_bus->tx_dma = RT_NULL;
@@ -1123,10 +1091,11 @@ static rt_err_t stm32_spi_bus_device_register(struct stm32_spi_bus* spi_bus, con
             spi_bus->TxISR = STM32_spi_bus_tx_isr;
             rt_ringbuffer_init(&stm32_spi2_tx_rb, stm32_spi2_tx_buf, SPI_IT_XFER_ONEC_MAX_LEN);
             spi_bus->tx_rb = &stm32_spi2_tx_rb;
+            spi_bus->parent.parent.flag |= RT_DEVICE_FLAG_INT_TX;
         }
     }
     else {
-        return -RT_ENOSYS;
+        return -RT_ERROR;
     }
 
     return RT_EOK;
@@ -1150,9 +1119,6 @@ int rt_hw_spi_bus_register(void)
     if(RT_EOK != ret) {
         return ret;
     }
-    stm32_spi_bus_1.parent.parent.flag |= (RT_NULL!=SPI1_DMA_RX)? RT_DEVICE_FLAG_DMA_RX: RT_DEVICE_FLAG_INT_RX;
-    stm32_spi_bus_1.parent.parent.flag |= (RT_NULL!=SPI1_DMA_TX)? RT_DEVICE_FLAG_DMA_TX: RT_DEVICE_FLAG_INT_TX;
-    stm32_spi_bus_1.parent.parent.flag |= RT_DEVICE_FLAG_ACTIVATED;
 #endif /* RT_USING_SPI1 */
 
 #ifdef RT_USING_SPI2
@@ -1161,9 +1127,6 @@ int rt_hw_spi_bus_register(void)
     if(RT_EOK != ret) {
         return ret;
     }
-    stm32_spi_bus_2.parent.parent.flag |= (RT_NULL!=SPI2_DMA_RX)? RT_DEVICE_FLAG_DMA_RX: RT_DEVICE_FLAG_INT_RX;
-    stm32_spi_bus_2.parent.parent.flag |= (RT_NULL!=SPI2_DMA_TX)? RT_DEVICE_FLAG_DMA_TX: RT_DEVICE_FLAG_INT_TX;
-    stm32_spi_bus_2.parent.parent.flag |= RT_DEVICE_FLAG_ACTIVATED;
 #endif /* RT_USING_SPI2 */
 
     return RT_EOK;
@@ -1197,11 +1160,11 @@ void DMA1_Channel2_3_IRQHandler(void)
 
     if(DMA_GetITStatus(DMA1_IT_TC2) != RESET) {
         bus->RxDMAISR(bus);
-        DMA_ClearITPendingBit(DMA1_IT_TC2);
+        DMA_ClearITPendingBit(DMA1_IT_TC2 | DMA1_IT_HT2 | DMA1_IT_GL2);
     }
     if(DMA_GetITStatus(DMA1_IT_TC3) != RESET) {
         bus->TxDMAISR(bus);
-        DMA_ClearITPendingBit(DMA1_IT_TC3);
+        DMA_ClearITPendingBit(DMA1_IT_TC3 | DMA1_IT_HT3 | DMA1_IT_GL3);
     }
 
     /* leave interrupt */
@@ -1236,11 +1199,11 @@ void DMA1_Channel4_5_IRQHandler(void)
 
     if(DMA_GetITStatus(DMA1_IT_TC4) != RESET) {
         bus->RxDMAISR(bus);
-        DMA_ClearITPendingBit(DMA1_IT_TC4);
+        DMA_ClearITPendingBit(DMA1_IT_TC4 | DMA1_IT_HT4 | DMA1_IT_GL4);
     }
     if(DMA_GetITStatus(DMA1_IT_TC5) != RESET) {
         bus->TxDMAISR(bus);
-        DMA_ClearITPendingBit(DMA1_IT_TC5);
+        DMA_ClearITPendingBit(DMA1_IT_TC5 | DMA1_IT_HT5 | DMA1_IT_GL5);
     }
 
     /* leave interrupt */

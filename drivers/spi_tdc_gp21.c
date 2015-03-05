@@ -77,50 +77,52 @@
     local functions
 */
 rt_inline rt_uint16_t
-gp21_read_register16(struct spi_tdc_gp21* tdc_gp21, uint8_t opcode)
+gp21_read_register16(struct spi_tdc_gp21* tdc_gp21, const uint8_t opcode)
 {
     rt_uint16_t recv_buf = 0;
-    rt_spi_send_then_recv((struct rt_spi_device*)tdc_gp21,
+    rt_spi_send_then_recv(tdc_gp21->spi_dev,
                           &opcode, 1,
                           &recv_buf, 2);
     return recv_buf;
 }
 
 rt_inline rt_uint32_t
-gp21_read_register32(struct spi_tdc_gp21* tdc_gp21, uint8_t opcode)
+gp21_read_register32(struct spi_tdc_gp21* tdc_gp21, const uint8_t opcode)
 {
     rt_uint32_t recv_buf = 0;
-    rt_spi_send_then_recv((struct rt_spi_device*)tdc_gp21,
+    rt_spi_send_then_recv(tdc_gp21->spi_dev,
                           &opcode, 1,
                           &recv_buf, 4);
     return recv_buf;
 }
 
 rt_inline void
-gp21_write_register16(struct spi_tdc_gp21* tdc_gp21, uint8_t opcode,
-                      uint16_t send_buf)
-{
-    rt_spi_send_then_send((struct rt_spi_device*)tdc_gp21,
-                          &opcode, 1,
-                          &send_buf, 2);
-}
-
-rt_inline void
-gp21_write_register24(struct spi_tdc_gp21* tdc_gp21, uint8_t opcode,
+gp21_write_register24(struct spi_tdc_gp21* tdc_gp21, const uint8_t opcode,
                       uint32_t send_buf)
 {
-    rt_spi_send_then_send((struct rt_spi_device*)tdc_gp21,
+    rt_spi_send_then_send(tdc_gp21->spi_dev,
                           &opcode, 1,
                           &send_buf, 3);
 }
 
 rt_inline void
-gp21_write_register32(struct spi_tdc_gp21* tdc_gp21, uint8_t opcode,
+gp21_write_register32(struct spi_tdc_gp21* tdc_gp21, const uint8_t opcode,
                       uint32_t send_buf)
 {
-    rt_spi_send_then_send((struct rt_spi_device*)tdc_gp21,
+    rt_spi_send_then_send(tdc_gp21->spi_dev,
                           &opcode, 1,
                           &send_buf, 4);
+}
+
+rt_inline rt_bool_t
+gp21_check_id(struct spi_tdc_gp21* tdc_gp21, const uint32_t id)
+{
+    uint32_t tmp[2] = {0,0};
+    const uint8_t opcode = GP21_READ_ID;
+    rt_spi_send_then_recv(tdc_gp21->spi_dev,
+                          &opcode, 1,
+                          tmp, 8);
+    return (tmp[0] == id)? RT_TRUE: RT_FALSE;
 }
 
 rt_inline void
@@ -136,7 +138,7 @@ busy_wait(struct spi_tdc_gp21* tdc_gp21)
 static void
 gp21_write_cmd(struct spi_tdc_gp21* tdc_gp21, uint8_t opcode)
 {
-    rt_spi_send((struct rt_spi_device*)tdc_gp21, &opcode, 1);
+    rt_spi_send(tdc_gp21->spi_dev, &opcode, 1);
     /* some cmd need wait interrupt pin */
     if((opcode == GP21_WRITE_CFG_TO_EEPROM)  ||
        (opcode == GP21_WRITE_EEPROM_TO_CFG)  ||
@@ -184,6 +186,10 @@ tdc_gp21_init(rt_device_t dev)
     TDC_NVIC.NVIC_IRQChannelPriority = 3;
     NVIC_Init(&TDC_NVIC);
 
+    /* check GP21 ID number */
+    if(!gp21_check_id(tdc_gp21, 0x10121234)) {
+        return -RT_ERROR;
+    }
     /* config GP21 */
     /*
         config register0 :
