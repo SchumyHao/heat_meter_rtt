@@ -366,17 +366,13 @@ static void stm32_spi_bus_it_readn(struct stm32_spi_bus* bus, rt_uint8_t* rx_buf
     rt_size_t rx_rb_readn = 0;
     rt_size_t rx_len = len;
 
-
-    rt_kprintf("%s need read %d\n",bus->parent.parent.parent.name, (int)len);
     do {
         if(RT_NULL != rx_buf) {
             rx_rb_readn = rt_ringbuffer_get(bus->rx_rb, rx_buf, rx_len);
-            rt_kprintf("%s read read %d\n",bus->parent.parent.parent.name, (int)rx_rb_readn);
             rx_buf += rx_rb_readn;
         }
         else {
             rx_rb_readn = rt_ringbuffer_discard_all(bus->rx_rb);
-            rt_kprintf("%s need read and leave %d\n",bus->parent.parent.parent.name, (int)rx_rb_readn);
         }
         rx_len -= rx_rb_readn;
     }
@@ -482,10 +478,10 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_dma(struct stm32_spi_bus*
     SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, ENABLE);
     DMA_ITConfig(bus->rx_dma, DMA_IT_TC, ENABLE);
     DMA_ITConfig(bus->tx_dma, DMA_IT_TC, ENABLE);
-    if(SPIx == SPI1){
+    if(SPIx == SPI1) {
         SPI_NVIC.NVIC_IRQChannel = DMA1_Channel2_3_IRQn;
     }
-    else{
+    else {
         SPI_NVIC.NVIC_IRQChannel = DMA1_Channel4_5_IRQn;
     }
     SPI_NVIC.NVIC_IRQChannelCmd = ENABLE;
@@ -505,10 +501,10 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_dma(struct stm32_spi_bus*
     DMA_ITConfig(bus->rx_dma, DMA_IT_TC, DISABLE);
     DMA_Cmd(bus->rx_dma, DISABLE);
     bus->rx_dma_tc_flag = RT_FALSE;
-    if(SPIx == SPI1){
+    if(SPIx == SPI1) {
         SPI_NVIC.NVIC_IRQChannel = DMA1_Channel2_3_IRQn;
     }
-    else{
+    else {
         SPI_NVIC.NVIC_IRQChannel = DMA1_Channel4_5_IRQn;
     }
     SPI_NVIC.NVIC_IRQChannelCmd = DISABLE;
@@ -573,20 +569,20 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_it_receive_dma(struct stm32_spi_bus* 
     SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_RXNE, DISABLE);
     SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Rx, ENABLE);
     DMA_ITConfig(bus->rx_dma, DMA_IT_TC, ENABLE);
-    if(SPIx == SPI1){
+    if(SPIx == SPI1) {
         SPI_NVIC.NVIC_IRQChannel = DMA1_Channel2_3_IRQn;
     }
-    else{
+    else {
         SPI_NVIC.NVIC_IRQChannel = DMA1_Channel4_5_IRQn;
     }
     SPI_NVIC.NVIC_IRQChannelCmd = ENABLE;
     SPI_NVIC.NVIC_IRQChannelPriority = 0;
     NVIC_Init(&SPI_NVIC);
     DMA_Cmd(bus->rx_dma, ENABLE);
-    if(SPIx == SPI1){
+    if(SPIx == SPI1) {
         SPI_NVIC.NVIC_IRQChannel = SPI1_IRQn;
     }
-    else{
+    else {
         SPI_NVIC.NVIC_IRQChannel = SPI2_IRQn;
     }
     SPI_NVIC.NVIC_IRQChannelCmd = ENABLE;
@@ -602,18 +598,18 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_it_receive_dma(struct stm32_spi_bus* 
     DMA_ITConfig(bus->rx_dma, DMA_IT_TC, DISABLE);
     DMA_Cmd(bus->rx_dma, DISABLE);
     bus->rx_dma_tc_flag = RT_FALSE;
-    if(SPIx == SPI1){
+    if(SPIx == SPI1) {
         SPI_NVIC.NVIC_IRQChannel = DMA1_Channel2_3_IRQn;
     }
-    else{
+    else {
         SPI_NVIC.NVIC_IRQChannel = DMA1_Channel4_5_IRQn;
     }
     SPI_NVIC.NVIC_IRQChannelCmd = DISABLE;
     NVIC_Init(&SPI_NVIC);
-    if(SPIx == SPI1){
+    if(SPIx == SPI1) {
         SPI_NVIC.NVIC_IRQChannel = SPI1_IRQn;
     }
-    else{
+    else {
         SPI_NVIC.NVIC_IRQChannel = SPI2_IRQn;
     }
     NVIC_Init(&SPI_NVIC);
@@ -678,19 +674,19 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_it(struct stm32_spi_bus* 
     SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Tx, ENABLE);
     SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_RXNE, ENABLE);
     DMA_ITConfig(bus->tx_dma, DMA_IT_TC, ENABLE);
-    if(SPIx == SPI1){
+    if(SPIx == SPI1) {
         SPI_NVIC.NVIC_IRQChannel = SPI1_IRQn;
     }
-    else{
+    else {
         SPI_NVIC.NVIC_IRQChannel = SPI2_IRQn;
     }
     SPI_NVIC.NVIC_IRQChannelCmd = ENABLE;
     SPI_NVIC.NVIC_IRQChannelPriority = 0;
     NVIC_Init(&SPI_NVIC);
-    if(SPIx == SPI1){
+    if(SPIx == SPI1) {
         SPI_NVIC.NVIC_IRQChannel = DMA1_Channel2_3_IRQn;
     }
-    else{
+    else {
         SPI_NVIC.NVIC_IRQChannel = DMA1_Channel4_5_IRQn;
     }
     SPI_NVIC.NVIC_IRQChannelCmd = ENABLE;
@@ -710,18 +706,18 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_it(struct stm32_spi_bus* 
     bus->tx_dma_tc_flag = RT_FALSE;
     SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_RXNE, DISABLE);
     bus->rx_it_count = 0;
-    if(SPIx == SPI1){
+    if(SPIx == SPI1) {
         SPI_NVIC.NVIC_IRQChannel = SPI1_IRQn;
     }
-    else{
+    else {
         SPI_NVIC.NVIC_IRQChannel = SPI2_IRQn;
     }
     SPI_NVIC.NVIC_IRQChannelCmd = DISABLE;
     NVIC_Init(&SPI_NVIC);
-    if(SPIx == SPI1){
+    if(SPIx == SPI1) {
         SPI_NVIC.NVIC_IRQChannel = DMA1_Channel2_3_IRQn;
     }
-    else{
+    else {
         SPI_NVIC.NVIC_IRQChannel = DMA1_Channel4_5_IRQn;
     }
     NVIC_Init(&SPI_NVIC);
@@ -745,10 +741,10 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_it_receive_it(struct stm32_spi_bus* b
     SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, DISABLE);
     SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_RXNE, ENABLE);
 
-    if(SPIx == SPI1){
+    if(SPIx == SPI1) {
         SPI_NVIC.NVIC_IRQChannel = SPI1_IRQn;
     }
-    else{
+    else {
         SPI_NVIC.NVIC_IRQChannel = SPI2_IRQn;
     }
     SPI_NVIC.NVIC_IRQChannelCmd = ENABLE;
@@ -761,10 +757,10 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_it_receive_it(struct stm32_spi_bus* b
     /* Tx Rx over */
     SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_RXNE, DISABLE);
     bus->rx_it_count = 0;
-    if(SPIx == SPI1){
+    if(SPIx == SPI1) {
         SPI_NVIC.NVIC_IRQChannel = SPI1_IRQn;
     }
-    else{
+    else {
         SPI_NVIC.NVIC_IRQChannel = SPI2_IRQn;
     }
     SPI_NVIC.NVIC_IRQChannelCmd = DISABLE;
@@ -833,7 +829,6 @@ static rt_uint32_t stm32_spi_bus_xfer(struct rt_spi_device* dev, struct rt_spi_m
 
     if(stm32_spi_bus_is_master(spi_bus) && msg->cs_take) {
         stm32_spi_bus_take_cs(spi_bus);
-        rt_kprintf("%s take cs\n",dev->bus->parent.parent.name);
     }
 
     spi_bus->xfer_size = (stm32_spi_bus_is_8bits(spi_bus))? msg->length: msg->length<<1;
@@ -867,7 +862,6 @@ static rt_uint32_t stm32_spi_bus_xfer(struct rt_spi_device* dev, struct rt_spi_m
 out:
     if(stm32_spi_bus_is_master(spi_bus) && msg->cs_release) {
         stm32_spi_bus_release_cs(spi_bus);
-        rt_kprintf("%s release cs\n",dev->bus->parent.parent.name);
     }
 
     return ret;
@@ -880,8 +874,6 @@ static const struct rt_spi_ops stm32_spi_ops = {
 
 static rt_err_t stm32_spi_bus_init(rt_device_t dev)
 {
-    rt_err_t ret = RT_EOK;
-
     if(dev->type == RT_Device_Class_SPIBUS) {
         return RT_EOK;
     }
@@ -1258,6 +1250,8 @@ void DMA1_Channel4_5_IRQHandler(void)
 
 /* TC test case */
 #ifdef RT_USING_TC
+//#define DEBUG_SPI_INTER
+#ifdef DEBUG_SPI_INTER
 #include "tc_comm.h"
 static void _tc_cleanup(void)
 {
@@ -1372,23 +1366,23 @@ int test_spi_bus_open_close_inter(void)
     if(spi_bus == RT_NULL) {
         return -RT_ERROR;
     }
-	if(RT_EOK != rt_device_open((rt_device_t)spi_bus, RT_DEVICE_OFLAG_RDWR)){
-		return -RT_ERROR;
-	}
-	if(!((RCC->AHBENR & (SPI1_GPIO_PIN_RCC))&&
-		(RCC->AHBENR & (SPI1_DMA_RCC))&&
-		(RCC->APB2ENR & (RCC_APB2Periph_SPI1)))){
-		return -RT_ERROR;
-	}
-	if(!(spi_bus->spix->CR1 & SPI_CR1_SPE)){
-		return -RT_ERROR;
-	}
-	if(RT_EOK != rt_device_close((rt_device_t)spi_bus)){
-		return -RT_ERROR;
-	}
-	if(spi_bus->spix->CR1 & SPI_CR1_SPE){
-		return -RT_ERROR;
-	}
+    if(RT_EOK != rt_device_open((rt_device_t)spi_bus, RT_DEVICE_OFLAG_RDWR)) {
+        return -RT_ERROR;
+    }
+    if(!((RCC->AHBENR & (SPI1_GPIO_PIN_RCC))&&
+         (RCC->AHBENR & (SPI1_DMA_RCC))&&
+         (RCC->APB2ENR & (RCC_APB2Periph_SPI1)))) {
+        return -RT_ERROR;
+    }
+    if(!(spi_bus->spix->CR1 & SPI_CR1_SPE)) {
+        return -RT_ERROR;
+    }
+    if(RT_EOK != rt_device_close((rt_device_t)spi_bus)) {
+        return -RT_ERROR;
+    }
+    if(spi_bus->spix->CR1 & SPI_CR1_SPE) {
+        return -RT_ERROR;
+    }
 #endif /* RT_USING_SPI1 */
 
 #ifdef RT_USING_SPI2
@@ -1396,23 +1390,23 @@ int test_spi_bus_open_close_inter(void)
     if(spi_bus == RT_NULL) {
         return -RT_ERROR;
     }
-	if(RT_EOK != rt_device_open((rt_device_t)spi_bus, RT_DEVICE_OFLAG_RDWR)){
-		return -RT_ERROR;
-	}
-	if(!((RCC->AHBENR & (SPI2_GPIO_PIN_RCC))&&
-		(RCC->AHBENR & (SPI2_DMA_RCC))&&
-		(RCC->APB1ENR & (RCC_APB1Periph_SPI2)))){
-		return -RT_ERROR;
-	}
-	if(!(spi_bus->spix->CR1 & SPI_CR1_SPE)){
-		return -RT_ERROR;
-	}
-	if(RT_EOK != rt_device_close((rt_device_t)spi_bus)){
-		return -RT_ERROR;
-	}
-	if(spi_bus->spix->CR1 & SPI_CR1_SPE){
-		return -RT_ERROR;
-	}
+    if(RT_EOK != rt_device_open((rt_device_t)spi_bus, RT_DEVICE_OFLAG_RDWR)) {
+        return -RT_ERROR;
+    }
+    if(!((RCC->AHBENR & (SPI2_GPIO_PIN_RCC))&&
+         (RCC->AHBENR & (SPI2_DMA_RCC))&&
+         (RCC->APB1ENR & (RCC_APB1Periph_SPI2)))) {
+        return -RT_ERROR;
+    }
+    if(!(spi_bus->spix->CR1 & SPI_CR1_SPE)) {
+        return -RT_ERROR;
+    }
+    if(RT_EOK != rt_device_close((rt_device_t)spi_bus)) {
+        return -RT_ERROR;
+    }
+    if(spi_bus->spix->CR1 & SPI_CR1_SPE) {
+        return -RT_ERROR;
+    }
 #endif /* RT_USING_SPI2 */
 
     return RT_EOK;
@@ -1430,5 +1424,6 @@ int _tc_test_spi_bus_open_close_inter(void)
 }
 FINSH_FUNCTION_EXPORT(_tc_test_spi_bus_open_close_inter, TC);
 
+#endif /* DEBUG_SPI_INTER */
 #endif /* RT_USING_TC */
 

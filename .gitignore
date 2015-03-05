@@ -49,3 +49,5 @@ build/
 project*.*
 .sconsign.dblite
 *.pyc
+*.uvoptx
+*.uvguix.*

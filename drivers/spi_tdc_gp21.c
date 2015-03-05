@@ -29,6 +29,7 @@
 #define TDC_GPIO_IT_PIN_PIN_SOURCE          EXTI_PinSource4
 #define TDC_GPIO_IT_PIN_PORT_SOURCE         EXTI_PortSourceGPIOF
 #define TDC_GPIO_IT_EXTI_LINE               EXTI_Line4
+#define TDC_GPIO_IT_EXTI_IRQN               EXTI4_15_IRQn
 
 /* write config registers opcode */
 #define GP21_WRITE_REG0_REGISTER            (0x80)
@@ -75,52 +76,65 @@
 /*
     local functions
 */
-rt_inline uint16_t gp21_read_register16(struct spi_tdc_gp21* tdc_gp21, uint8_t opcode)
+rt_inline rt_uint16_t
+gp21_read_register16(struct spi_tdc_gp21* tdc_gp21, uint8_t opcode)
 {
-    uint16_t recv_buf = 0;
+    rt_uint16_t recv_buf = 0;
     rt_spi_send_then_recv((struct rt_spi_device*)tdc_gp21,
                           &opcode, 1,
                           &recv_buf, 2);
     return recv_buf;
 }
 
-rt_inline uint32_t gp21_read_register32(struct spi_tdc_gp21* tdc_gp21, uint8_t opcode)
+rt_inline rt_uint32_t
+gp21_read_register32(struct spi_tdc_gp21* tdc_gp21, uint8_t opcode)
 {
-    uint32_t recv_buf = 0;
+    rt_uint32_t recv_buf = 0;
     rt_spi_send_then_recv((struct rt_spi_device*)tdc_gp21,
                           &opcode, 1,
                           &recv_buf, 4);
     return recv_buf;
 }
 
-rt_inline void gp21_write_register16(struct spi_tdc_gp21* tdc_gp21, uint8_t opcode, uint16_t send_buf)
+rt_inline void
+gp21_write_register16(struct spi_tdc_gp21* tdc_gp21, uint8_t opcode,
+                      uint16_t send_buf)
 {
     rt_spi_send_then_send((struct rt_spi_device*)tdc_gp21,
                           &opcode, 1,
                           &send_buf, 2);
 }
 
-rt_inline void gp21_write_register24(struct spi_tdc_gp21* tdc_gp21, uint8_t opcode, uint32_t send_buf)
+rt_inline void
+gp21_write_register24(struct spi_tdc_gp21* tdc_gp21, uint8_t opcode,
+                      uint32_t send_buf)
 {
     rt_spi_send_then_send((struct rt_spi_device*)tdc_gp21,
                           &opcode, 1,
                           &send_buf, 3);
 }
 
-rt_inline void gp21_write_register32(struct spi_tdc_gp21* tdc_gp21, uint8_t opcode, uint32_t send_buf)
+rt_inline void
+gp21_write_register32(struct spi_tdc_gp21* tdc_gp21, uint8_t opcode,
+                      uint32_t send_buf)
 {
     rt_spi_send_then_send((struct rt_spi_device*)tdc_gp21,
                           &opcode, 1,
                           &send_buf, 4);
 }
 
-static void busy_wait(void)
+rt_inline void
+busy_wait(struct spi_tdc_gp21* tdc_gp21)
 {
-    /* set system into sleep mode until interrupt occered on gp21 initpin */
-    PWR_EnterSleepMode(PWR_SLEEPEntry_WFI);
+    tdc_gp21->busy = RT_TRUE;
+    while(tdc_gp21->busy) {
+        /* set system into sleep mode until interrupt occered on gp21 initpin */
+        PWR_EnterSleepMode(PWR_SLEEPEntry_WFI);
+    }
 }
 
-static void gp21_write_cmd(struct spi_tdc_gp21* tdc_gp21, uint8_t opcode)
+static void
+gp21_write_cmd(struct spi_tdc_gp21* tdc_gp21, uint8_t opcode)
 {
     rt_spi_send((struct rt_spi_device*)tdc_gp21, &opcode, 1);
     /* some cmd need wait interrupt pin */
@@ -132,13 +146,45 @@ static void gp21_write_cmd(struct spi_tdc_gp21* tdc_gp21, uint8_t opcode)
        (opcode == GP21_START_CAL_RESONATOR)  ||
        (opcode == GP21_START_TOF_RESTART)    ||
        (opcode == GP21_START_TEMP_RESTART)) {
-        busy_wait();
+        busy_wait(tdc_gp21);
     }
 }
 
-static rt_err_t tdc_gp21_init(rt_device_t dev)
+static rt_err_t
+tdc_gp21_init(rt_device_t dev)
 {
     struct spi_tdc_gp21* tdc_gp21 = (struct spi_tdc_gp21*)dev;
+    GPIO_InitTypeDef TDC_GPIO;
+    EXTI_InitTypeDef TDC_EXTI;
+    NVIC_InitTypeDef TDC_NVIC;
+    RT_ASSERT(dev != RT_NULL);
+
+    /* parameter init */
+    tdc_gp21->busy = RT_FALSE;
+
+    /* set tdc interrupt pin */
+    tdc_gp21->intpin.GPIOx = TDC_GPIO_IT_PIN_GROUP;
+    tdc_gp21->intpin.GPIO_Pin = TDC_GPIO_IT_PIN;
+
+    RCC_AHBPeriphClockCmd(TDC_GPIO_IT_PIN_RCC, ENABLE);
+    GPIO_StructInit(&TDC_GPIO);
+    TDC_GPIO.GPIO_Pin = TDC_GPIO_IT_PIN;
+    TDC_GPIO.GPIO_Mode = GPIO_Mode_IN;
+    TDC_GPIO.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    TDC_GPIO.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_Init(tdc_gp21->intpin.GPIOx, &TDC_GPIO);
+    SYSCFG_EXTILineConfig(TDC_GPIO_IT_PIN_PORT_SOURCE, TDC_GPIO_IT_PIN_PIN_SOURCE);
+    TDC_EXTI.EXTI_Line = TDC_GPIO_IT_EXTI_LINE;
+    TDC_EXTI.EXTI_LineCmd = ENABLE;
+    TDC_EXTI.EXTI_Mode = EXTI_Mode_Interrupt;
+    TDC_EXTI.EXTI_Trigger = EXTI_Trigger_Rising;
+    EXTI_Init(&TDC_EXTI);
+    TDC_NVIC.NVIC_IRQChannel = TDC_GPIO_IT_EXTI_IRQN;
+    TDC_NVIC.NVIC_IRQChannelCmd = ENABLE;
+    TDC_NVIC.NVIC_IRQChannelPriority = 3;
+    NVIC_Init(&TDC_NVIC);
+
+    /* config GP21 */
     /*
         config register0 :
         ANZ_FIRE = 31        DIV_FIRE = 3      ANZ_PER_CALRES = 3
@@ -197,33 +243,33 @@ static rt_err_t tdc_gp21_init(rt_device_t dev)
     return RT_EOK;
 }
 
-static rt_err_t tdc_gp21_open(rt_device_t dev, rt_uint16_t oflag)
+static rt_err_t
+tdc_gp21_open(rt_device_t dev, rt_uint16_t oflag)
 {
+    rt_uint32_t reg = 0;
     struct spi_tdc_gp21* tdc_gp21 = (struct spi_tdc_gp21*)dev;
-    uint32_t reg = 0;
     RT_ASSERT(dev != RT_NULL);
 
+    /* set corr_factor */
     gp21_write_cmd(tdc_gp21, GP21_POWER_ON_RESET);
     gp21_write_cmd(tdc_gp21, GP21_WRITE_EEPROM_TO_CFG);
     gp21_write_cmd(tdc_gp21, GP21_START_CAL_RESONATOR);
     reg = gp21_read_register32(tdc_gp21, GP21_READ_RES0_REGISTER);
     tdc_gp21->corr_factor = 488.28125/reg;
-
     return RT_EOK;
 }
 
-static rt_err_t tdc_gp21_close(rt_device_t dev)
+static rt_err_t
+tdc_gp21_close(rt_device_t dev)
 {
     RT_ASSERT(dev != RT_NULL);
 
-    if(--dev->ref_count == 0) {
-        dev->open_flag = RT_DEVICE_OFLAG_CLOSE;
-    }
-
     return RT_EOK;
 }
 
-static void tdc_gp21_measure_temp(struct spi_tdc_gp21* tdc_gp21, struct spi_tdc_gp21_temp_scales* args)
+static void
+tdc_gp21_measure_temp(struct spi_tdc_gp21* tdc_gp21,
+                      struct spi_tdc_gp21_temp_scales* args)
 {
     uint16_t stat = 0;
     uint32_t res[4] = {0,0,0,0};
@@ -242,7 +288,7 @@ static void tdc_gp21_measure_temp(struct spi_tdc_gp21* tdc_gp21, struct spi_tdc_
     temp.hot  = (float)res[0]/(float)res[1];
     temp.cold = (float)res[3]/(float)res[2];
     /* wait for next measure finish */
-    busy_wait();
+    busy_wait(tdc_gp21);
     stat = gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
     if(stat & 0x1E00) {
         TDC_TRACE("TDC gp21 measure temperature error=0x%04x !\r\n", stat);
@@ -256,14 +302,17 @@ static void tdc_gp21_measure_temp(struct spi_tdc_gp21* tdc_gp21, struct spi_tdc_
     args->cold = (temp.cold + ((float)res[3]/(float)res[2]))/2;
 }
 
-static void wait_for_alu(void)
+rt_inline void
+wait_for_alu(void)
 {
     /* ALU calculate need no more than 4.6us */
     uint32_t i = 0x00FFFFFF;
     while(i--);
 }
 
-static void tdc_gp21_measure_tof2(struct spi_tdc_gp21* tdc_gp21, struct spi_tdc_gp21_tof_data* args)
+static void
+tdc_gp21_measure_tof2(struct spi_tdc_gp21* tdc_gp21,
+                      struct spi_tdc_gp21_tof_data* args)
 {
     uint16_t stat = 0;
     uint32_t res[3] = {0,0,0};
@@ -288,7 +337,7 @@ static void tdc_gp21_measure_tof2(struct spi_tdc_gp21* tdc_gp21, struct spi_tdc_
     args->up = (res[0]+res[1]+res[2])/3;
 
     /* wait for next measure finish */
-    busy_wait();
+    busy_wait(tdc_gp21);
     stat = gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
     if(stat & 0x0600) {
         TDC_TRACE("TDC gp21 measure ToF error=0x%04x !\r\n", stat);
@@ -304,7 +353,8 @@ static void tdc_gp21_measure_tof2(struct spi_tdc_gp21* tdc_gp21, struct spi_tdc_
     args->down = (res[0]+res[1]+res[2])/3;
 }
 
-static rt_err_t tdc_gp21_control(rt_device_t dev, rt_uint8_t cmd, void* args)
+static rt_err_t
+tdc_gp21_control(rt_device_t dev, rt_uint8_t cmd, void* args)
 {
     struct spi_tdc_gp21* tdc_gp21 = (struct spi_tdc_gp21*)dev;
     RT_ASSERT(dev != RT_NULL);
@@ -335,62 +385,54 @@ static struct spi_tdc_gp21 tdc_gp21;
 /*
     global functions
 */
-rt_err_t gp21_register(const char* tdc_device_name,
-                       const char* spi_bus_name)
+rt_err_t
+tdc_register(const char* tdc_device_name, const char* spi_dev_name)
 {
     struct rt_spi_configuration cfg;
-    GPIO_InitTypeDef TDC_GPIO;
-    EXTI_InitTypeDef TDC_EXTI;
-    NVIC_InitTypeDef TDC_NVIC;
+    struct rt_spi_device* spi_device = RT_NULL;
+    rt_err_t ret = RT_EOK;
 
-    /* 1.attach tdc device to spi bus */
-    rt_spi_bus_attach_device(&(tdc_gp21.parent),
-                             tdc_device_name,
-                             spi_bus_name,
-                             NULL);
+    /* 1. find spi device */
+    spi_device = (struct rt_spi_device*)rt_device_find(spi_dev_name);
+    if(spi_device == RT_NULL) {
+        TDC_TRACE("spi device %s not found!\r\n", spi_dev_name);
+        return -RT_ENOSYS;
+    }
+    tdc_gp21.spi_dev = spi_device;
 
     /* 2.config spi device */
     cfg.data_width = 8;
     cfg.mode = RT_SPI_MODE_1 | RT_SPI_MSB;
     cfg.max_hz = 20000000;
-    rt_spi_configure(&(tdc_gp21.parent), &cfg);
+    ret = rt_spi_configure(tdc_gp21.spi_dev, &cfg);
+    if(RT_EOK != ret) {
+        return ret;
+    }
 
     /* 3.register device */
-    tdc_gp21.parent.parent.init        = tdc_gp21_init;
-    tdc_gp21.parent.parent.open        = tdc_gp21_open;
-    tdc_gp21.parent.parent.close       = tdc_gp21_close;
-    tdc_gp21.parent.parent.control     = tdc_gp21_control;
-
-    /* 4.set tdc interrupt pin */
-    RCC_AHBPeriphClockCmd(TDC_GPIO_IT_PIN_RCC, ENABLE);
-    GPIO_StructInit(&TDC_GPIO);
-    TDC_GPIO.GPIO_Pin = TDC_GPIO_IT_PIN;
-    TDC_GPIO.GPIO_Mode = GPIO_Mode_IN;
-    TDC_GPIO.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    TDC_GPIO.GPIO_Speed = GPIO_Speed_2MHz;
-    GPIO_Init(TDC_GPIO_IT_PIN_GROUP, &TDC_GPIO);
-    SYSCFG_EXTILineConfig(TDC_GPIO_IT_PIN_PORT_SOURCE, TDC_GPIO_IT_PIN_PIN_SOURCE);
-    TDC_EXTI.EXTI_Line = TDC_GPIO_IT_EXTI_LINE;
-    TDC_EXTI.EXTI_LineCmd = ENABLE;
-    TDC_EXTI.EXTI_Mode = EXTI_Mode_Interrupt;
-    TDC_EXTI.EXTI_Trigger = EXTI_Trigger_Rising;
-    EXTI_Init(&TDC_EXTI);
-    TDC_NVIC.NVIC_IRQChannel = EXTI4_15_IRQn;
-    TDC_NVIC.NVIC_IRQChannelCmd = ENABLE;
-    TDC_NVIC.NVIC_IRQChannelPriority = 0;
-    NVIC_Init(&TDC_NVIC);
+    tdc_gp21.parent.type        = RT_Device_Class_Miscellaneous;
+    tdc_gp21.parent.init        = tdc_gp21_init;
+    tdc_gp21.parent.open        = tdc_gp21_open;
+    tdc_gp21.parent.close       = tdc_gp21_close;
+    tdc_gp21.parent.control     = tdc_gp21_control;
+    tdc_gp21.parent.user_data   = RT_NULL;
+    ret = rt_device_register(&(tdc_gp21.parent), "tdc1", RT_NULL);
+    if(RT_EOK != ret) {
+        return ret;
+    }
 
     return RT_EOK;
 }
 
 #ifdef RT_USING_TDC_GP21
-void EXTI4_15_IRQHandler(void)
+void
+EXTI4_15_IRQHandler(void)
 {
-
     /* enter interrupt */
     rt_interrupt_enter();
 
     if(EXTI_GetITStatus(TDC_GPIO_IT_EXTI_LINE) != RESET) {
+        tdc_gp21.busy = RT_FALSE;
         EXTI_ClearFlag(TDC_GPIO_IT_EXTI_LINE);
     }
 

@@ -25,9 +25,11 @@ struct spi_tdc_gp21_int_pin {
     uint16_t GPIO_Pin;
 };
 struct spi_tdc_gp21 {
-    struct rt_spi_device        parent;
+    struct rt_device parent;
+    struct rt_spi_device* spi_dev;
     struct spi_tdc_gp21_int_pin intpin;
     float corr_factor;
+    rt_bool_t busy;
 };
 
 #define SPI_TDC_GP21_CTRL_MEASURE_TEMP   (0x01)
@@ -44,6 +46,7 @@ struct spi_tdc_gp21_tof_data {
 /*
     global functions
 */
-rt_err_t gp21_register(const char* tdc_device_name, const char* spi_device_name);
+rt_err_t
+tdc_register(const char* tdc_device_name, const char* spi_device_name);
 
 #endif
