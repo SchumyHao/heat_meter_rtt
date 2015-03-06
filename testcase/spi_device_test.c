@@ -13,8 +13,13 @@ int test_spi_dev(void)
     struct rt_spi_device spi_dev;
     struct rt_spi_configuration cfg;
     rt_device_t spi_bus = RT_NULL;
-    rt_uint32_t tmp[2] = {0,0};
-	const rt_uint32_t data[2] = {0x12345678,0x87654321};
+    rt_uint8_t tmp[40];
+    const rt_uint8_t data[40] = {0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,
+                                 0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,
+                                 0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,
+                                 0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,
+                                 0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88
+                                };
 
 #ifdef RT_USING_SPI1
     spi_bus = rt_device_find("spi1");
@@ -48,13 +53,55 @@ int test_spi_dev(void)
     if(RT_EOK != rt_spi_release(&spi_dev)) {
         return -RT_ERROR;
     }
-#if 1
-    if(1 != rt_spi_transfer(&spi_dev, data, tmp, sizeof(data)) ||
-       (data[0] != tmp[0]) ||
-       (data[1] != tmp[1])) {
+    if(8 != rt_spi_transfer(&spi_dev, data, tmp, 8) ||
+       (0 != memcmp(tmp,data,8))) {
         return -RT_ERROR;
     }
-#endif
+    memset(tmp,0,sizeof(tmp));
+    if(sizeof(data) != rt_spi_transfer(&spi_dev, data, tmp, sizeof(data)) ||
+       (0 != memcmp(tmp,data,sizeof(data)))) {
+        return -RT_ERROR;
+    }
+    if(8 != rt_spi_recv(&spi_dev, tmp, 8)) {
+        return -RT_ERROR;
+    }
+    if(sizeof(tmp) != rt_spi_recv(&spi_dev, tmp, sizeof(tmp))) {
+        return -RT_ERROR;
+    }
+    if(8 != rt_spi_send(&spi_dev, data, 8)) {
+        return -RT_ERROR;
+    }
+    if(sizeof(data) != rt_spi_send(&spi_dev, data, sizeof(data))) {
+        return -RT_ERROR;
+    }
+    cfg.data_width = 16;
+    cfg.mode = RT_SPI_MODE_0 | RT_SPI_MSB;
+    cfg.max_hz = 20000000;
+    if(RT_EOK != rt_spi_configure(&spi_dev, &cfg)) {
+        return -RT_ERROR;
+    }
+    if(8 != rt_spi_transfer(&spi_dev, data, tmp, 8) ||
+       (0 != memcmp(tmp,data,8))) {
+        return -RT_ERROR;
+    }
+    memset(tmp,0,sizeof(tmp));
+    if(sizeof(data) != rt_spi_transfer(&spi_dev, data, tmp, sizeof(data)) ||
+       (0 != memcmp(tmp,data,sizeof(data)))) {
+        return -RT_ERROR;
+    }
+    if(8 != rt_spi_recv(&spi_dev, tmp, 8)) {
+        return -RT_ERROR;
+    }
+    if(sizeof(tmp) != rt_spi_recv(&spi_dev, tmp, sizeof(tmp))) {
+        return -RT_ERROR;
+    }
+    if(8 != rt_spi_send(&spi_dev, data, 8)) {
+        return -RT_ERROR;
+    }
+    if(sizeof(data) != rt_spi_send(&spi_dev, data, sizeof(data))) {
+        return -RT_ERROR;
+    }
+
     if(RT_EOK != rt_device_unregister(&(spi_dev.parent))) {
         return -RT_ERROR;
     }

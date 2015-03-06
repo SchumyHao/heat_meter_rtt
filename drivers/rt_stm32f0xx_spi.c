@@ -5,6 +5,7 @@
  * Change Logs:
  * Date           Author       Notes
  * 2014-12-19     Schumy       the first version
+ * 2015_3_6       Schumy       can work in all mode except Tx DMA Rx IT
  */
 
 #include <rtdevice.h>
@@ -87,7 +88,6 @@ struct stm32_spi_bus {
     struct rt_ringbuffer* tx_rb;
     struct rt_ringbuffer* rx_rb;
     rt_size_t volatile tx_it_count;
-    rt_size_t volatile rx_it_count;
     void (*TxISR)(struct stm32_spi_bus* bus);
     void (*RxISR)(struct stm32_spi_bus* bus);
 
@@ -349,6 +349,7 @@ static void stm32_spi_bus_it_writen(struct stm32_spi_bus* bus, const rt_uint8_t*
     rt_size_t tx_len = len;
 
     do {
+				bus->tx_it_count = 0;
         if(RT_NULL != tx_buf) {
             tx_rb_writen = rt_ringbuffer_put(bus->tx_rb, tx_buf, tx_len);
             tx_buf += tx_rb_writen;
@@ -358,9 +359,8 @@ static void stm32_spi_bus_it_writen(struct stm32_spi_bus* bus, const rt_uint8_t*
         }
         tx_len -= tx_rb_writen;
         SPI_I2S_ITConfig(bus->spix, SPI_I2S_IT_TXE, ENABLE);
-        while(bus->tx_it_count < tx_rb_writen);
-        SPI_I2S_ITConfig(bus->spix, SPI_I2S_IT_TXE, DISABLE);
-        bus->tx_it_count = 0;
+        while(bus->tx_it_count < tx_rb_writen)
+					;
     }
     while(tx_len > 0);
 }
@@ -389,6 +389,7 @@ static void stm32_spi_bus_it_writen_and_readn(struct stm32_spi_bus* bus, const r
     rt_size_t tx_len = len;
 
     do {
+				bus->tx_it_count = 0;
         if(RT_NULL != tx_buf) {
             tx_rb_writen = rt_ringbuffer_put(bus->tx_rb, tx_buf, tx_len);
             tx_buf += tx_rb_writen;
@@ -398,13 +399,15 @@ static void stm32_spi_bus_it_writen_and_readn(struct stm32_spi_bus* bus, const r
         }
         tx_len -= tx_rb_writen;
         SPI_I2S_ITConfig(bus->spix, SPI_I2S_IT_TXE, ENABLE);
-        while(bus->tx_it_count < tx_rb_writen);
-        SPI_I2S_ITConfig(bus->spix, SPI_I2S_IT_TXE, DISABLE);
-        bus->tx_it_count = 0;
+        while(bus->tx_it_count < tx_rb_writen)
+					;
 
         stm32_spi_bus_it_readn(bus, rx_buf, tx_rb_writen);
+				if(RT_NULL != rx_buf) {
+						rx_buf += tx_rb_writen;
+				}
     }
-    while(tx_len > 0);
+    while(tx_len > 0);		
 }
 
 rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_dma(struct stm32_spi_bus* bus, const rt_uint8_t* tx_buf, rt_uint8_t* rx_buf, rt_size_t len)
@@ -549,7 +552,7 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_it_receive_dma(struct stm32_spi_bus* 
         }
         DMA_Init(bus->rx_dma, &SPI_DMA);
     }
-    bus->tx_it_count = 0;
+		
     SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Tx, DISABLE);
     SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_RXNE, DISABLE);
     SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Rx, ENABLE);
@@ -619,7 +622,7 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_it(struct stm32_spi_bus* 
         }
         DMA_Init(bus->tx_dma, &SPI_DMA);
     }
-    bus->rx_it_count = 0;
+    bus->tx_dma_tc_flag = RT_FALSE;
     SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Rx, DISABLE);
     SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_TXE, DISABLE);
     SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Tx, ENABLE);
@@ -633,12 +636,14 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_dma_receive_it(struct stm32_spi_bus* 
     stm32_spi_bus_it_readn(bus, rx_buf, len);
 
     /* Tx Rx over */
+    while((SPI_I2S_GetFlagStatus(SPIx, SPI_I2S_FLAG_BSY) != RESET) ||
+          (bus->tx_dma_tc_flag == RT_FALSE))
+        ;
     SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Tx, DISABLE);
     DMA_ITConfig(bus->tx_dma, DMA_IT_TC, DISABLE);
     DMA_Cmd(bus->tx_dma, DISABLE);
     bus->tx_dma_tc_flag = RT_FALSE;
     SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_RXNE, DISABLE);
-    bus->rx_it_count = 0;
 
     return RT_EOK;
 }
@@ -653,8 +658,6 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_it_receive_it(struct stm32_spi_bus* b
     else {
         SPI_RxFIFOThresholdConfig(SPIx, SPI_RxFIFOThreshold_HF);
     }
-    bus->tx_it_count = 0;
-    bus->rx_it_count = 0;
     SPI_I2S_DMACmd(SPIx, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, DISABLE);
     SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_RXNE, ENABLE);
 
@@ -663,7 +666,6 @@ rt_inline rt_err_t _stm32_spi_bus_transmit_it_receive_it(struct stm32_spi_bus* b
 
     /* Tx Rx over */
     SPI_I2S_ITConfig(SPIx, SPI_I2S_IT_RXNE, DISABLE);
-    bus->rx_it_count = 0;
 
     return RT_EOK;
 }
@@ -730,7 +732,7 @@ static rt_uint32_t stm32_spi_bus_xfer(struct rt_spi_device* dev, struct rt_spi_m
         stm32_spi_bus_take_cs(spi_bus);
     }
 
-    spi_bus->xfer_size = (stm32_spi_bus_is_8bits(spi_bus))? msg->length: msg->length<<1;
+    spi_bus->xfer_size = msg->length;
 
     if((RT_NULL!=msg->send_buf)&&(RT_NULL!=msg->recv_buf)) {
         if(RT_EOK !=stm32_spi_bus_transmit_receive(spi_bus,
@@ -817,7 +819,7 @@ static rt_err_t stm32_spi_bus_init(rt_device_t dev)
            (RT_DEVICE_FLAG_DMA_RX | RT_DEVICE_FLAG_DMA_TX)) {
             SPI_NVIC.NVIC_IRQChannel = DMA1_Channel2_3_IRQn;
             SPI_NVIC.NVIC_IRQChannelCmd = ENABLE;
-            SPI_NVIC.NVIC_IRQChannelPriority = 0;
+            SPI_NVIC.NVIC_IRQChannelPriority = 1;
             NVIC_Init(&SPI_NVIC);
         }
     }
@@ -857,7 +859,7 @@ static rt_err_t stm32_spi_bus_init(rt_device_t dev)
            (RT_DEVICE_FLAG_DMA_RX | RT_DEVICE_FLAG_DMA_TX)) {
             SPI_NVIC.NVIC_IRQChannel = DMA1_Channel4_5_IRQn;
             SPI_NVIC.NVIC_IRQChannelCmd = ENABLE;
-            SPI_NVIC.NVIC_IRQChannelPriority = 1;
+            SPI_NVIC.NVIC_IRQChannelPriority = 2;
             NVIC_Init(&SPI_NVIC);
         }
     }
@@ -977,12 +979,10 @@ static void STM32_spi_bus_rx_isr(struct stm32_spi_bus* bus)
     if(stm32_spi_bus_is_8bits(bus)) {
         uint8_t data = SPI_ReceiveData8(bus->spix);
         rt_ringbuffer_put(bus->rx_rb, (rt_uint8_t*)&data, sizeof(uint8_t));
-        bus->rx_it_count += sizeof(uint8_t);
     }
     else {
         uint16_t data = SPI_I2S_ReceiveData16(bus->spix);
         rt_ringbuffer_put(bus->rx_rb, (rt_uint8_t*)&data, sizeof(uint16_t));
-        bus->rx_it_count += sizeof(uint16_t);
     }
 }
 
@@ -990,22 +990,22 @@ static void STM32_spi_bus_tx_isr(struct stm32_spi_bus* bus)
 {
     if(stm32_spi_bus_is_8bits(bus)) {
         uint8_t data = 0;
-        if(rt_ringbuffer_data_len(bus->tx_rb)!=0) {
+        if(rt_ringbuffer_data_len(bus->tx_rb) != 0) {
             rt_ringbuffer_get(bus->tx_rb, (rt_uint8_t*)&data, sizeof(uint8_t));
         }
-        else {
-            data = (uint8_t)SPI_DUMP;
+				if(rt_ringbuffer_data_len(bus->tx_rb) == 0) {
+            SPI_I2S_ITConfig(bus->spix, SPI_I2S_IT_TXE, DISABLE);
         }
         SPI_SendData8(bus->spix, data);
         bus->tx_it_count += sizeof(uint8_t);
     }
     else {
         uint16_t data = 0;
-        if(rt_ringbuffer_data_len(bus->tx_rb)!=0) {
+        if(rt_ringbuffer_data_len(bus->tx_rb) != 0) {
             rt_ringbuffer_get(bus->tx_rb, (rt_uint8_t*)&data, sizeof(uint16_t));
         }
-        else {
-            data = (uint16_t)SPI_DUMP;
+        if(rt_ringbuffer_data_len(bus->tx_rb) == 0) {
+            SPI_I2S_ITConfig(bus->spix, SPI_I2S_IT_TXE, DISABLE);
         }
         SPI_I2S_SendData16(bus->spix, data);
         bus->tx_it_count += sizeof(uint16_t);

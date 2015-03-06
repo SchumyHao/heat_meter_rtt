@@ -74,9 +74,9 @@
 #define RT_USING_SPI1
 #ifdef RT_USING_SPI1
 // <bool name="RT_USING_SPI1_TX_DMA" description="Using DMA when transmit on SPI1" default="false" />
-#define RT_USING_SPI1_TX_DMA
+//#define RT_USING_SPI1_TX_DMA
 // <bool name="RT_USING_SPI1_RX_DMA" description="Using DMA when receive on SPI1" default="false" />
-//#define RT_USING_SPI1_RX_DMA
+#define RT_USING_SPI1_RX_DMA
 #endif /* ifdef RT_USING_SPI1 */
 #define RT_USING_SPI2
 #ifdef RT_USING_SPI2

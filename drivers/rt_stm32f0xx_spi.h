@@ -5,6 +5,7 @@
  * Change Logs:
  * Date           Author       Notes
  * 2014-12-19     Schumy       the first version
+ * 2015_3_6       Schumy       can work in all mode except Tx DMA Rx IT
  */
 
 #ifndef __RT_STM32F0XX_SPI_H__
