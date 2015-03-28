@@ -16,19 +16,19 @@
 #define SPI_IT_XFER_ONEC_MAX_LEN (32)
 
 /* SPI1 */
-#define SPI1_GPIO_MISO_PIN       GPIO_Pin_4
-#define SPI1_GPIO_MISO_SOURCE    GPIO_PinSource4
-#define SPI1_GPIO_MOSI_PIN       GPIO_Pin_5
-#define SPI1_GPIO_MOSI_SOURCE    GPIO_PinSource5
-#define SPI1_GPIO_SCLK_PIN       GPIO_Pin_3
-#define SPI1_GPIO_SCLK_SOURCE    GPIO_PinSource3
-#define SPI1_GPIO_PIN_GROUP      GPIOB
-#define SPI1_GPIO_PIN_RCC        RCC_AHBPeriph_GPIOB
+#define SPI1_GPIO_MISO_PIN       GPIO_Pin_6
+#define SPI1_GPIO_MISO_SOURCE    GPIO_PinSource6
+#define SPI1_GPIO_MOSI_PIN       GPIO_Pin_7
+#define SPI1_GPIO_MOSI_SOURCE    GPIO_PinSource7
+#define SPI1_GPIO_SCLK_PIN       GPIO_Pin_5
+#define SPI1_GPIO_SCLK_SOURCE    GPIO_PinSource5
+#define SPI1_GPIO_PIN_GROUP      GPIOA
+#define SPI1_GPIO_PIN_RCC        RCC_AHBPeriph_GPIOA
 #define SPI1_GPIO_PIN_AF         GPIO_AF_0
-#define SPI1_GPIO_NSS_PIN        GPIO_Pin_1
-#define SPI1_GPIO_NSS_SOURCE     GPIO_PinSource1
-#define SPI1_GPIO_NSS_PIN_GROUP  GPIOC
-#define SPI1_GPIO_NSS_PIN_RCC    RCC_AHBPeriph_GPIOC
+#define SPI1_GPIO_NSS_PIN        GPIO_Pin_4
+#define SPI1_GPIO_NSS_SOURCE     GPIO_PinSource4
+#define SPI1_GPIO_NSS_PIN_GROUP  GPIOA
+#define SPI1_GPIO_NSS_PIN_RCC    RCC_AHBPeriph_GPIOA
 #define SPI1_RCC                 RCC_APB2Periph_SPI1
 #define SPI1_DMA_RCC             RCC_AHBPeriph_DMA1
 #ifdef RT_USING_SPI1_TX_DMA
@@ -56,10 +56,10 @@ static struct rt_ringbuffer stm32_spi1_rx_rb;
 #define SPI2_GPIO_PIN_GROUP      GPIOB
 #define SPI2_GPIO_PIN_RCC        RCC_AHBPeriph_GPIOB
 #define SPI2_GPIO_PIN_AF         GPIO_AF_0
-#define SPI2_GPIO_NSS_PIN        GPIO_Pin_5
-#define SPI2_GPIO_NSS_SOURCE     GPIO_PinSource5
-#define SPI2_GPIO_NSS_PIN_GROUP  GPIOA
-#define SPI2_GPIO_NSS_PIN_RCC    RCC_AHBPeriph_GPIOA
+#define SPI2_GPIO_NSS_PIN        GPIO_Pin_12
+#define SPI2_GPIO_NSS_SOURCE     GPIO_PinSource12
+#define SPI2_GPIO_NSS_PIN_GROUP  GPIOB
+#define SPI2_GPIO_NSS_PIN_RCC    RCC_AHBPeriph_GPIOB
 #define SPI2_RCC                 RCC_APB1Periph_SPI2
 #define SPI2_DMA_RCC             RCC_AHBPeriph_DMA1
 #ifdef RT_USING_SPI2_TX_DMA

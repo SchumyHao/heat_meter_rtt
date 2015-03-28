@@ -17,12 +17,13 @@
 #include "usart.h"
 
 /* USART1 */
-#define UART1_GPIO_TX			GPIO_Pin_9
-#define UART1_GPIO_TX_SOURCE	GPIO_PinSource9
-#define UART1_GPIO_RX			GPIO_Pin_10
-#define UART1_GPIO_RX_SOURCE	GPIO_PinSource10
-#define UART1_GPIO_AF			GPIO_AF_1
-#define UART1_GPIO				GPIOA
+#define UART1_GPIO_TX			GPIO_Pin_6
+#define UART1_GPIO_TX_SOURCE	GPIO_PinSource6
+#define UART1_GPIO_RX			GPIO_Pin_7
+#define UART1_GPIO_RX_SOURCE	GPIO_PinSource7
+#define UART1_GPIO_AF			GPIO_AF_0
+#define UART1_GPIO				GPIOB
+#define UART1_GPIO_RCC    RCC_AHBPeriph_GPIOB
 
 /* USART2 */
 #define UART2_GPIO_TX			GPIO_Pin_2
@@ -31,6 +32,7 @@
 #define UART2_GPIO_RX_SOURCE	GPIO_PinSource3
 #define UART2_GPIO_AF			GPIO_AF_1
 #define UART2_GPIO				GPIOA
+#define UART2_GPIO_RCC    RCC_AHBPeriph_GPIOA
 
 /* STM32 uart driver */
 struct stm32_uart
@@ -204,14 +206,14 @@ static void RCC_Configuration(void)
 {
 #ifdef RT_USING_UART1
     /* Enable GPIO clock */
-    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
+    RCC_AHBPeriphClockCmd(UART1_GPIO_RCC, ENABLE);
     /* Enable USART clock */
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
 #endif /* RT_USING_UART1 */
 
 #ifdef RT_USING_UART2
     /* Enable GPIO clock */
-    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
+    RCC_AHBPeriphClockCmd(UART2_GPIO_RCC, ENABLE);
     /* Enable USART clock */
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
 #endif /* RT_USING_UART2 */
