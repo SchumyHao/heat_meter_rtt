@@ -23,16 +23,16 @@
 #define TDC_TRACE(...)
 #endif
 
-#define TDC_GPIO_IT_PIN                     GPIO_Pin_5
-#define TDC_GPIO_IT_PIN_RCC                 RCC_AHBPeriph_GPIOF
-#define TDC_GPIO_IT_PIN_GROUP               GPIOF
-#define TDC_GPIO_IT_PIN_PIN_SOURCE          EXTI_PinSource5
-#define TDC_GPIO_IT_PIN_PORT_SOURCE         EXTI_PortSourceGPIOF
-#define TDC_GPIO_IT_EXTI_LINE               EXTI_Line5
-#define TDC_GPIO_IT_EXTI_IRQN               EXTI4_15_IRQn
-#define TDC_GPIO_NRST_PIN                   GPIO_Pin_7
-#define TDC_GPIO_NRST_PIN_RCC               RCC_AHBPeriph_GPIOF
-#define TDC_GPIO_NRST_PIN_GROUP             GPIOF
+#define TDC_GPIO_IT_PIN                     GPIO_Pin_1
+#define TDC_GPIO_IT_PIN_RCC                 RCC_AHBPeriph_GPIOB
+#define TDC_GPIO_IT_PIN_GROUP               GPIOB
+#define TDC_GPIO_IT_PIN_PIN_SOURCE          EXTI_PinSource1
+#define TDC_GPIO_IT_PIN_PORT_SOURCE         EXTI_PortSourceGPIOB
+#define TDC_GPIO_IT_EXTI_LINE               EXTI_Line1
+#define TDC_GPIO_IT_EXTI_IRQN               EXTI0_1_IRQn
+#define TDC_GPIO_NRST_PIN                   GPIO_Pin_2
+#define TDC_GPIO_NRST_PIN_RCC               RCC_AHBPeriph_GPIOB
+#define TDC_GPIO_NRST_PIN_GROUP             GPIOB
 
 /* write config registers opcode */
 #define GP21_WRITE_REG0_REGISTER            (0x80)
@@ -542,7 +542,7 @@ tdc_gp21_register(const char* tdc_device_name, const char* spi_dev_name)
 
 #ifdef RT_USING_TDC_GP21
 void
-EXTI4_15_IRQHandler(void)
+EXTI0_1_IRQHandler(void)
 {
     /* enter interrupt */
     rt_interrupt_enter();
