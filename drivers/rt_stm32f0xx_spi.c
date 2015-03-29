@@ -26,7 +26,6 @@
 #define SPI1_GPIO_PIN_RCC        RCC_AHBPeriph_GPIOA
 #define SPI1_GPIO_PIN_AF         GPIO_AF_0
 #define SPI1_GPIO_NSS_PIN        GPIO_Pin_4
-#define SPI1_GPIO_NSS_SOURCE     GPIO_PinSource4
 #define SPI1_GPIO_NSS_PIN_GROUP  GPIOA
 #define SPI1_GPIO_NSS_PIN_RCC    RCC_AHBPeriph_GPIOA
 #define SPI1_RCC                 RCC_APB2Periph_SPI1
@@ -57,7 +56,6 @@ static struct rt_ringbuffer stm32_spi1_rx_rb;
 #define SPI2_GPIO_PIN_RCC        RCC_AHBPeriph_GPIOB
 #define SPI2_GPIO_PIN_AF         GPIO_AF_0
 #define SPI2_GPIO_NSS_PIN        GPIO_Pin_12
-#define SPI2_GPIO_NSS_SOURCE     GPIO_PinSource12
 #define SPI2_GPIO_NSS_PIN_GROUP  GPIOB
 #define SPI2_GPIO_NSS_PIN_RCC    RCC_AHBPeriph_GPIOB
 #define SPI2_RCC                 RCC_APB1Periph_SPI2
@@ -274,7 +272,7 @@ static rt_err_t stm32_spi_bus_configure(struct rt_spi_device* dev, struct rt_spi
     spi_bus->init.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
     spi_bus->init.SPI_NSS  = SPI_NSS_Soft;
     if(dev->parent.user_data != RT_NULL) {
-        struct stm32_spi_bus_cs* cs = (struct stm32_spi_bus_cs*)dev->parent.user_data;
+        struct stm32_spi_dev_cs* cs = (struct stm32_spi_dev_cs*)dev->parent.user_data;
         cs->init(cs);
     }
     else {
@@ -293,7 +291,7 @@ static rt_err_t stm32_spi_bus_configure(struct rt_spi_device* dev, struct rt_spi
 rt_inline void stm32_spi_bus_take_cs(struct stm32_spi_bus* bus)
 {
     if(bus->parent.owner->parent.user_data != RT_NULL) {
-        struct stm32_spi_bus_cs* cs = (struct stm32_spi_bus_cs*)bus->parent.owner->parent.user_data;
+        struct stm32_spi_dev_cs* cs = (struct stm32_spi_dev_cs*)bus->parent.owner->parent.user_data;
         cs->take(cs);
     }
     else {
@@ -309,7 +307,7 @@ rt_inline void stm32_spi_bus_take_cs(struct stm32_spi_bus* bus)
 rt_inline void stm32_spi_bus_release_cs(struct stm32_spi_bus* bus)
 {
     if(bus->parent.owner->parent.user_data != RT_NULL) {
-        struct stm32_spi_bus_cs* cs = (struct stm32_spi_bus_cs*)bus->parent.owner->parent.user_data;
+        struct stm32_spi_dev_cs* cs = (struct stm32_spi_dev_cs*)bus->parent.owner->parent.user_data;
         cs->release(cs);
     }
     else {

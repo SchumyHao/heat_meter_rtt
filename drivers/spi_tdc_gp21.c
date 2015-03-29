@@ -11,6 +11,7 @@
     include files
 */
 #include "spi_tdc_gp21.h"
+#include "rt_stm32f0xx_spi.h"
 
 /*
     local define
@@ -33,6 +34,9 @@
 #define TDC_GPIO_NRST_PIN                   GPIO_Pin_2
 #define TDC_GPIO_NRST_PIN_RCC               RCC_AHBPeriph_GPIOB
 #define TDC_GPIO_NRST_PIN_GROUP             GPIOB
+#define TDC_GPIO_NSS_PIN                    GPIO_Pin_10
+#define TDC_GPIO_NSS_PIN_GROUP              GPIOB
+#define TDC_GPIO_NSS_PIN_RCC                RCC_AHBPeriph_GPIOB
 
 /* write config registers opcode */
 #define GP21_WRITE_REG0_REGISTER            (0x80)
@@ -171,6 +175,30 @@ tdc_gp21_write_register32(struct spi_tdc_gp21* tdc_gp21,
                           &send_buf, 4);
 }
 
+void tdc_gp21_nss_init(struct stm32_spi_dev_cs* cs){
+    GPIO_InitTypeDef TDC_GPIO;
+    RT_ASSERT(cs != RT_NULL);
+
+    RCC_AHBPeriphClockCmd(TDC_GPIO_NSS_PIN_RCC, ENABLE);
+    GPIO_StructInit(&TDC_GPIO);
+    TDC_GPIO.GPIO_Pin = TDC_GPIO_NSS_PIN;
+    TDC_GPIO.GPIO_Mode = GPIO_Mode_OUT;
+    TDC_GPIO.GPIO_PuPd = GPIO_PuPd_UP;
+    TDC_GPIO.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(TDC_GPIO_NSS_PIN_GROUP, &TDC_GPIO);
+    GPIO_SetBits(TDC_GPIO_NSS_PIN_GROUP, TDC_GPIO_NSS_PIN);
+}
+void tdc_gp21_nss_take(struct stm32_spi_dev_cs* cs){
+    RT_ASSERT(cs != RT_NULL);
+
+	GPIO_ResetBits(TDC_GPIO_NSS_PIN_GROUP, TDC_GPIO_NSS_PIN);
+}
+void tdc_gp21_nss_release(struct stm32_spi_dev_cs* cs){
+    RT_ASSERT(cs != RT_NULL);
+
+	GPIO_SetBits(TDC_GPIO_NSS_PIN_GROUP, TDC_GPIO_NSS_PIN);
+}
+
 static void tdc_gp21_error_print(struct spi_tdc_gp21* tdc_gp21,
                                  const rt_uint16_t stat)
 {
@@ -269,7 +297,8 @@ tdc_gp21_init(rt_device_t dev)
     tdc_gp21->intpin.GPIOx = TDC_GPIO_IT_PIN_GROUP;
     tdc_gp21->intpin.GPIO_Pin = TDC_GPIO_IT_PIN;
 
-    RCC_AHBPeriphClockCmd(TDC_GPIO_IT_PIN_RCC | TDC_GPIO_NRST_PIN_RCC, ENABLE);
+    RCC_AHBPeriphClockCmd(TDC_GPIO_IT_PIN_RCC |
+                          TDC_GPIO_NRST_PIN_RCC,ENABLE);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
     GPIO_StructInit(&TDC_GPIO);
     TDC_GPIO.GPIO_Pin = TDC_GPIO_IT_PIN;
@@ -496,6 +525,11 @@ tdc_gp21_control(rt_device_t dev, rt_uint8_t cmd, void* args)
 
 #ifdef RT_USING_TDC_GP21
 static struct spi_tdc_gp21 tdc_gp21;
+static struct stm32_spi_dev_cs tdc_nss_pin = {
+	tdc_gp21_nss_init,
+	tdc_gp21_nss_take,
+	tdc_gp21_nss_release
+};
 #endif /* RT_USING_TDC_GP21 */
 
 /*
@@ -506,7 +540,7 @@ tdc_gp21_register(const char* tdc_device_name, const char* spi_bus_name)
 {
     struct rt_spi_configuration cfg;
     struct rt_spi_bus* spi_bus = RT_NULL;
-	struct rt_spi_device* spi_dev = RT_NULL;
+    struct rt_spi_device* spi_dev = RT_NULL;
     rt_err_t ret = RT_EOK;
 
     /* 1. find spi bus */
@@ -515,16 +549,16 @@ tdc_gp21_register(const char* tdc_device_name, const char* spi_bus_name)
         TDC_TRACE("spi bus %s not found!\r\n", spi_bus_name);
         return -RT_ENOSYS;
     }
-	if(!(spi_bus->parent.open_flag & RT_DEVICE_OFLAG_OPEN)){
-		if(RT_EOK != rt_device_open(spi_bus, RT_DEVICE_OFLAG_RDWR)) {
-			TDC_TRACE("spi bus %s open failed!\r\n", spi_bus_name);
-	        return -RT_ERROR;
-	    }
-	}
-	spi_dev = (struct rt_spi_device*)rt_malloc(sizeof(*spi_dev));
-	RT_ASSERT(spi_dev != RT_NULL);
-	if(RT_EOK != rt_spi_bus_attach_device(&spi_dev, "spitdc", spi_bus->parent.name, RT_NULL)) {
-		TDC_TRACE("tdc spi device attach to spi bus %s failed!\r\n", spi_bus_name);
+    if(!(spi_bus->parent.open_flag & RT_DEVICE_OFLAG_OPEN)) {
+        if(RT_EOK != rt_device_open(spi_bus, RT_DEVICE_OFLAG_RDWR)) {
+            TDC_TRACE("spi bus %s open failed!\r\n", spi_bus_name);
+            return -RT_ERROR;
+        }
+    }
+    spi_dev = (struct rt_spi_device*)rt_malloc(sizeof(*spi_dev));
+    RT_ASSERT(spi_dev != RT_NULL);
+    if(RT_EOK != rt_spi_bus_attach_device(&spi_dev, "spitdc", spi_bus->parent.name, &tdc_nss_pin)) {
+        TDC_TRACE("tdc spi device attach to spi bus %s failed!\r\n", spi_bus_name);
         return -RT_ERROR;
     }
     tdc_gp21.spi_dev = spi_dev;

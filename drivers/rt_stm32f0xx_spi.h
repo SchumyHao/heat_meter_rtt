@@ -19,10 +19,10 @@ extern "C" {
 #include <drivers/spi.h>
 #include "stm32f0xx.h"
 
-struct stm32_spi_bus_cs {
-    void (*init)(struct stm32_spi_bus_cs* cs);
-    void (*take)(struct stm32_spi_bus_cs* cs);
-    void (*release)(struct stm32_spi_bus_cs* cs);
+struct stm32_spi_dev_cs {
+    void (*init)(struct stm32_spi_dev_cs* cs);
+    void (*take)(struct stm32_spi_dev_cs* cs);
+    void (*release)(struct stm32_spi_dev_cs* cs);
 };
 
 /* public function list */
