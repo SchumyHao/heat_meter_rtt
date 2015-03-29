@@ -281,6 +281,15 @@ rt_inline void tdc_gp21_reset_wait(void)
     while(--tmp > 0);
 }
 
+rt_inline void tdc_gp21_reset(struct spi_tdc_gp21* tdc_gp21){
+    GPIO_WriteBit(TDC_GPIO_NRST_PIN_GROUP, TDC_GPIO_NRST_PIN, Bit_RESET);
+    tdc_gp21_reset_wait();
+    GPIO_WriteBit(TDC_GPIO_NRST_PIN_GROUP, TDC_GPIO_NRST_PIN, Bit_SET);
+    tdc_gp21_reset_wait();
+	tdc_gp21_write_cmd(tdc_gp21, GP21_POWER_ON_RESET);
+    tdc_gp21_reset_wait();
+}
+
 static rt_err_t
 tdc_gp21_init(rt_device_t dev)
 {
@@ -323,12 +332,7 @@ tdc_gp21_init(rt_device_t dev)
     NVIC_Init(&TDC_NVIC);
 
     /* config GP21 */
-    GPIO_WriteBit(TDC_GPIO_NRST_PIN_GROUP, TDC_GPIO_NRST_PIN, Bit_RESET);
-    tdc_gp21_reset_wait();
-    GPIO_WriteBit(TDC_GPIO_NRST_PIN_GROUP, TDC_GPIO_NRST_PIN, Bit_SET);
-    tdc_gp21_reset_wait();
-    tdc_gp21_write_cmd(tdc_gp21, GP21_POWER_ON_RESET);
-    tdc_gp21_reset_wait();
+	tdc_gp21_reset(tdc_gp21);
     tdc_gp21_write_cmd(tdc_gp21, GP21_WRITE_EEPROM_TO_CFG);
     /* check version */
     if(!tdc_gp21_check_id(tdc_gp21, 0x34120110)) {
