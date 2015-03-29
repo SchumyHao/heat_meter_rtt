@@ -502,19 +502,32 @@ static struct spi_tdc_gp21 tdc_gp21;
     global functions
 */
 rt_err_t
-tdc_gp21_register(const char* tdc_device_name, const char* spi_dev_name)
+tdc_gp21_register(const char* tdc_device_name, const char* spi_bus_name)
 {
     struct rt_spi_configuration cfg;
-    struct rt_spi_device* spi_device = RT_NULL;
+    struct rt_spi_bus* spi_bus = RT_NULL;
+	struct rt_spi_device* spi_dev = RT_NULL;
     rt_err_t ret = RT_EOK;
 
-    /* 1. find spi device */
-    spi_device = (struct rt_spi_device*)rt_device_find(spi_dev_name);
-    if(spi_device == RT_NULL) {
-        TDC_TRACE("spi device %s not found!\r\n", spi_dev_name);
+    /* 1. find spi bus */
+    spi_bus = (struct rt_spi_bus*)rt_device_find(spi_bus_name);
+    if(spi_bus == RT_NULL) {
+        TDC_TRACE("spi bus %s not found!\r\n", spi_bus_name);
         return -RT_ENOSYS;
     }
-    tdc_gp21.spi_dev = spi_device;
+	if(!(spi_bus->parent.open_flag & RT_DEVICE_OFLAG_OPEN)){
+		if(RT_EOK != rt_device_open(spi_bus, RT_DEVICE_OFLAG_RDWR)) {
+			TDC_TRACE("spi bus %s open failed!\r\n", spi_bus_name);
+	        return -RT_ERROR;
+	    }
+	}
+	spi_dev = (struct rt_spi_device*)rt_malloc(sizeof(*spi_dev));
+	RT_ASSERT(spi_dev != RT_NULL);
+	if(RT_EOK != rt_spi_bus_attach_device(&spi_dev, "spitdc", spi_bus->parent.name, RT_NULL)) {
+		TDC_TRACE("tdc spi device attach to spi bus %s failed!\r\n", spi_bus_name);
+        return -RT_ERROR;
+    }
+    tdc_gp21.spi_dev = spi_dev;
 
     /* 2.config spi device */
     cfg.data_width = 8;
