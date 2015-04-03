@@ -86,10 +86,79 @@
 #define GP21_ERR_MASK_TEMP_SENSER_SHORT     (0x1000)
 #define GP21_ERR_MASK_EEPROM_ERR            (0x2000)
 #define GP21_ERR_MASK_EEPROM_ERRS           (0x4000)
+/* config value */
+/*
+    config register0 :
+    ANZ_FIRE = 31        DIV_FIRE = 3      ANZ_PER_CALRES = 3
+    DIV_CLKHS = 0        START_CLKHS = 2   ANZ_PORT = 1
+    TCYCLE = 1           ANZ_FAKE = 0      SEL_ECLK_TMP = 1
+    CALIBRATE = 1        NO_CAL_AUTO = 0   MESSB2 = 1
+    NEG_STOP/NEGSTART=0  ID0 = 0x10
+*/
+#define GP21_CONFIG_VALUE_REG0              (0xF3CB6810)
+/*
+    config register1 :
+    HIT2 = 2             HIT1 = 1          EN_FAST_INIT = 0
+    HITIN2 = 0           HITIN1 = 4        CURR32K = 0
+    SEL_START_FIRE = 1   SEL_TSTO2 = 2     SEL_TSTO1 = 7
+    ID1 = 0x12
+*/
+#define GP21_CONFIG_VALUE_HIT2_MR2_CH_SP1   (0x20000000)
+#define GP21_CONFIG_VALUE_HIT2_MR2_CH_SP2   (0x30000000)
+#define GP21_CONFIG_VALUE_HIT2_MR2_CH_SP3   (0x40000000)
+#define GP21_CONFIG_VALUE_HIT2_MASK         (0xF0000000)
+#define GP21_CONFIG_VALUE_HIT1_MR2_CH_START (0x01000000)
+#define GP21_CONFIG_VALUE_HIT1_MASK         (0x0F000000)
+#define GP21_CONFIG_VALUE_REG1              (\
+        GP21_CONFIG_VALUE_HIT2_MR2_CH_SP1 |\
+        GP21_CONFIG_VALUE_HIT1_MR2_CH_START |\
+        0x00445712)
+/*
+    config register2 :
+    EN_INT = B1111       RFEDGE1 = 0       RFEDGE2 = 0
+    DELVAL1 = 400        ID2 = 0x12
+*/
+#define GP21_CONFIG_VALUE_REG2              (0xE0320012)
+/*
+    config register3 :
+    EN_ERR_VAL = 0       SEL_TIMO_MB2 = 1  DELVAL2 = 408
+    ID3 = 0x34
+*/
+#define GP21_CONFIG_VALUE_REG3              (0x08330034)
+/*
+    config register4 :
+    DELVAL3 = 416        ID4 = 0x56
+*/
+#define GP21_CONFIG_VALUE_REG4              (0x20340056)
+/*
+    config register5 :
+    CON_FIRE = 0         EN_STARTNOISE = 0 DIS_PHASESHIFT = 0
+    REPEAT_FIRE = 0      PHASE_FIRE = 0    ID5 = 0x78
+*/
+#define GP21_CONFIG_VALUE_REG5              (0x00000078)
+/*
+    config register6 :
+    EN_ANALOG = 1        NEG_STOP_TEMP = 1 TW2 = 1
+    EN_INT = b1111       START_CLKHS = 2   CYCLE_TEMP = 1
+    CYCLE_TOF = 0        HZ60 = 0          FIREO_DEF = 1
+    QUAD_RES = 0         DOUBLE_RES = 1    TEMP_PORTDIR = 0
+    ANZ_FIRE = 31        ID6 = 0x90
+*/
+#define GP21_CONFIG_VALUE_REG6              (0xC0645190)
+
 
 /*
     local functions
 */
+#define TICKS_PER_US   (SystemCoreClock/1000000)
+static void tdc_gp21_us_delay(rt_uint32_t us)
+{
+    rt_uint32_t delta;
+    us = us*TICKS_PER_US;
+    delta = SysTick->VAL;
+    while((delta - SysTick->VAL) < us);
+}
+
 rt_inline rt_uint8_t
 tdc_gp21_read_register8(struct spi_tdc_gp21* tdc_gp21,
                         const rt_uint8_t opcode)
@@ -175,7 +244,8 @@ tdc_gp21_write_register32(struct spi_tdc_gp21* tdc_gp21,
                           &send_buf, 4);
 }
 
-void tdc_gp21_nss_init(struct stm32_spi_dev_cs* cs){
+void tdc_gp21_nss_init(struct stm32_spi_dev_cs* cs)
+{
     GPIO_InitTypeDef TDC_GPIO;
     RT_ASSERT(cs != RT_NULL);
 
@@ -188,15 +258,17 @@ void tdc_gp21_nss_init(struct stm32_spi_dev_cs* cs){
     GPIO_Init(TDC_GPIO_NSS_PIN_GROUP, &TDC_GPIO);
     GPIO_SetBits(TDC_GPIO_NSS_PIN_GROUP, TDC_GPIO_NSS_PIN);
 }
-void tdc_gp21_nss_take(struct stm32_spi_dev_cs* cs){
+void tdc_gp21_nss_take(struct stm32_spi_dev_cs* cs)
+{
     RT_ASSERT(cs != RT_NULL);
 
-	GPIO_ResetBits(TDC_GPIO_NSS_PIN_GROUP, TDC_GPIO_NSS_PIN);
+    GPIO_ResetBits(TDC_GPIO_NSS_PIN_GROUP, TDC_GPIO_NSS_PIN);
 }
-void tdc_gp21_nss_release(struct stm32_spi_dev_cs* cs){
+void tdc_gp21_nss_release(struct stm32_spi_dev_cs* cs)
+{
     RT_ASSERT(cs != RT_NULL);
 
-	GPIO_SetBits(TDC_GPIO_NSS_PIN_GROUP, TDC_GPIO_NSS_PIN);
+    GPIO_SetBits(TDC_GPIO_NSS_PIN_GROUP, TDC_GPIO_NSS_PIN);
 }
 
 static void tdc_gp21_error_print(struct spi_tdc_gp21* tdc_gp21,
@@ -249,11 +321,6 @@ tdc_gp21_busy_wait(struct spi_tdc_gp21* tdc_gp21)
     while(tdc_gp21->busy) {
         /* set system into sleep mode until interrupt occered on gp21 initpin */
         PWR_EnterSleepMode(PWR_SLEEPEntry_WFI);
-        stat = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
-        if(stat & 0xFE00) {
-            tdc_gp21_error_print(tdc_gp21, stat);
-            tdc_gp21->busy = RT_TRUE;
-        }
     }
 }
 
@@ -281,12 +348,13 @@ rt_inline void tdc_gp21_reset_wait(void)
     while(--tmp > 0);
 }
 
-rt_inline void tdc_gp21_reset(struct spi_tdc_gp21* tdc_gp21){
+rt_inline void tdc_gp21_reset(struct spi_tdc_gp21* tdc_gp21)
+{
     GPIO_WriteBit(TDC_GPIO_NRST_PIN_GROUP, TDC_GPIO_NRST_PIN, Bit_RESET);
     tdc_gp21_reset_wait();
     GPIO_WriteBit(TDC_GPIO_NRST_PIN_GROUP, TDC_GPIO_NRST_PIN, Bit_SET);
     tdc_gp21_reset_wait();
-	tdc_gp21_write_cmd(tdc_gp21, GP21_POWER_ON_RESET);
+    tdc_gp21_write_cmd(tdc_gp21, GP21_POWER_ON_RESET);
     tdc_gp21_reset_wait();
 }
 
@@ -332,59 +400,17 @@ tdc_gp21_init(rt_device_t dev)
     NVIC_Init(&TDC_NVIC);
 
     /* config GP21 */
-	tdc_gp21_reset(tdc_gp21);
+    tdc_gp21_reset(tdc_gp21);
     tdc_gp21_write_cmd(tdc_gp21, GP21_WRITE_EEPROM_TO_CFG);
     /* check version */
     if(!tdc_gp21_check_id(tdc_gp21, 0x34120110)) {
-        /*
-            config register0 :
-            ANZ_FIRE = 31        DIV_FIRE = 3      ANZ_PER_CALRES = 3
-            DIV_CLKHS = 0        START_CLKHS = 2   ANZ_PORT = 1
-            TCYCLE = 1           ANZ_FAKE = 0      SEL_ECLK_TMP = 1
-            CALIBRATE = 1        NO_CAL_AUTO = 0   MESSB2 = 1
-            NEG_STOP/NEGSTART=0  ID0 = 0x10
-        */
-        tdc_gp21_write_register32(tdc_gp21, GP21_WRITE_REG0_REGISTER, 0xF3CB6810);
-        /*
-            config register1 :
-            HIT1 = 2             HIT1 = 1          EN_FAST_INIT = 0
-            HITIN2 = 0           HITIN1 = 4        CURR32K = 0
-            SEL_START_FIRE = 1   SEL_TSTO2 = 2     SEL_TSTO1 = 7
-            ID1 = 0x12
-        */
-        tdc_gp21_write_register32(tdc_gp21, GP21_WRITE_REG1_REGISTER, 0x21445712);
-        /*
-            config register2 :
-            EN_INT = B1111       RFEDGE1 = 0       RFEDGE2 = 0
-            DELVAL1 = 400        ID2 = 0x12
-        */
-        tdc_gp21_write_register32(tdc_gp21, GP21_WRITE_REG2_REGISTER, 0xE0320012);
-        /*
-            config register3 :
-            EN_ERR_VAL = 0       SEL_TIMO_MB2 = 1  DELVAL2 = 408
-            ID3 = 0x34
-        */
-        tdc_gp21_write_register32(tdc_gp21, GP21_WRITE_REG3_REGISTER, 0x08330034);
-        /*
-            config register4 :
-            DELVAL3 = 416        ID4 = 0x56
-        */
-        tdc_gp21_write_register32(tdc_gp21, GP21_WRITE_REG4_REGISTER, 0x20340056);
-        /*
-            config register5 :
-            CON_FIRE = 0         EN_STARTNOISE = 0 DIS_PHASESHIFT = 0
-            REPEAT_FIRE = 0      PHASE_FIRE = 0    ID5 = 0x78
-        */
-        tdc_gp21_write_register32(tdc_gp21, GP21_WRITE_REG5_REGISTER, 0x00000078);
-        /*
-            config register6 :
-            EN_ANALOG = 1        NEG_STOP_TEMP = 1 TW2 = 1
-            EN_INT = b1111       START_CLKHS = 2   CYCLE_TEMP = 1
-            CYCLE_TOF = 0        HZ60 = 0          FIREO_DEF = 1
-            QUAD_RES = 0         DOUBLE_RES = 1    TEMP_PORTDIR = 0
-            ANZ_FIRE = 31        ID6 = 0x90
-        */
-        tdc_gp21_write_register32(tdc_gp21, GP21_WRITE_REG6_REGISTER, 0xC0645190);
+        tdc_gp21_write_register32(tdc_gp21, GP21_WRITE_REG0_REGISTER, GP21_CONFIG_VALUE_REG0);
+        tdc_gp21_write_register32(tdc_gp21, GP21_WRITE_REG1_REGISTER, GP21_CONFIG_VALUE_REG1);
+        tdc_gp21_write_register32(tdc_gp21, GP21_WRITE_REG2_REGISTER, GP21_CONFIG_VALUE_REG2);
+        tdc_gp21_write_register32(tdc_gp21, GP21_WRITE_REG3_REGISTER, GP21_CONFIG_VALUE_REG3);
+        tdc_gp21_write_register32(tdc_gp21, GP21_WRITE_REG4_REGISTER, GP21_CONFIG_VALUE_REG4);
+        tdc_gp21_write_register32(tdc_gp21, GP21_WRITE_REG5_REGISTER, GP21_CONFIG_VALUE_REG5);
+        tdc_gp21_write_register32(tdc_gp21, GP21_WRITE_REG6_REGISTER, GP21_CONFIG_VALUE_REG6);
         /*
             write config registers to eeprom
         */
@@ -434,8 +460,8 @@ tdc_gp21_measure_temp(struct spi_tdc_gp21* tdc_gp21,
     res[1] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES1_REGISTER);
     res[2] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES2_REGISTER);
     res[3] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES3_REGISTER);
-    temp.hot  = (float)res[0]/(float)res[1];
-    temp.cold = (float)res[3]/(float)res[2];
+    temp.hot  = (float)res[0]/(float)res[2];
+    temp.cold = (float)res[1]/(float)res[3];
     /* wait for next measure finish */
     tdc_gp21_busy_wait(tdc_gp21);
     stat = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
@@ -447,16 +473,16 @@ tdc_gp21_measure_temp(struct spi_tdc_gp21* tdc_gp21,
     res[1] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES1_REGISTER);
     res[2] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES2_REGISTER);
     res[3] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES3_REGISTER);
-    args->hot  = (temp.hot  + ((float)res[0]/(float)res[1]))/2;
-    args->cold = (temp.cold + ((float)res[3]/(float)res[2]))/2;
+    args->hot  = (temp.hot  + ((float)res[0]/(float)res[2]))/2;
+    args->cold = (temp.cold + ((float)res[1]/(float)res[3]))/2;
 }
 
 rt_inline void
 tdc_gp21_wait_for_alu(void)
 {
     /* ALU calculate need no more than 4.6us */
-    rt_uint32_t i = 0x00FFFFFF;
-    while(i--);
+    tdc_gp21_us_delay(5);
+
 }
 
 static void
@@ -530,9 +556,9 @@ tdc_gp21_control(rt_device_t dev, rt_uint8_t cmd, void* args)
 #ifdef RT_USING_TDC_GP21
 static struct spi_tdc_gp21 tdc_gp21;
 static struct stm32_spi_dev_cs tdc_nss_pin = {
-	tdc_gp21_nss_init,
-	tdc_gp21_nss_take,
-	tdc_gp21_nss_release
+    tdc_gp21_nss_init,
+    tdc_gp21_nss_take,
+    tdc_gp21_nss_release
 };
 #endif /* RT_USING_TDC_GP21 */
 
