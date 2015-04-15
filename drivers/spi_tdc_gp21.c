@@ -88,8 +88,8 @@
 #define GP21_ERR_MASK_EEPROM_ERRS           (0x4000)
 
 /* config value */
-#define GP21_CONFIG_VALUE_ID_H              (0x00345678)
-#define GP21_CONFIG_VALUE_ID_L              (0x12345678)
+#define GP21_CONFIG_VALUE_ID_H              (0x00345678U)
+#define GP21_CONFIG_VALUE_ID_L              (0x12345678U)
 #define GP21_CONFIG_VALUE_STOPMASK_DELAY_US (200)
 #define GP21_CONFIG_VALUE_ANZ_FIRE          (10)
 #define GP21_CONFIG_VALUE_FIRE_DIV          (3)
@@ -243,7 +243,7 @@
 #define GP21_CONFIG_VALUE_SEL_TIMO_MB2_4096 (3<<27)
 #define GP21_CONFIG_VALUE_DELVAL2_MASK      (0x07FFFF<<8)
 #define GP21_CONFIG_VALUE_DELVAL2(v)        ((GP21_CONFIG_VALUE_DELVAL1(v))+ \
-        (4<<(5+(GP21_CONFIG_VALUE_DIV_CLKHS_2>>20)+8))
+        (4<<(5+(GP21_CONFIG_VALUE_DIV_CLKHS_2>>20)+8)))
 #define GP21_CONFIG_VALUE_ID3(v)            (((v)>>24)&0xFF)
 
 /*
@@ -252,7 +252,7 @@
 */
 #define GP21_CONFIG_VALUE_DELVAL3_MASK      (0x07FFFF<<8)
 #define GP21_CONFIG_VALUE_DELVAL3(v)        ((GP21_CONFIG_VALUE_DELVAL2(v))+ \
-        (4<<(5+(GP21_CONFIG_VALUE_DIV_CLKHS_2>>20)+8))
+        (4<<(5+(GP21_CONFIG_VALUE_DIV_CLKHS_2>>20)+8)))
 #define GP21_CONFIG_VALUE_ID4(v)            (((v)>>0)&0xFF)
 
 /*
@@ -587,7 +587,6 @@ tdc_gp21_check_id(struct spi_tdc_gp21* tdc_gp21, const rt_uint32_t id_l, const r
 rt_inline void
 tdc_gp21_busy_wait(struct spi_tdc_gp21* tdc_gp21)
 {
-    rt_uint16_t stat = 0;
     tdc_gp21->busy = RT_TRUE;
 
     while(tdc_gp21->busy) {
@@ -860,14 +859,14 @@ tdc_gp21_register(const char* tdc_device_name, const char* spi_bus_name)
         return -RT_ENOSYS;
     }
     if(!(spi_bus->parent.open_flag & RT_DEVICE_OFLAG_OPEN)) {
-        if(RT_EOK != rt_device_open(spi_bus, RT_DEVICE_OFLAG_RDWR)) {
+        if(RT_EOK != rt_device_open(&spi_bus->parent, RT_DEVICE_OFLAG_RDWR)) {
             TDC_TRACE("spi bus %s open failed!\r\n", spi_bus_name);
             return -RT_ERROR;
         }
     }
     spi_dev = (struct rt_spi_device*)rt_malloc(sizeof(*spi_dev));
     RT_ASSERT(spi_dev != RT_NULL);
-    if(RT_EOK != rt_spi_bus_attach_device(&spi_dev, "spitdc", spi_bus->parent.name, &tdc_nss_pin)) {
+    if(RT_EOK != rt_spi_bus_attach_device(spi_dev, "spitdc", spi_bus->parent.parent.name, &tdc_nss_pin)) {
         TDC_TRACE("tdc spi device attach to spi bus %s failed!\r\n", spi_bus_name);
         return -RT_ERROR;
     }

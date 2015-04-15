@@ -20,7 +20,8 @@
 #include "stm32f0xx.h"
 
 #define RT_USING_UART1
-#define RT_USING_UART2
+//#define RT_USING_UART2
+#define RT_USING_UART6
 
 #define UART_ENABLE_IRQ(n)            NVIC_EnableIRQ((n))
 #define UART_DISABLE_IRQ(n)           NVIC_DisableIRQ((n))

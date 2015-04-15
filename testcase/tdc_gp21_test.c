@@ -16,7 +16,7 @@ test_tdc_gp21(void)
     struct spi_tdc_gp21_tof_data tof_data;
     struct spi_tdc_gp21_temp_scales temp_scales;
 
-    if(RT_EOK != tdc_register("tdc1", "spi2")) {
+    if(RT_EOK != tdc_gp21_register("tdc1", "spi2")) {
         return -RT_ERROR;
     }
 
@@ -38,9 +38,6 @@ test_tdc_gp21(void)
         return -RT_ERROR;
     }
     if(RT_EOK != rt_device_close(tdc)) {
-        return -RT_ERROR;
-    }
-    if(RT_EOK != rt_device_unregister(&(spi_dev.parent))) {
         return -RT_ERROR;
     }
     if(RT_EOK != rt_device_unregister(tdc)) {
