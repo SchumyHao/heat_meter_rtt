@@ -566,15 +566,16 @@ static void tdc_gp21_error_print(struct spi_tdc_gp21* tdc_gp21,
 }
 
 static rt_bool_t
-tdc_gp21_check_id(struct spi_tdc_gp21* tdc_gp21, const rt_uint32_t id)
+tdc_gp21_check_id(struct spi_tdc_gp21* tdc_gp21, const rt_uint32_t id_l, const rt_uint32_t id_h)
 {
-    rt_uint8_t tmp[8];
+    rt_uint8_t tmp[8] = {0};
     const rt_uint8_t opcode = GP21_READ_ID;
 
     rt_spi_send_then_recv(tdc_gp21->spi_dev,
                           &opcode, 1,
-                          tmp, 8);
-    if(id == *(rt_uint32_t*)tmp) {
+                          tmp, 7);
+    if((id_l == *(rt_uint32_t*)tmp) &&
+       (id_h == *(rt_uint32_t*)(tmp+4))) {
         return RT_TRUE;
     }
     else {
@@ -614,7 +615,6 @@ tdc_gp21_write_cmd(struct spi_tdc_gp21* tdc_gp21, rt_uint8_t opcode)
 
 rt_inline void tdc_gp21_reset_wait(void)
 {
-
     rt_uint8_t tmp = 0xff;
     while(--tmp > 0);
 }
@@ -674,7 +674,7 @@ tdc_gp21_init(rt_device_t dev)
     tdc_gp21_reset(tdc_gp21);
     tdc_gp21_write_cmd(tdc_gp21, GP21_WRITE_EEPROM_TO_CFG);
     /* check version */
-    if(!tdc_gp21_check_id(tdc_gp21, 0x34120110)) {
+    if(!tdc_gp21_check_id(tdc_gp21, GP21_CONFIG_VALUE_ID_L, GP21_CONFIG_VALUE_ID_H)) {
         tdc_gp21_write_register32(tdc_gp21, GP21_WRITE_REG0_REGISTER, GP21_CONFIG_VALUE_REG0);
         tdc_gp21_write_register32(tdc_gp21, GP21_WRITE_REG1_REGISTER, GP21_CONFIG_VALUE_REG1);
         tdc_gp21_write_register32(tdc_gp21, GP21_WRITE_REG2_REGISTER, GP21_CONFIG_VALUE_REG2);
@@ -701,7 +701,7 @@ tdc_gp21_open(rt_device_t dev, rt_uint16_t oflag)
     /* set corr_factor */
     tdc_gp21_write_cmd(tdc_gp21, GP21_START_CAL_RESONATOR);
     reg = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES0_REGISTER);
-    tdc_gp21->corr_factor = 488.28125/reg;
+    tdc_gp21->corr_factor = 488.28125/reg; //High speed corr_factor
     return RT_EOK;
 }
 
@@ -772,10 +772,14 @@ tdc_gp21_measure_tof2(struct spi_tdc_gp21* tdc_gp21,
     }
     /* ALU will automatically cal STOP1-START and store answer to res0 */
     /* ALU cal STOP2-START and store answer to res1 by send command below */
-    tdc_gp21_write_register24(tdc_gp21, GP21_WRITE_REG1_REGISTER, 0x31400000);
+    tdc_gp21_write_register24(tdc_gp21, GP21_WRITE_REG1_REGISTER,
+                              ((GP21_CONFIG_VALUE_REG1&(~GP21_CONFIG_VALUE_HIT2_MASK))|
+                               GP21_CONFIG_VALUE_HIT2_MR2_CH_SPCH1_2));
     tdc_gp21_wait_for_alu();
     /* ALU cal STOP3-START and store answer to res2 by send command below */
-    tdc_gp21_write_register24(tdc_gp21, GP21_WRITE_REG1_REGISTER, 0x41400000);
+    tdc_gp21_write_register24(tdc_gp21, GP21_WRITE_REG1_REGISTER,
+                              ((GP21_CONFIG_VALUE_REG1&(~GP21_CONFIG_VALUE_HIT2_MASK))|
+                               GP21_CONFIG_VALUE_HIT2_MR2_CH_SPCH1_3));
     tdc_gp21_wait_for_alu();
     res[0] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES0_REGISTER);
     res[1] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES1_REGISTER);
@@ -783,15 +787,20 @@ tdc_gp21_measure_tof2(struct spi_tdc_gp21* tdc_gp21,
     args->up = (res[0]+res[1]+res[2])/3;
 
     /* wait for next measure finish */
+	//todo: whether should set reg1 to cal stop1_1?
     tdc_gp21_busy_wait(tdc_gp21);
     stat = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
     if(stat & 0xFE00) {
         tdc_gp21_error_print(tdc_gp21, stat);
         return;
     }
-    tdc_gp21_write_register24(tdc_gp21, GP21_WRITE_REG1_REGISTER, 0x31400000);
+    tdc_gp21_write_register24(tdc_gp21, GP21_WRITE_REG1_REGISTER,
+                              ((GP21_CONFIG_VALUE_REG1&(~GP21_CONFIG_VALUE_HIT2_MASK))|
+                               GP21_CONFIG_VALUE_HIT2_MR2_CH_SPCH1_2));
     tdc_gp21_wait_for_alu();
-    tdc_gp21_write_register24(tdc_gp21, GP21_WRITE_REG1_REGISTER, 0x41400000);
+    tdc_gp21_write_register24(tdc_gp21, GP21_WRITE_REG1_REGISTER,
+                              ((GP21_CONFIG_VALUE_REG1&(~GP21_CONFIG_VALUE_HIT2_MASK))|
+                               GP21_CONFIG_VALUE_HIT2_MR2_CH_SPCH1_3));
     tdc_gp21_wait_for_alu();
     res[0] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES0_REGISTER);
     res[1] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES1_REGISTER);
