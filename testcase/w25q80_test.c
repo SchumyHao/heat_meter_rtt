@@ -7,6 +7,7 @@
 #define FLASH_GPIO_NSS_PIN                    GPIO_Pin_5
 #define FLASH_GPIO_NSS_PIN_GROUP              GPIOC
 #define FLASH_GPIO_NSS_PIN_RCC                RCC_AHBPeriph_GPIOC
+static char rx_buf[4096];
 
 void flash_nss_init(struct stm32_spi_dev_cs* cs)
 {
@@ -74,11 +75,9 @@ test_flash_w25qxx(void)
     w25qxx_init("flash","spiflas");
     flash =rt_device_find("flash");
     rt_device_open(flash,RT_DEVICE_OFLAG_RDWR);
-    rt_device_write(flash, 0, "0123456789", sizeof("0123456789"));
+    rt_device_write(flash, 0, "0123456789", 1);
     {
-        char temp[5];
-        rt_device_read(flash, 0, temp, 5);
-        rt_device_read(flash, 5, temp, 5);
+        rt_device_read(flash, 0, rx_buf, 1);
     }
 
     return RT_EOK;
