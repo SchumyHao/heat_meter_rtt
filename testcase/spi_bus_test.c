@@ -1,6 +1,6 @@
 #include <rtthread.h>
 #include "tc_comm.h"
-
+#if 0
 static void _tc_cleanup(void)
 {
     tc_done(TC_STAT_PASSED);
@@ -222,4 +222,4 @@ int _tc_test_spi_bus_open_close(void)
     return 100;
 }
 FINSH_FUNCTION_EXPORT(_tc_test_spi_bus_open_close, TC);
-
+#endif

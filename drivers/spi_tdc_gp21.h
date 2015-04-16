@@ -17,6 +17,8 @@
 
 #include "stm32f0xx.h"
 
+#define SPI_BUS_NAME      "spi2"
+
 /*
     struct defination
 */
@@ -47,6 +49,6 @@ struct spi_tdc_gp21_tof_data {
     global functions
 */
 rt_err_t
-tdc_gp21_register(const char* tdc_device_name, const char* spi_bus_name);
+tdc_gp21_register(void);
 
 #endif

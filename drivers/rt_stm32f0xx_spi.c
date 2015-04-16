@@ -397,7 +397,8 @@ static void stm32_spi_bus_it_writen_and_readn(struct stm32_spi_bus* bus, const r
         }
         tx_len -= tx_rb_writen;
         SPI_I2S_ITConfig(bus->spix, SPI_I2S_IT_TXE, ENABLE);
-        while(bus->tx_it_count < tx_rb_writen)
+        while((bus->tx_it_count < tx_rb_writen) ||
+					(RESET!=SPI_I2S_GetFlagStatus(bus->spix, SPI_I2S_FLAG_BSY)))
 					;
 
         stm32_spi_bus_it_readn(bus, rx_buf, tx_rb_writen);

@@ -90,9 +90,9 @@
 /* config value */
 #define GP21_CONFIG_VALUE_ID_H              (0x00345678U)
 #define GP21_CONFIG_VALUE_ID_L              (0x12345678U)
-#define GP21_CONFIG_VALUE_STOPMASK_DELAY_US (200)
-#define GP21_CONFIG_VALUE_ANZ_FIRE          (10)
-#define GP21_CONFIG_VALUE_FIRE_DIV          (3)
+#define GP21_CONFIG_VALUE_STOPMASK_DELAY_US (200U)
+#define GP21_CONFIG_VALUE_ANZ_FIRE          (10U)
+#define GP21_CONFIG_VALUE_FIRE_DIV          (3U)
 /*
     config register0 :
     ANZ_FIRE = 31        DIV_FIRE = 3      ANZ_PER_CALRES = 3
@@ -101,55 +101,55 @@
     CALIBRATE = 1        NO_CAL_AUTO = 0   MESSB2 = 1
     NEG_STOP/NEGSTART=0  ID0 = 0x10
 */
-#define GP21_CONFIG_VALUE_ANZ_FIRE_L(v)     (((v)&0x0F)<<28)
-#define GP21_CONFIG_VALUE_DIV_FIRE(v)       (((v)&0x0F)<<24)
-#define GP21_CONFIG_VALUE_ANZ_PER_CALRES_MASK (3<<22)
-#define GP21_CONFIG_VALUE_ANZ_PER_CALRES_2  (0<<22)
-#define GP21_CONFIG_VALUE_ANZ_PER_CALRES_4  (1<<22)
-#define GP21_CONFIG_VALUE_ANZ_PER_CALRES_8  (2<<22)
-#define GP21_CONFIG_VALUE_ANZ_PER_CALRES_16 (3<<22)
-#define GP21_CONFIG_VALUE_DIV_CLKHS_MASK    (3<<20)
-#define GP21_CONFIG_VALUE_DIV_CLKHS_1       (0<<20)
-#define GP21_CONFIG_VALUE_DIV_CLKHS_2       (1<<20)
-#define GP21_CONFIG_VALUE_DIV_CLKHS_4       (2<<20)
-#define GP21_CONFIG_VALUE_START_CLKHS_L(v)  (((v)&0x03)<<18)
-#define GP21_CONFIG_VALUE_START_CLKHS_OFF   (0)
-#define GP21_CONFIG_VALUE_START_CLKHS_ON    (1)
-#define GP21_CONFIG_VALUE_START_CLKHS_480US (2)
-#define GP21_CONFIG_VALUE_START_CLKHS_1MS   (3)
-#define GP21_CONFIG_VALUE_START_CLKHS_2MS   (4)
-#define GP21_CONFIG_VALUE_START_CLKHS_5MS   (5)
-#define GP21_CONFIG_VALUE_ANZ_PORT_MASK     (1<<17)
-#define GP21_CONFIG_VALUE_ANZ_PORT_2        (0<<17)
-#define GP21_CONFIG_VALUE_ANZ_PORT_4        (1<<17)
-#define GP21_CONFIG_VALUE_TCYCLE_MASK       (1<<16)
-#define GP21_CONFIG_VALUE_TCYCLE_128US      (0<<16)
-#define GP21_CONFIG_VALUE_TCYCLE_512US      (1<<16)
-#define GP21_CONFIG_VALUE_ANZ_FAKE_MASK     (1<<15)
-#define GP21_CONFIG_VALUE_ANZ_FAKE_2        (0<<15)
-#define GP21_CONFIG_VALUE_ANZ_FAKE_7        (1<<15)
-#define GP21_CONFIG_VALUE_SEL_ECLK_TMP_MASK (1<<14)
-#define GP21_CONFIG_VALUE_SEL_ECLK_TMP_L    (0<<14)
-#define GP21_CONFIG_VALUE_SEL_ECLK_TMP_H    (1<<14)
-#define GP21_CONFIG_VALUE_CALIBRATE_MASK    (1<<13)
-#define GP21_CONFIG_VALUE_CALIBRATE_OFF     (0<<13)
-#define GP21_CONFIG_VALUE_CALIBRATE_ON      (1<<13)
-#define GP21_CONFIG_VALUE_NO_CAL_AUTO_MASK  (1<<12)
-#define GP21_CONFIG_VALUE_CAL_AUTO_ON       (0<<12)
-#define GP21_CONFIG_VALUE_CAL_AUTO_OFF      (1<<12)
-#define GP21_CONFIG_VALUE_MRANGE_MASK       (1<<11)
-#define GP21_CONFIG_VALUE_MRANGE_1          (0<<11)
-#define GP21_CONFIG_VALUE_MRANGE_2          (1<<11)
-#define GP21_CONFIG_VALUE_STOP2_EDGE_MASK   (1<<10)
-#define GP21_CONFIG_VALUE_STOP2_EDGE_RISE   (0<<10)
-#define GP21_CONFIG_VALUE_STOP2_EDGE_FALL   (1<<10)
-#define GP21_CONFIG_VALUE_STOP1_EDGE_MASK   (1<<9)
-#define GP21_CONFIG_VALUE_STOP1_EDGE_RISE   (0<<9)
-#define GP21_CONFIG_VALUE_STOP1_EDGE_FALL   (1<<9)
-#define GP21_CONFIG_VALUE_START_EDGE_MASK   (1<<8)
-#define GP21_CONFIG_VALUE_START_EDGE_RISE   (0<<8)
-#define GP21_CONFIG_VALUE_START_EDGE_FALL   (1<<8)
-#define GP21_CONFIG_VALUE_ID0(v)            (((v)>>0)&0xFF)
+#define GP21_CONFIG_VALUE_ANZ_FIRE_L(v)     (((v)&0x0FU)<<28)
+#define GP21_CONFIG_VALUE_DIV_FIRE(v)       (((v)&0x0FU)<<24)
+#define GP21_CONFIG_VALUE_ANZ_PER_CALRES_MASK (3U<<22)
+#define GP21_CONFIG_VALUE_ANZ_PER_CALRES_2  (0U<<22)
+#define GP21_CONFIG_VALUE_ANZ_PER_CALRES_4  (1U<<22)
+#define GP21_CONFIG_VALUE_ANZ_PER_CALRES_8  (2U<<22)
+#define GP21_CONFIG_VALUE_ANZ_PER_CALRES_16 (3U<<22)
+#define GP21_CONFIG_VALUE_DIV_CLKHS_MASK    (3U<<20)
+#define GP21_CONFIG_VALUE_DIV_CLKHS_1       (0U<<20)
+#define GP21_CONFIG_VALUE_DIV_CLKHS_2       (1U<<20)
+#define GP21_CONFIG_VALUE_DIV_CLKHS_4       (2U<<20)
+#define GP21_CONFIG_VALUE_START_CLKHS_L(v)  (((v)&0x03U)<<18)
+#define GP21_CONFIG_VALUE_START_CLKHS_OFF   (0U)
+#define GP21_CONFIG_VALUE_START_CLKHS_ON    (1U)
+#define GP21_CONFIG_VALUE_START_CLKHS_480US (2U)
+#define GP21_CONFIG_VALUE_START_CLKHS_1MS   (3U)
+#define GP21_CONFIG_VALUE_START_CLKHS_2MS   (4U)
+#define GP21_CONFIG_VALUE_START_CLKHS_5MS   (5U)
+#define GP21_CONFIG_VALUE_ANZ_PORT_MASK     (1U<<17)
+#define GP21_CONFIG_VALUE_ANZ_PORT_2        (0U<<17)
+#define GP21_CONFIG_VALUE_ANZ_PORT_4        (1U<<17)
+#define GP21_CONFIG_VALUE_TCYCLE_MASK       (1U<<16)
+#define GP21_CONFIG_VALUE_TCYCLE_128US      (0U<<16)
+#define GP21_CONFIG_VALUE_TCYCLE_512US      (1U<<16)
+#define GP21_CONFIG_VALUE_ANZ_FAKE_MASK     (1U<<15)
+#define GP21_CONFIG_VALUE_ANZ_FAKE_2        (0U<<15)
+#define GP21_CONFIG_VALUE_ANZ_FAKE_7        (1U<<15)
+#define GP21_CONFIG_VALUE_SEL_ECLK_TMP_MASK (1U<<14)
+#define GP21_CONFIG_VALUE_SEL_ECLK_TMP_L    (0U<<14)
+#define GP21_CONFIG_VALUE_SEL_ECLK_TMP_H    (1U<<14)
+#define GP21_CONFIG_VALUE_CALIBRATE_MASK    (1U<<13)
+#define GP21_CONFIG_VALUE_CALIBRATE_OFF     (0U<<13)
+#define GP21_CONFIG_VALUE_CALIBRATE_ON      (1U<<13)
+#define GP21_CONFIG_VALUE_NO_CAL_AUTO_MASK  (1U<<12)
+#define GP21_CONFIG_VALUE_CAL_AUTO_ON       (0U<<12)
+#define GP21_CONFIG_VALUE_CAL_AUTO_OFF      (1U<<12)
+#define GP21_CONFIG_VALUE_MRANGE_MASK       (1U<<11)
+#define GP21_CONFIG_VALUE_MRANGE_1          (0U<<11)
+#define GP21_CONFIG_VALUE_MRANGE_2          (1U<<11)
+#define GP21_CONFIG_VALUE_STOP2_EDGE_MASK   (1U<<10)
+#define GP21_CONFIG_VALUE_STOP2_EDGE_RISE   (0U<<10)
+#define GP21_CONFIG_VALUE_STOP2_EDGE_FALL   (1U<<10)
+#define GP21_CONFIG_VALUE_STOP1_EDGE_MASK   (1U<<9)
+#define GP21_CONFIG_VALUE_STOP1_EDGE_RISE   (0U<<9)
+#define GP21_CONFIG_VALUE_STOP1_EDGE_FALL   (1U<<9)
+#define GP21_CONFIG_VALUE_START_EDGE_MASK   (1U<<8)
+#define GP21_CONFIG_VALUE_START_EDGE_RISE   (0U<<8)
+#define GP21_CONFIG_VALUE_START_EDGE_FALL   (1U<<8)
+#define GP21_CONFIG_VALUE_ID0(v)            (((v)>>0)&0xFFU)
 
 /*
     config register1 :
@@ -158,123 +158,123 @@
     SEL_START_FIRE = 1   SEL_TSTO2 = 2     SEL_TSTO1 = 7
     ID1 = 0x12
 */
-#define GP21_CONFIG_VALUE_HIT2_MASK         (15<<28)
-#define GP21_CONFIG_VALUE_HIT2_MR2_CH_SPCH1_1 (2<<28)
-#define GP21_CONFIG_VALUE_HIT2_MR2_CH_SPCH1_2 (3<<28)
-#define GP21_CONFIG_VALUE_HIT2_MR2_CH_SPCH1_3 (4<<28)
-#define GP21_CONFIG_VALUE_HIT1_MASK         (15<<24)
-#define GP21_CONFIG_VALUE_HIT1_MR2_CH_START (1<<24)
-#define GP21_CONFIG_VALUE_FAST_INIT_MASK    (3<<23)
-#define GP21_CONFIG_VALUE_FAST_INIT_OFF     (1<<23)
-#define GP21_CONFIG_VALUE_FAST_INIT_ON      (3<<23)
-#define GP21_CONFIG_VALUE_HITIN_SP2_MASK    (7<<19)
-#define GP21_CONFIG_VALUE_HITIN_SP2_OFF     (0<<19)
-#define GP21_CONFIG_VALUE_HITIN_SP2_1       (1<<19)
-#define GP21_CONFIG_VALUE_HITIN_SP2_2       (2<<19)
-#define GP21_CONFIG_VALUE_HITIN_SP2_3       (3<<19)
-#define GP21_CONFIG_VALUE_HITIN_SP2_4       (4<<19)
-#define GP21_CONFIG_VALUE_HITIN_SP1_MASK    (7<<16)
-#define GP21_CONFIG_VALUE_HITIN_SP1_OFF     (0<<16)
-#define GP21_CONFIG_VALUE_HITIN_SP1_1       (1<<16)
-#define GP21_CONFIG_VALUE_HITIN_SP1_2       (2<<16)
-#define GP21_CONFIG_VALUE_HITIN_SP1_3       (3<<16)
-#define GP21_CONFIG_VALUE_HITIN_SP1_4       (4<<16)
-#define GP21_CONFIG_VALUE_CURR32_MASK       (1<<15)
-#define GP21_CONFIG_VALUE_CURR32_L          (0<<15)
-#define GP21_CONFIG_VALUE_CURR32_H          (1<<15)
-#define GP21_CONFIG_VALUE_SEL_FIRE_MASK     (1<<14)
-#define GP21_CONFIG_VALUE_SEL_FIRE_OUT      (0<<14)
-#define GP21_CONFIG_VALUE_SEL_FIRE_INTER    (1<<14)
-#define GP21_CONFIG_VALUE_ENSTART_FN_MASK   (7<<11)
-#define GP21_CONFIG_VALUE_ENSTART_FN_IN     (0<<11)
-#define GP21_CONFIG_VALUE_ENSTART_FN_START  (1<<11)
-#define GP21_CONFIG_VALUE_ENSTART_FN_SP1    (2<<11)
-#define GP21_CONFIG_VALUE_ENSTART_FN_SP2    (3<<11)
-#define GP21_CONFIG_VALUE_ENSTART_FN_TEMP_SP (4<<11)
-#define GP21_CONFIG_VALUE_ENSTART_FN_TOF_ST (5<<11)
-#define GP21_CONFIG_VALUE_ENSTART_FN_4KHZ   (7<<11)
-#define GP21_CONFIG_VALUE_FIREIN_FN_MASK    (7<<8)
-#define GP21_CONFIG_VALUE_FIREIN_FN_IN      (0<<8)
-#define GP21_CONFIG_VALUE_FIREIN_FN_START   (1<<8)
-#define GP21_CONFIG_VALUE_FIREIN_FN_SP1     (2<<8)
-#define GP21_CONFIG_VALUE_FIREIN_FN_SP2     (3<<8)
-#define GP21_CONFIG_VALUE_FIREIN_FN_TEMP_SP (4<<8)
-#define GP21_CONFIG_VALUE_FIREIN_FN_ENSP    (5<<8)
-#define GP21_CONFIG_VALUE_FIREIN_FN_COMP    (6<<8)
-#define GP21_CONFIG_VALUE_FIREIN_FN_32KHZ   (7<<8)
-#define GP21_CONFIG_VALUE_ID1(v)            (((v)>>8)&0xFF)
+#define GP21_CONFIG_VALUE_HIT2_MASK         (15U<<28)
+#define GP21_CONFIG_VALUE_HIT2_MR2_CH_SPCH1_1 (2U<<28)
+#define GP21_CONFIG_VALUE_HIT2_MR2_CH_SPCH1_2 (3U<<28)
+#define GP21_CONFIG_VALUE_HIT2_MR2_CH_SPCH1_3 (4U<<28)
+#define GP21_CONFIG_VALUE_HIT1_MASK         (15U<<24)
+#define GP21_CONFIG_VALUE_HIT1_MR2_CH_START (1U<<24)
+#define GP21_CONFIG_VALUE_FAST_INIT_MASK    (3U<<22)
+#define GP21_CONFIG_VALUE_FAST_INIT_OFF     (1U<<22)
+#define GP21_CONFIG_VALUE_FAST_INIT_ON      (3U<<22)
+#define GP21_CONFIG_VALUE_HITIN_SP2_MASK    (7U<<19)
+#define GP21_CONFIG_VALUE_HITIN_SP2_OFF     (0U<<19)
+#define GP21_CONFIG_VALUE_HITIN_SP2_1       (1U<<19)
+#define GP21_CONFIG_VALUE_HITIN_SP2_2       (2U<<19)
+#define GP21_CONFIG_VALUE_HITIN_SP2_3       (3U<<19)
+#define GP21_CONFIG_VALUE_HITIN_SP2_4       (4U<<19)
+#define GP21_CONFIG_VALUE_HITIN_SP1_MASK    (7U<<16)
+#define GP21_CONFIG_VALUE_HITIN_SP1_OFF     (0U<<16)
+#define GP21_CONFIG_VALUE_HITIN_SP1_1       (1U<<16)
+#define GP21_CONFIG_VALUE_HITIN_SP1_2       (2U<<16)
+#define GP21_CONFIG_VALUE_HITIN_SP1_3       (3U<<16)
+#define GP21_CONFIG_VALUE_HITIN_SP1_4       (4U<<16)
+#define GP21_CONFIG_VALUE_CURR32_MASK       (1U<<15)
+#define GP21_CONFIG_VALUE_CURR32_L          (0U<<15)
+#define GP21_CONFIG_VALUE_CURR32_H          (1U<<15)
+#define GP21_CONFIG_VALUE_SEL_FIRE_MASK     (1U<<14)
+#define GP21_CONFIG_VALUE_SEL_FIRE_OUT      (0U<<14)
+#define GP21_CONFIG_VALUE_SEL_FIRE_INTER    (1U<<14)
+#define GP21_CONFIG_VALUE_ENSTART_FN_MASK   (7U<<11)
+#define GP21_CONFIG_VALUE_ENSTART_FN_IN     (0U<<11)
+#define GP21_CONFIG_VALUE_ENSTART_FN_START  (1U<<11)
+#define GP21_CONFIG_VALUE_ENSTART_FN_SP1    (2U<<11)
+#define GP21_CONFIG_VALUE_ENSTART_FN_SP2    (3U<<11)
+#define GP21_CONFIG_VALUE_ENSTART_FN_TEMP_SP (4U<<11)
+#define GP21_CONFIG_VALUE_ENSTART_FN_TOF_ST (5U<<11)
+#define GP21_CONFIG_VALUE_ENSTART_FN_4KHZ   (7U<<11)
+#define GP21_CONFIG_VALUE_FIREIN_FN_MASK    (7U<<8)
+#define GP21_CONFIG_VALUE_FIREIN_FN_IN      (0U<<8)
+#define GP21_CONFIG_VALUE_FIREIN_FN_START   (1U<<8)
+#define GP21_CONFIG_VALUE_FIREIN_FN_SP1     (2U<<8)
+#define GP21_CONFIG_VALUE_FIREIN_FN_SP2     (3U<<8)
+#define GP21_CONFIG_VALUE_FIREIN_FN_TEMP_SP (4U<<8)
+#define GP21_CONFIG_VALUE_FIREIN_FN_ENSP    (5U<<8)
+#define GP21_CONFIG_VALUE_FIREIN_FN_COMP    (6U<<8)
+#define GP21_CONFIG_VALUE_FIREIN_FN_32KHZ   (7U<<8)
+#define GP21_CONFIG_VALUE_ID1(v)            (((v)>>8)&0xFFU)
 
 /*
     config register2 :
     EN_INT = B1111       RFEDGE1 = 0       RFEDGE2 = 0
     DELVAL1 = 400        ID2 = 0x12
 */
-#define GP21_CONFIG_VALUE_TIMEOUT_INT_MASK  (1<<31)
-#define GP21_CONFIG_VALUE_TIMEOUT_INT_ON    (1<<31)
-#define GP21_CONFIG_VALUE_TIMEOUT_INT_OFF   (0<<31)
-#define GP21_CONFIG_VALUE_HITEND_INT_MASK   (1<<30)
-#define GP21_CONFIG_VALUE_HITEND_INT_ON     (1<<30)
-#define GP21_CONFIG_VALUE_HITEND_INT_OFF    (0<<30)
-#define GP21_CONFIG_VALUE_ALU_INT_MASK      (1<<29)
-#define GP21_CONFIG_VALUE_ALU_INT_ON        (1<<29)
-#define GP21_CONFIG_VALUE_ALU_INT_OFF       (0<<29)
-#define GP21_CONFIG_VALUE_CH2_EDGE_MASK     (1<<28)
-#define GP21_CONFIG_VALUE_CH2_EDGE_BOTH     (1<<28)
-#define GP21_CONFIG_VALUE_CH2_EDGE_ONE      (0<<28)
-#define GP21_CONFIG_VALUE_CH1_EDGE_MASK     (1<<27)
-#define GP21_CONFIG_VALUE_CH1_EDGE_BOTH     (1<<27)
-#define GP21_CONFIG_VALUE_CH1_EDGE_ONE      (0<<27)
-#define GP21_CONFIG_VALUE_DELVAL1_MASK      (0x07FFFF<<8)
+#define GP21_CONFIG_VALUE_TIMEOUT_INT_MASK  (1U<<31)
+#define GP21_CONFIG_VALUE_TIMEOUT_INT_ON    (1U<<31)
+#define GP21_CONFIG_VALUE_TIMEOUT_INT_OFF   (0U<<31)
+#define GP21_CONFIG_VALUE_HITEND_INT_MASK   (1U<<30)
+#define GP21_CONFIG_VALUE_HITEND_INT_ON     (1U<<30)
+#define GP21_CONFIG_VALUE_HITEND_INT_OFF    (0U<<30)
+#define GP21_CONFIG_VALUE_ALU_INT_MASK      (1U<<29)
+#define GP21_CONFIG_VALUE_ALU_INT_ON        (1U<<29)
+#define GP21_CONFIG_VALUE_ALU_INT_OFF       (0U<<29)
+#define GP21_CONFIG_VALUE_CH2_EDGE_MASK     (1U<<28)
+#define GP21_CONFIG_VALUE_CH2_EDGE_BOTH     (1U<<28)
+#define GP21_CONFIG_VALUE_CH2_EDGE_ONE      (0U<<28)
+#define GP21_CONFIG_VALUE_CH1_EDGE_MASK     (1U<<27)
+#define GP21_CONFIG_VALUE_CH1_EDGE_BOTH     (1U<<27)
+#define GP21_CONFIG_VALUE_CH1_EDGE_ONE      (0U<<27)
+#define GP21_CONFIG_VALUE_DELVAL1_MASK      (0x07FFFFU<<8)
 #define GP21_CONFIG_VALUE_DELVAL1(v)        ((v)<<(7-(GP21_CONFIG_VALUE_DIV_CLKHS_2>>20)+8))
-#define GP21_CONFIG_VALUE_ID2(v)            (((v)>>16)&0xFF)
+#define GP21_CONFIG_VALUE_ID2(v)            (((v)>>16)&0xFFU)
 
 /*
     config register3 :
     EN_ERR_VAL = 0       SEL_TIMO_MB2 = 1  DELVAL2 = 408
     ID3 = 0x34
 */
-#define GP21_CONFIG_VALUE_EN_ERR_VAL_MASK   (1<<29)
-#define GP21_CONFIG_VALUE_EN_ERR_VAL_OFF    (0<<29)
-#define GP21_CONFIG_VALUE_EN_ERR_VAL_ON     (1<<29)
-#define GP21_CONFIG_VALUE_SEL_TIMO_MB2_MASK (3<<27)
-#define GP21_CONFIG_VALUE_SEL_TIMO_MB2_64   (0<<27)
-#define GP21_CONFIG_VALUE_SEL_TIMO_MB2_256  (1<<27)
-#define GP21_CONFIG_VALUE_SEL_TIMO_MB2_1024 (2<<27)
-#define GP21_CONFIG_VALUE_SEL_TIMO_MB2_4096 (3<<27)
-#define GP21_CONFIG_VALUE_DELVAL2_MASK      (0x07FFFF<<8)
+#define GP21_CONFIG_VALUE_EN_ERR_VAL_MASK   (1U<<29)
+#define GP21_CONFIG_VALUE_EN_ERR_VAL_OFF    (0U<<29)
+#define GP21_CONFIG_VALUE_EN_ERR_VAL_ON     (1U<<29)
+#define GP21_CONFIG_VALUE_SEL_TIMO_MB2_MASK (3U<<27)
+#define GP21_CONFIG_VALUE_SEL_TIMO_MB2_64   (0U<<27)
+#define GP21_CONFIG_VALUE_SEL_TIMO_MB2_256  (1U<<27)
+#define GP21_CONFIG_VALUE_SEL_TIMO_MB2_1024 (2U<<27)
+#define GP21_CONFIG_VALUE_SEL_TIMO_MB2_4096 (3U<<27)
+#define GP21_CONFIG_VALUE_DELVAL2_MASK      (0x07FFFFU<<8)
 #define GP21_CONFIG_VALUE_DELVAL2(v)        ((GP21_CONFIG_VALUE_DELVAL1(v))+ \
         (4<<(5+(GP21_CONFIG_VALUE_DIV_CLKHS_2>>20)+8)))
-#define GP21_CONFIG_VALUE_ID3(v)            (((v)>>24)&0xFF)
+#define GP21_CONFIG_VALUE_ID3(v)            (((v)>>24)&0xFFU)
 
 /*
     config register4 :
     DELVAL3 = 416        ID4 = 0x56
 */
-#define GP21_CONFIG_VALUE_DELVAL3_MASK      (0x07FFFF<<8)
+#define GP21_CONFIG_VALUE_DELVAL3_MASK      (0x07FFFFU<<8)
 #define GP21_CONFIG_VALUE_DELVAL3(v)        ((GP21_CONFIG_VALUE_DELVAL2(v))+ \
         (4<<(5+(GP21_CONFIG_VALUE_DIV_CLKHS_2>>20)+8)))
-#define GP21_CONFIG_VALUE_ID4(v)            (((v)>>0)&0xFF)
+#define GP21_CONFIG_VALUE_ID4(v)            (((v)>>0)&0xFFU)
 
 /*
     config register5 :
     CON_FIRE = 0         EN_STARTNOISE = 0 DIS_PHASESHIFT = 0
     REPEAT_FIRE = 0      PHASE_FIRE = 0    ID5 = 0x78
 */
-#define GP21_CONFIG_VALUE_CONF_FIRE_MASK    (7<<29)
-#define GP21_CONFIG_VALUE_CONF_FIRE_BOTH    (1<<31)
-#define GP21_CONFIG_VALUE_CONF_FIRE_EN_UP   (1<<30)
-#define GP21_CONFIG_VALUE_CONF_FIRE_EN_DOWN (1<<29)
-#define GP21_CONFIG_VALUE_STARTNOISE_MASK   (1<<28)
-#define GP21_CONFIG_VALUE_STARTNOISE_ON     (1<<28)
-#define GP21_CONFIG_VALUE_STARTNOISE_OFF    (0<<28)
-#define GP21_CONFIG_VALUE_DIS_PH_NOISE_MASK (1<<27)
-#define GP21_CONFIG_VALUE_PH_NOISE_ON       (0<<27)
-#define GP21_CONFIG_VALUE_PH_NOISE_OFF      (1<<27)
-#define GP21_CONFIG_VALUE_REPEAT_FIRE_MASK  (7<<24)
-#define GP21_CONFIG_VALUE_REPEAT_FIRE_TIMES(v) (((v)&0x07)<<24)
-#define GP21_CONFIG_VALUE_PH_FIRE_MASK      (0xFFFF<<8)
-#define GP21_CONFIG_VALUE_PH_FIRE_INV(ch)   (1<<(8+(ch)))
-#define GP21_CONFIG_VALUE_ID5(v)            (((v)>>8)&0xFF)
+#define GP21_CONFIG_VALUE_CONF_FIRE_MASK    (7U<<29)
+#define GP21_CONFIG_VALUE_CONF_FIRE_BOTH    (1U<<31)
+#define GP21_CONFIG_VALUE_CONF_FIRE_EN_UP   (1U<<30)
+#define GP21_CONFIG_VALUE_CONF_FIRE_EN_DOWN (1U<<29)
+#define GP21_CONFIG_VALUE_STARTNOISE_MASK   (1U<<28)
+#define GP21_CONFIG_VALUE_STARTNOISE_ON     (1U<<28)
+#define GP21_CONFIG_VALUE_STARTNOISE_OFF    (0U<<28)
+#define GP21_CONFIG_VALUE_DIS_PH_NOISE_MASK (1U<<27)
+#define GP21_CONFIG_VALUE_PH_NOISE_ON       (0U<<27)
+#define GP21_CONFIG_VALUE_PH_NOISE_OFF      (1U<<27)
+#define GP21_CONFIG_VALUE_REPEAT_FIRE_MASK  (7U<<24)
+#define GP21_CONFIG_VALUE_REPEAT_FIRE_TIMES(v) (((v)&0x07U)<<24)
+#define GP21_CONFIG_VALUE_PH_FIRE_MASK      (0xFFFFU<<8)
+#define GP21_CONFIG_VALUE_PH_FIRE_INV(ch)   (1U<<(8+(ch)))
+#define GP21_CONFIG_VALUE_ID5(v)            (((v)>>8)&0xFFU)
 
 /*
     config register6 :
@@ -284,65 +284,65 @@
     QUAD_RES = 0         DOUBLE_RES = 1    TEMP_PORTDIR = 0
     ANZ_FIRE = 31        ID6 = 0x90
 */
-#define GP21_CONFIG_VALUE_EN_ANALOG_MASK    (1<<31)
-#define GP21_CONFIG_VALUE_ANALOG_ON         (1<<31)
-#define GP21_CONFIG_VALUE_ANALOG_OFF        (0<<31)
-#define GP21_CONFIG_VALUE_NEG_STOP_TEMP_MASK (1<<30)
-#define GP21_CONFIG_VALUE_NEG_STOP_TEMP_EX  (0<<30)
-#define GP21_CONFIG_VALUE_NEG_STOP_TEMP_INTER (1<<30)
-#define GP21_CONFIG_VALUE_COMP_OFFSET_MASK  (15<<25)
-#define GP21_CONFIG_VALUE_COMP_OFFSET_0MV   (0<<25)
-#define GP21_CONFIG_VALUE_COMP_OFFSET_1MV   (1<<25)
-#define GP21_CONFIG_VALUE_COMP_OFFSET_2MV   (2<<25)
-#define GP21_CONFIG_VALUE_COMP_OFFSET_3MV   (3<<25)
-#define GP21_CONFIG_VALUE_COMP_OFFSET_4MV   (4<<25)
-#define GP21_CONFIG_VALUE_COMP_OFFSET_5MV   (5<<25)
-#define GP21_CONFIG_VALUE_COMP_OFFSET_6MV   (6<<25)
-#define GP21_CONFIG_VALUE_COMP_OFFSET_7MV   (7<<25)
-#define GP21_CONFIG_VALUE_COMP_OFFSET_M1MV  (15<<25)
-#define GP21_CONFIG_VALUE_COMP_OFFSET_M2MV  (14<<25)
-#define GP21_CONFIG_VALUE_COMP_OFFSET_M3MV  (13<<25)
-#define GP21_CONFIG_VALUE_COMP_OFFSET_M4MV  (12<<25)
-#define GP21_CONFIG_VALUE_COMP_OFFSET_M5MV  (11<<25)
-#define GP21_CONFIG_VALUE_COMP_OFFSET_M6MV  (10<<25)
-#define GP21_CONFIG_VALUE_COMP_OFFSET_M7MV  (9<<25)
-#define GP21_CONFIG_VALUE_COMP_OFFSET_M8MV  (8<<25)
-#define GP21_CONFIG_VALUE_RC_TIME_MASK      (3<<22)
-#define GP21_CONFIG_VALUE_RC_TIME_90US      (0<<22)
-#define GP21_CONFIG_VALUE_RC_TIME_120US     (1<<22)
-#define GP21_CONFIG_VALUE_RC_TIME_150US     (2<<22)
-#define GP21_CONFIG_VALUE_RC_TIME_300US     (3<<22)
-#define GP21_CONFIG_VALUE_EEPROM_INT_MASK   (1<<21)
-#define GP21_CONFIG_VALUE_EEPROM_INT_ON     (1<<21)
-#define GP21_CONFIG_VALUE_EEPROM_INT_OFF    (0<<21)
-#define GP21_CONFIG_VALUE_START_CLKHS_H(v)  ((((v)>>2)&0x01)<<20)
-#define GP21_CONFIG_VALUE_CYCLE_TEMP_MASK   (3<<18)
-#define GP21_CONFIG_VALUE_CYCLE_TEMP_1      (0<<18)
-#define GP21_CONFIG_VALUE_CYCLE_TEMP_1_5    (1<<18)
-#define GP21_CONFIG_VALUE_CYCLE_TEMP_2      (2<<18)
-#define GP21_CONFIG_VALUE_CYCLE_TEMP_2_5    (3<<18)
-#define GP21_CONFIG_VALUE_CYCLE_TOF_MASK    (3<<16)
-#define GP21_CONFIG_VALUE_CYCLE_TOF_1       (0<<16)
-#define GP21_CONFIG_VALUE_CYCLE_TOF_1_5     (1<<16)
-#define GP21_CONFIG_VALUE_CYCLE_TOF_2       (2<<16)
-#define GP21_CONFIG_VALUE_CYCLE_TOF_2_5     (3<<16)
-#define GP21_CONFIG_VALUE_HZ60_MASK         (1<<15)
-#define GP21_CONFIG_VALUE_HZ60              (1<<15)
-#define GP21_CONFIG_VALUE_HZ50              (0<<15)
-#define GP21_CONFIG_VALUE_FIREO_DEF_MASK    (1<<14)
-#define GP21_CONFIG_VALUE_FIREO_HZ          (0<<14)
-#define GP21_CONFIG_VALUE_FIREO_L           (1<<14)
-#define GP21_CONFIG_VALUE_QUAD_RES_MASK     (1<<13)
-#define GP21_CONFIG_VALUE_QUAD_RES_ON       (1<<13)
-#define GP21_CONFIG_VALUE_QUAD_RES_OFF      (0<<13)
-#define GP21_CONFIG_VALUE_DOUBLE_RES_MASK   (1<<12)
-#define GP21_CONFIG_VALUE_DOUBLE_RES_ON     (1<<12)
-#define GP21_CONFIG_VALUE_DOUBLE_RES_OFF    (0<<12)
-#define GP21_CONFIG_VALUE_TEMP_PORTDIR_MASK (1<<11)
-#define GP21_CONFIG_VALUE_TEMP_PORT_1_4     (0<<11)
-#define GP21_CONFIG_VALUE_TEMP_PORT_4_1     (1<<11)
-#define GP21_CONFIG_VALUE_ANZ_FIRE_H(v)     ((((v)>>4)&0x07)<<8)
-#define GP21_CONFIG_VALUE_ID6(v)            (((v)>>16)&0xFF)
+#define GP21_CONFIG_VALUE_EN_ANALOG_MASK    (1U<<31)
+#define GP21_CONFIG_VALUE_ANALOG_ON         (1U<<31)
+#define GP21_CONFIG_VALUE_ANALOG_OFF        (0U<<31)
+#define GP21_CONFIG_VALUE_NEG_STOP_TEMP_MASK (1U<<30)
+#define GP21_CONFIG_VALUE_NEG_STOP_TEMP_EX  (0U<<30)
+#define GP21_CONFIG_VALUE_NEG_STOP_TEMP_INTER (1U<<30)
+#define GP21_CONFIG_VALUE_COMP_OFFSET_MASK  (15U<<25)
+#define GP21_CONFIG_VALUE_COMP_OFFSET_0MV   (0U<<25)
+#define GP21_CONFIG_VALUE_COMP_OFFSET_1MV   (1U<<25)
+#define GP21_CONFIG_VALUE_COMP_OFFSET_2MV   (2U<<25)
+#define GP21_CONFIG_VALUE_COMP_OFFSET_3MV   (3U<<25)
+#define GP21_CONFIG_VALUE_COMP_OFFSET_4MV   (4U<<25)
+#define GP21_CONFIG_VALUE_COMP_OFFSET_5MV   (5U<<25)
+#define GP21_CONFIG_VALUE_COMP_OFFSET_6MV   (6U<<25)
+#define GP21_CONFIG_VALUE_COMP_OFFSET_7MV   (7U<<25)
+#define GP21_CONFIG_VALUE_COMP_OFFSET_M1MV  (15U<<25)
+#define GP21_CONFIG_VALUE_COMP_OFFSET_M2MV  (14U<<25)
+#define GP21_CONFIG_VALUE_COMP_OFFSET_M3MV  (13U<<25)
+#define GP21_CONFIG_VALUE_COMP_OFFSET_M4MV  (12U<<25)
+#define GP21_CONFIG_VALUE_COMP_OFFSET_M5MV  (11U<<25)
+#define GP21_CONFIG_VALUE_COMP_OFFSET_M6MV  (10U<<25)
+#define GP21_CONFIG_VALUE_COMP_OFFSET_M7MV  (9U<<25)
+#define GP21_CONFIG_VALUE_COMP_OFFSET_M8MV  (8U<<25)
+#define GP21_CONFIG_VALUE_RC_TIME_MASK      (3U<<22)
+#define GP21_CONFIG_VALUE_RC_TIME_90US      (0U<<22)
+#define GP21_CONFIG_VALUE_RC_TIME_120US     (1U<<22)
+#define GP21_CONFIG_VALUE_RC_TIME_150US     (2U<<22)
+#define GP21_CONFIG_VALUE_RC_TIME_300US     (3U<<22)
+#define GP21_CONFIG_VALUE_EEPROM_INT_MASK   (1U<<21)
+#define GP21_CONFIG_VALUE_EEPROM_INT_ON     (1U<<21)
+#define GP21_CONFIG_VALUE_EEPROM_INT_OFF    (0U<<21)
+#define GP21_CONFIG_VALUE_START_CLKHS_H(v)  ((((v)>>2)&0x01U)<<20)
+#define GP21_CONFIG_VALUE_CYCLE_TEMP_MASK   (3U<<18)
+#define GP21_CONFIG_VALUE_CYCLE_TEMP_1      (0U<<18)
+#define GP21_CONFIG_VALUE_CYCLE_TEMP_1_5    (1U<<18)
+#define GP21_CONFIG_VALUE_CYCLE_TEMP_2      (2U<<18)
+#define GP21_CONFIG_VALUE_CYCLE_TEMP_2_5    (3U<<18)
+#define GP21_CONFIG_VALUE_CYCLE_TOF_MASK    (3U<<16)
+#define GP21_CONFIG_VALUE_CYCLE_TOF_1       (0U<<16)
+#define GP21_CONFIG_VALUE_CYCLE_TOF_1_5     (1U<<16)
+#define GP21_CONFIG_VALUE_CYCLE_TOF_2       (2U<<16)
+#define GP21_CONFIG_VALUE_CYCLE_TOF_2_5     (3U<<16)
+#define GP21_CONFIG_VALUE_HZ60_MASK         (1U<<15)
+#define GP21_CONFIG_VALUE_HZ60              (1U<<15)
+#define GP21_CONFIG_VALUE_HZ50              (0U<<15)
+#define GP21_CONFIG_VALUE_FIREO_DEF_MASK    (1U<<14)
+#define GP21_CONFIG_VALUE_FIREO_HZ          (0U<<14)
+#define GP21_CONFIG_VALUE_FIREO_L           (1U<<14)
+#define GP21_CONFIG_VALUE_QUAD_RES_MASK     (1U<<13)
+#define GP21_CONFIG_VALUE_QUAD_RES_ON       (1U<<13)
+#define GP21_CONFIG_VALUE_QUAD_RES_OFF      (0U<<13)
+#define GP21_CONFIG_VALUE_DOUBLE_RES_MASK   (1U<<12)
+#define GP21_CONFIG_VALUE_DOUBLE_RES_ON     (1U<<12)
+#define GP21_CONFIG_VALUE_DOUBLE_RES_OFF    (0U<<12)
+#define GP21_CONFIG_VALUE_TEMP_PORTDIR_MASK (1U<<11)
+#define GP21_CONFIG_VALUE_TEMP_PORT_1_4     (0U<<11)
+#define GP21_CONFIG_VALUE_TEMP_PORT_4_1     (1U<<11)
+#define GP21_CONFIG_VALUE_ANZ_FIRE_H(v)     ((((v)>>4)&0x07U)<<8)
+#define GP21_CONFIG_VALUE_ID6(v)            (((v)>>16)&0xFFU)
 
 #define GP21_CONFIG_VALUE_REG0              (\
         GP21_CONFIG_VALUE_ANZ_FIRE_L(GP21_CONFIG_VALUE_ANZ_FIRE)|\
@@ -587,8 +587,6 @@ tdc_gp21_check_id(struct spi_tdc_gp21* tdc_gp21, const rt_uint32_t id_l, const r
 rt_inline void
 tdc_gp21_busy_wait(struct spi_tdc_gp21* tdc_gp21)
 {
-    tdc_gp21->busy = RT_TRUE;
-
     while(tdc_gp21->busy) {
         /* set system into sleep mode until interrupt occered on gp21 initpin */
         PWR_EnterSleepMode(PWR_SLEEPEntry_WFI);
@@ -598,7 +596,7 @@ tdc_gp21_busy_wait(struct spi_tdc_gp21* tdc_gp21)
 static void
 tdc_gp21_write_cmd(struct spi_tdc_gp21* tdc_gp21, rt_uint8_t opcode)
 {
-    rt_spi_send(tdc_gp21->spi_dev, &opcode, 1);
+
     /* some cmd need wait interrupt pin */
     if((opcode == GP21_WRITE_CFG_TO_EEPROM)  ||
        (opcode == GP21_WRITE_EEPROM_TO_CFG)  ||
@@ -608,7 +606,12 @@ tdc_gp21_write_cmd(struct spi_tdc_gp21* tdc_gp21, rt_uint8_t opcode)
        (opcode == GP21_START_CAL_RESONATOR)  ||
        (opcode == GP21_START_TOF_RESTART)    ||
        (opcode == GP21_START_TEMP_RESTART)) {
+        tdc_gp21->busy = RT_TRUE;
+        rt_spi_send(tdc_gp21->spi_dev, &opcode, 1);
         tdc_gp21_busy_wait(tdc_gp21);
+    }
+    else {
+        rt_spi_send(tdc_gp21->spi_dev, &opcode, 1);
     }
 }
 
@@ -674,6 +677,7 @@ tdc_gp21_init(rt_device_t dev)
     tdc_gp21_write_cmd(tdc_gp21, GP21_WRITE_EEPROM_TO_CFG);
     /* check version */
     if(!tdc_gp21_check_id(tdc_gp21, GP21_CONFIG_VALUE_ID_L, GP21_CONFIG_VALUE_ID_H)) {
+        rt_uint16_t stat = 0;
         tdc_gp21_write_register32(tdc_gp21, GP21_WRITE_REG0_REGISTER, GP21_CONFIG_VALUE_REG0);
         tdc_gp21_write_register32(tdc_gp21, GP21_WRITE_REG1_REGISTER, GP21_CONFIG_VALUE_REG1);
         tdc_gp21_write_register32(tdc_gp21, GP21_WRITE_REG2_REGISTER, GP21_CONFIG_VALUE_REG2);
@@ -684,7 +688,14 @@ tdc_gp21_init(rt_device_t dev)
         /*
             write config registers to eeprom
         */
+			
         tdc_gp21_write_cmd(tdc_gp21, GP21_WRITE_CFG_TO_EEPROM);
+        tdc_gp21_write_cmd(tdc_gp21, GP21_COMPARE_EEPROM_CFG);
+        stat = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
+        if(stat & 0xFE00) {
+            tdc_gp21_error_print(tdc_gp21, stat);
+            return RT_ERROR;
+        }
     }
 
     return RT_EOK;
@@ -786,7 +797,7 @@ tdc_gp21_measure_tof2(struct spi_tdc_gp21* tdc_gp21,
     args->up = (res[0]+res[1]+res[2])/3;
 
     /* wait for next measure finish */
-	//todo: whether should set reg1 to cal stop1_1?
+    //todo: whether should set reg1 to cal stop1_1?
     tdc_gp21_busy_wait(tdc_gp21);
     stat = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
     if(stat & 0xFE00) {
@@ -845,29 +856,29 @@ static struct stm32_spi_dev_cs tdc_nss_pin = {
     global functions
 */
 rt_err_t
-tdc_gp21_register(const char* tdc_device_name, const char* spi_bus_name)
+tdc_gp21_register(void)
 {
     struct rt_spi_configuration cfg;
-    struct rt_spi_bus* spi_bus = RT_NULL;
+    rt_device_t spi_bus = RT_NULL;
     struct rt_spi_device* spi_dev = RT_NULL;
     rt_err_t ret = RT_EOK;
 
     /* 1. find spi bus */
-    spi_bus = (struct rt_spi_bus*)rt_device_find(spi_bus_name);
+    spi_bus = rt_device_find(SPI_BUS_NAME);
     if(spi_bus == RT_NULL) {
-        TDC_TRACE("spi bus %s not found!\r\n", spi_bus_name);
+        TDC_TRACE("spi bus %s not found!\r\n", SPI_BUS_NAME);
         return -RT_ENOSYS;
     }
-    if(!(spi_bus->parent.open_flag & RT_DEVICE_OFLAG_OPEN)) {
-        if(RT_EOK != rt_device_open(&spi_bus->parent, RT_DEVICE_OFLAG_RDWR)) {
-            TDC_TRACE("spi bus %s open failed!\r\n", spi_bus_name);
+    if(!(spi_bus->open_flag & RT_DEVICE_OFLAG_OPEN)) {
+        if(RT_EOK != rt_device_open(spi_bus, RT_DEVICE_OFLAG_RDWR)) {
+            TDC_TRACE("spi bus %s open failed!\r\n", SPI_BUS_NAME);
             return -RT_ERROR;
         }
     }
     spi_dev = (struct rt_spi_device*)rt_malloc(sizeof(*spi_dev));
     RT_ASSERT(spi_dev != RT_NULL);
-    if(RT_EOK != rt_spi_bus_attach_device(spi_dev, "spitdc", spi_bus->parent.parent.name, &tdc_nss_pin)) {
-        TDC_TRACE("tdc spi device attach to spi bus %s failed!\r\n", spi_bus_name);
+    if(RT_EOK != rt_spi_bus_attach_device(spi_dev, "spitdc", SPI_BUS_NAME, &tdc_nss_pin)) {
+        TDC_TRACE("tdc spi device attach to spi bus %s failed!\r\n", SPI_BUS_NAME);
         return -RT_ERROR;
     }
     tdc_gp21.spi_dev = spi_dev;
@@ -888,7 +899,7 @@ tdc_gp21_register(const char* tdc_device_name, const char* spi_bus_name)
     tdc_gp21.parent.close       = tdc_gp21_close;
     tdc_gp21.parent.control     = tdc_gp21_control;
     tdc_gp21.parent.user_data   = RT_NULL;
-    ret = rt_device_register(&(tdc_gp21.parent), "tdc1", RT_NULL);
+    ret = rt_device_register(&tdc_gp21.parent, "tdc1", RT_NULL);
     if(RT_EOK != ret) {
         return ret;
     }
