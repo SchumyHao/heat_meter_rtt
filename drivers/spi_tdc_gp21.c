@@ -380,17 +380,17 @@
         GP21_CONFIG_VALUE_ALU_INT_ON        |\
         GP21_CONFIG_VALUE_CH2_EDGE_ONE      |\
         GP21_CONFIG_VALUE_CH1_EDGE_ONE      |\
-        GP21_CONFIG_VALUE_DELVAL1(GP21_CONFIG_VALUE_STOPMASK_DELAY_US)|\
+        //GP21_CONFIG_VALUE_DELVAL1(GP21_CONFIG_VALUE_STOPMASK_DELAY_US)|\
         GP21_CONFIG_VALUE_ID2(GP21_CONFIG_VALUE_ID_L))
 
 #define GP21_CONFIG_VALUE_REG3              (\
         GP21_CONFIG_VALUE_EN_ERR_VAL_ON     |\
         GP21_CONFIG_VALUE_SEL_TIMO_MB2_4096 |\
-        GP21_CONFIG_VALUE_DELVAL2(GP21_CONFIG_VALUE_STOPMASK_DELAY_US)|\
+        //GP21_CONFIG_VALUE_DELVAL2(GP21_CONFIG_VALUE_STOPMASK_DELAY_US)|\
         GP21_CONFIG_VALUE_ID3(GP21_CONFIG_VALUE_ID_L))
 
 #define GP21_CONFIG_VALUE_REG4              (\
-        GP21_CONFIG_VALUE_DELVAL3(GP21_CONFIG_VALUE_STOPMASK_DELAY_US)|\
+        //GP21_CONFIG_VALUE_DELVAL3(GP21_CONFIG_VALUE_STOPMASK_DELAY_US)|\
         GP21_CONFIG_VALUE_ID4(GP21_CONFIG_VALUE_ID_H))
 
 #define GP21_CONFIG_VALUE_REG5              (\
@@ -428,6 +428,10 @@ static void tdc_gp21_us_delay(rt_uint32_t us)
     us = us*TICKS_PER_US;
     delta = SysTick->VAL;
     while((delta - SysTick->VAL) < us);
+}
+
+rt_inline float tdc_gp21_reg_to_float(rt_uint32_t reg){
+	return (float)reg/65536.0;
 }
 
 rt_inline rt_uint8_t
@@ -617,7 +621,7 @@ tdc_gp21_write_cmd(struct spi_tdc_gp21* tdc_gp21, rt_uint8_t opcode)
 
 rt_inline void tdc_gp21_reset_wait(void)
 {
-    rt_uint8_t tmp = 0xff;
+    rt_uint16_t tmp = 0x0fff;
     while(--tmp > 0);
 }
 
@@ -688,7 +692,6 @@ tdc_gp21_init(rt_device_t dev)
         /*
             write config registers to eeprom
         */
-			
         tdc_gp21_write_cmd(tdc_gp21, GP21_WRITE_CFG_TO_EEPROM);
         tdc_gp21_write_cmd(tdc_gp21, GP21_COMPARE_EEPROM_CFG);
         stat = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
@@ -711,7 +714,7 @@ tdc_gp21_open(rt_device_t dev, rt_uint16_t oflag)
     /* set corr_factor */
     tdc_gp21_write_cmd(tdc_gp21, GP21_START_CAL_RESONATOR);
     reg = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES0_REGISTER);
-    tdc_gp21->corr_factor = 488.28125/reg; //High speed corr_factor
+    tdc_gp21->corr_factor = 122.0703125/tdc_gp21_reg_to_float(reg); //High speed corr_factor
     return RT_EOK;
 }
 
