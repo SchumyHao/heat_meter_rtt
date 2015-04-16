@@ -27,6 +27,7 @@ test_tdc_gp21(void)
     if(RT_EOK != rt_device_open(tdc, RT_NULL)) {
         return -RT_ERROR;
     }
+#if 0
     if(RT_EOK != rt_device_control(tdc,
                                    SPI_TDC_GP21_CTRL_MEASURE_TEMP,
                                    &temp_scales)) {
@@ -43,7 +44,7 @@ test_tdc_gp21(void)
     if(RT_EOK != rt_device_unregister(tdc)) {
         return -RT_ERROR;
     }
-
+#endif
     return RT_EOK;
 }
 FINSH_FUNCTION_EXPORT(test_tdc_gp21, test tdc gp21);
@@ -59,3 +60,35 @@ _tc_test_tdc_gp21(void)
     return 100;
 }
 FINSH_FUNCTION_EXPORT(_tc_test_tdc_gp21, TC);
+
+int
+test_tdc_gp21_tof(void)
+{
+    rt_device_t tdc = RT_NULL;
+    struct spi_tdc_gp21_tof_data tof_data;
+
+    tdc = rt_device_find("tdc1");
+    if(RT_NULL == tdc) {
+        return -RT_ERROR;
+    }
+
+    if(RT_EOK != rt_device_control(tdc,
+                                   SPI_TDC_GP21_CTRL_MEASURE_TOF2,
+                                   &tof_data)) {
+        return -RT_ERROR;
+    }
+    return RT_EOK;
+}
+FINSH_FUNCTION_EXPORT(test_tdc_gp21_tof, test tdc gp21 tof);
+
+int
+_tc_test_tdc_gp21_tof(void)
+{
+    tc_cleanup(_tc_cleanup);
+
+    if(RT_EOK != test_tdc_gp21_tof()) {
+        tc_stat(TC_STAT_FAILED);
+    }
+    return 100;
+}
+FINSH_FUNCTION_EXPORT(_tc_test_tdc_gp21_tof, TC);

@@ -88,10 +88,10 @@
 #define GP21_ERR_MASK_EEPROM_ERRS           (0x4000)
 
 /* config value */
-#define GP21_CONFIG_VALUE_ID_H              (0x00345678U)
+#define GP21_CONFIG_VALUE_ID_H              (0x00445678U)
 #define GP21_CONFIG_VALUE_ID_L              (0x12345678U)
 #define GP21_CONFIG_VALUE_STOPMASK_DELAY_US (200U)
-#define GP21_CONFIG_VALUE_ANZ_FIRE          (10U)
+#define GP21_CONFIG_VALUE_ANZ_FIRE          (127U)
 #define GP21_CONFIG_VALUE_FIRE_DIV          (3U)
 /*
     config register0 :
@@ -348,7 +348,7 @@
         GP21_CONFIG_VALUE_ANZ_FIRE_L(GP21_CONFIG_VALUE_ANZ_FIRE)|\
         GP21_CONFIG_VALUE_DIV_FIRE(GP21_CONFIG_VALUE_FIRE_DIV)|\
         GP21_CONFIG_VALUE_ANZ_PER_CALRES_2  |\
-        GP21_CONFIG_VALUE_DIV_CLKHS_2       |\
+        GP21_CONFIG_VALUE_DIV_CLKHS_1       |\
         GP21_CONFIG_VALUE_START_CLKHS_L(GP21_CONFIG_VALUE_START_CLKHS_1MS) |\
         GP21_CONFIG_VALUE_ANZ_PORT_4        |\
         GP21_CONFIG_VALUE_TCYCLE_512US      |\
@@ -380,17 +380,14 @@
         GP21_CONFIG_VALUE_ALU_INT_ON        |\
         GP21_CONFIG_VALUE_CH2_EDGE_ONE      |\
         GP21_CONFIG_VALUE_CH1_EDGE_ONE      |\
-        //GP21_CONFIG_VALUE_DELVAL1(GP21_CONFIG_VALUE_STOPMASK_DELAY_US)|\
         GP21_CONFIG_VALUE_ID2(GP21_CONFIG_VALUE_ID_L))
 
 #define GP21_CONFIG_VALUE_REG3              (\
         GP21_CONFIG_VALUE_EN_ERR_VAL_ON     |\
         GP21_CONFIG_VALUE_SEL_TIMO_MB2_4096 |\
-        //GP21_CONFIG_VALUE_DELVAL2(GP21_CONFIG_VALUE_STOPMASK_DELAY_US)|\
         GP21_CONFIG_VALUE_ID3(GP21_CONFIG_VALUE_ID_L))
 
 #define GP21_CONFIG_VALUE_REG4              (\
-        //GP21_CONFIG_VALUE_DELVAL3(GP21_CONFIG_VALUE_STOPMASK_DELAY_US)|\
         GP21_CONFIG_VALUE_ID4(GP21_CONFIG_VALUE_ID_H))
 
 #define GP21_CONFIG_VALUE_REG5              (\
@@ -680,7 +677,8 @@ tdc_gp21_init(rt_device_t dev)
     tdc_gp21_reset(tdc_gp21);
     tdc_gp21_write_cmd(tdc_gp21, GP21_WRITE_EEPROM_TO_CFG);
     /* check version */
-    if(!tdc_gp21_check_id(tdc_gp21, GP21_CONFIG_VALUE_ID_L, GP21_CONFIG_VALUE_ID_H)) {
+    //if(!tdc_gp21_check_id(tdc_gp21, GP21_CONFIG_VALUE_ID_L, GP21_CONFIG_VALUE_ID_H)) 
+		{
         rt_uint16_t stat = 0;
         tdc_gp21_write_register32(tdc_gp21, GP21_WRITE_REG0_REGISTER, GP21_CONFIG_VALUE_REG0);
         tdc_gp21_write_register32(tdc_gp21, GP21_WRITE_REG1_REGISTER, GP21_CONFIG_VALUE_REG1);
@@ -695,8 +693,8 @@ tdc_gp21_init(rt_device_t dev)
         tdc_gp21_write_cmd(tdc_gp21, GP21_WRITE_CFG_TO_EEPROM);
         tdc_gp21_write_cmd(tdc_gp21, GP21_COMPARE_EEPROM_CFG);
         stat = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
-        if(stat & 0xFE00) {
-            tdc_gp21_error_print(tdc_gp21, stat);
+        if(!(stat&0x8000)) {
+            rt_kprintf("%s TDC EEPROM write failed!\n", tdc_gp21->parent.parent.name);
             return RT_ERROR;
         }
     }
@@ -714,7 +712,7 @@ tdc_gp21_open(rt_device_t dev, rt_uint16_t oflag)
     /* set corr_factor */
     tdc_gp21_write_cmd(tdc_gp21, GP21_START_CAL_RESONATOR);
     reg = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES0_REGISTER);
-    tdc_gp21->corr_factor = 122.0703125/tdc_gp21_reg_to_float(reg); //High speed corr_factor
+    tdc_gp21->corr_factor = 244.140625/tdc_gp21_reg_to_float(reg); //High speed corr_factor
     return RT_EOK;
 }
 
