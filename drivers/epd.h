@@ -9,6 +9,7 @@
 
 #define EPD_WIDTH       72U                 /* Screen Width (in pixels)           */
 #define EPD_HEIGHT      172U                /* Screen Hight (in pixels)           */
+#define SPI_BUS_NAME    "spi1"
 
 void rt_hw_epd_init(void);
 #endif

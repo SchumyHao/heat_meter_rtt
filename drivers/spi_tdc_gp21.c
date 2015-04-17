@@ -454,7 +454,7 @@ tdc_gp21_read_register16(struct spi_tdc_gp21* tdc_gp21,
                          const rt_uint8_t opcode)
 {
     rt_uint8_t recv_buf[2];
-    rt_uint32_t recv_data = 0;
+    rt_uint16_t recv_data = 0;
     rt_uint8_t* ptr = (rt_uint8_t*)&recv_data;
     rt_int8_t i = 1;
 
