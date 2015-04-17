@@ -3,7 +3,7 @@
 #include "epd.h"
 
 #define dbg_print         rt_kprintf
-
+#define SPI_BUS_NAME      "spi1"
 /**
   * @brief  GDE021A1 Pins
   */
@@ -160,17 +160,23 @@ EPD_IO_ReadData(void)
 }
 
 static void
-epd_gde_set_pixel(const char* pixel, int x, int y)
-{
-  /* Set X position */
-  EPD_IO_WriteReg(EPD_REG_78);
-  EPD_IO_WriteData((uint16)x);
-  /* Set X position and the width */
-  EPD_IO_WriteReg(EPD_REG_79);
-  EPD_IO_WriteData((uint16)y);
+_epd_init(void){
+	rt_device_t epd = RT_NULL;
 
+    epd = rt_device_find("epd");
+    if(epd == RT_NULL) {
+        dbg_print("epd device not found!\r\n");
+        return ;
+    }
+	rt_device_init(epd);
+}
+
+static void
+epd_gde_write_pixel(uint8_t HEX_Code)
+{
   /* Prepare the register to write data on the RAM */
   EPD_IO_WriteReg(EPD_REG_36);
+
   /* Send the data to write */
   EPD_IO_WriteData(HEX_Code);
 }
@@ -199,7 +205,10 @@ epd_gde_draw_blit_line(const char* pixels, int x, int y, rt_size_t size)
 
 }
 
-static struct rt_device_graphic_ops epd_gde_ops = {
+static EPD_DrvTypeDef epd_gde_ops = {
+	_epd_init,
+	epd_gde_write_pixel,
+	
     epd_gde_set_pixel,
     epd_gde_get_pixel,
     epd_gde_draw_hline,
@@ -290,7 +299,9 @@ static rt_err_t
 epd_gde_close(rt_device_t dev) {}
 
 static rt_err_t
-epd_gde_control(rt_device_t dev, rt_uint8_t cmd, void* args) {}
+epd_gde_control(rt_device_t dev, rt_uint8_t cmd, void* args) {
+
+}
 
 static void
 epd_gde_nss_init(struct stm32_spi_dev_cs* cs)
