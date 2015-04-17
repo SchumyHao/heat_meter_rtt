@@ -1,5 +1,5 @@
 #include <rtthread.h>
-
+#if 0
 #include "tc_comm.h"
 #include "spi_flash_w25qxx.h"
 #include "rt_stm32f0xx_spi.h"
@@ -95,4 +95,4 @@ _tc_test_flash_w25qxx(void)
     return 100;
 }
 FINSH_FUNCTION_EXPORT(_tc_test_flash_w25qxx, TC);
-
+#endif
