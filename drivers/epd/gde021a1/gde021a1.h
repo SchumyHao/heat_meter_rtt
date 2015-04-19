@@ -45,7 +45,7 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "..\Common\epd.h"
+#include "epd.h"
 
 /** @addtogroup BSP
   * @{
