@@ -37,13 +37,12 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32l0xx_hal.h"
 #include "stm32l0538_discovery_epd.h"
-#include "stm32l0538_discovery.h"
-#include "font20epd.c"
-#include "font16epd.c"
-#include "font12epd.c"
 #include "font8epd.c"
+#include "font12epd.c"
+#include "font16epd.c"
+#include "font20epd.c"
+#include "gde021a1_device.h"
 
 /** @addtogroup BSP
   * @{
@@ -394,7 +393,7 @@ void BSP_EPD_RefreshDisplay(void)
   epd_drv->RefreshDisplay();
 
   /* Poll on the BUSY signal and wait for the EPD to be ready */
-  while (HAL_GPIO_ReadPin(EPD_BUSY_GPIO_PORT, EPD_BUSY_PIN) != (uint16_t)RESET);
+  while (EPD_BUSY_GET() != (uint16_t)RESET);
 
   /*  EPD reset pin mamagement */
   EPD_RESET_HIGH();

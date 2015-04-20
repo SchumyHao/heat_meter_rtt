@@ -1,88 +1,44 @@
-#include "board.h"
-#include "stm32f0xx.h"
-#include "gde021a1.h"
+#include "gde021a1_device.h"
 
 #define dbg_print         rt_kprintf
-#define SPI_BUS_NAME      "spi1"
-
-/**
-  * @brief  GDE021A1 Pins
-  */
-#define EPD_GPIO_NSS_PIN                    GPIO_Pin_4
-#define EPD_GPIO_NSS_PIN_GROUP              GPIOA
-#define EPD_GPIO_NSS_PIN_RCC                RCC_AHBPeriph_GPIOA
-#define EPD_GPIO_DC_PIN                     GPIO_Pin_3
-#define EPD_GPIO_DC_PIN_GROUP               GPIOA
-#define EPD_GPIO_DC_PIN_RCC                 RCC_AHBPeriph_GPIOA
-#define EPD_GPIO_RESET_PIN                  GPIO_Pin_2
-#define EPD_GPIO_RESET_PIN_GROUP            GPIOA
-#define EPD_GPIO_RESET_PIN_RCC              RCC_AHBPeriph_GPIOA
-#define EPD_GPIO_BUSY_PIN                   GPIO_Pin_1
-#define EPD_GPIO_BUSY_PIN_GROUP             GPIOA
-#define EPD_GPIO_BUSY_PIN_RCC               RCC_AHBPeriph_GPIOA
-#define EPD_GPIO_PWR_PIN                    GPIO_Pin_0
-#define EPD_GPIO_PWR_PIN_GROUP              GPIOA
-#define EPD_GPIO_PWR_PIN_RCC                RCC_AHBPeriph_GPIOA
-#define EPD_PWR_LOW()     GPIO_ResetBits(EPD_GPIO_PWR_PIN_GROUP,EPD_GPIO_PWR_PIN)
-#define EPD_PWR_HIGH()    GPIO_SetBits(EPD_GPIO_PWR_PIN_GROUP,EPD_GPIO_PWR_PIN)
-#define EPD_RESET_LOW()   GPIO_ResetBits(EPD_GPIO_RESET_PIN_GROUP,EPD_GPIO_RESET_PIN)
-#define EPD_RESET_HIGH()  GPIO_SetBits(EPD_GPIO_RESET_PIN_GROUP,EPD_GPIO_RESET_PIN)
-#define EPD_DC_LOW()      GPIO_ResetBits(EPD_GPIO_DC_PIN_GROUP,EPD_GPIO_DC_PIN)
-#define EPD_DC_HIGH()     GPIO_SetBits(EPD_GPIO_DC_PIN_GROUP,EPD_GPIO_DC_PIN)
 
 static struct rt_spi_device epd_gde_spi_dev;
 
 #define TICKS_PER_MS   (SystemCoreClock/1000)
-static void
+rt_inline void
 epd_gde_ms_delay(rt_uint32_t ms)
 {
     rt_uint32_t delta;
-    ms = ms*TICKS_PER_US;
+    ms = ms*TICKS_PER_MS;
     delta = SysTick->VAL;
     while((delta - SysTick->VAL) < ms);
 }
 
-rt_inline void
-EPD_Delay (rt_uint32_t Delay)
+void
+EPD_Delay (uint32_t Delay)
 {
     epd_gde_ms_delay(Delay);
 }
 
-static void
-EPD_IO_WriteData(uint16_t RegValue)
+void
+EPD_IO_WriteData(uint8_t RegValue)
 {
-    rt_uint8_t send_buf[2];
-    rt_uint8_t* ptr = (rt_uint8_t*)&RegValue;
-    rt_int8_t i = 1;
-
     /* Set EPD data/command line DC to High */
     EPD_DC_HIGH();
 
-    for(; i>=0; i--) {
-        send_buf[i] = *ptr;
-        ptr++;
-    }
-    rt_spi_transfer(&epd_gde_spi_dev, send_buf, NULL, sizeof(RegValue))
+    rt_spi_transfer(&epd_gde_spi_dev, &RegValue, NULL, sizeof(RegValue));
 }
 
-static void
+void
 EPD_IO_WriteReg(uint8_t Reg)
 {
-    rt_uint8_t send_buf[2];
-    rt_uint8_t* ptr = (rt_uint8_t*)&Reg;
-    rt_int8_t i = 1;
-
     /* Set EPD data/command line DC to Low */
     EPD_DC_LOW();
 
-    for(; i>=0; i--) {
-        send_buf[i] = *ptr;
-        ptr++;
-    }
-    rt_spi_transfer(&epd_gde_spi_dev, send_buf, NULL, sizeof(Reg))
+    rt_spi_transfer(&epd_gde_spi_dev, &Reg, NULL, sizeof(Reg));
 }
 
-static uint16_t
+uint16_t
 EPD_IO_ReadData(void)
 {
     rt_uint8_t recv_buf[2];
@@ -90,7 +46,7 @@ EPD_IO_ReadData(void)
     rt_uint8_t* ptr = (rt_uint8_t*)&recv_data;
     rt_int8_t i = 1;
 
-    rt_spi_transfer(&epd_gde_spi_dev, NULL, recv_buf, sizeof(recv_data))
+    rt_spi_transfer(&epd_gde_spi_dev, NULL, recv_buf, sizeof(recv_data));
     for(; i>=0; i--) {
         *ptr = recv_buf[i];
         ptr++;
@@ -99,8 +55,8 @@ EPD_IO_ReadData(void)
     return recv_data;
 }
 
-static void
-epd_io_init(void)
+void
+EPD_IO_Init(void)
 {
     GPIO_InitTypeDef  epd_gpio;
 
@@ -132,8 +88,6 @@ epd_io_init(void)
     EPD_PWR_LOW();
 
     /* EPD reset pin mamagement */
-    EPD_RESET_LOW();
-    EPD_Delay(1);
     EPD_RESET_HIGH();
     EPD_Delay(10);
 }
@@ -224,9 +178,10 @@ static struct stm32_spi_dev_cs epd_nss_pin = {
     epd_gde_nss_release
 };
 
-static rt_device epd_gde_dev;
+static struct rt_device epd_gde_dev;
 
-void rt_hw_epd_init(void)
+int 
+rt_hw_epd_init(void)
 {
     struct rt_spi_configuration cfg;
     rt_device_t spi_bus = RT_NULL;
@@ -268,7 +223,9 @@ void rt_hw_epd_init(void)
     epd_gde_dev.read = RT_NULL;
     epd_gde_dev.write = RT_NULL;
     epd_gde_dev.user_data = RT_NULL;
-    rt_device_register(rt_device_t dev, "epd",
+    rt_device_register(&epd_gde_dev, "epd",
                        RT_DEVICE_FLAG_RDWR|RT_DEVICE_FLAG_STANDALONE);
+		
+		return RT_EOK;
 }
-
+INIT_DEVICE_EXPORT(rt_hw_epd_init);

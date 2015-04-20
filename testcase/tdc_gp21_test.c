@@ -1,20 +1,16 @@
 #include <rtthread.h>
-
-#include "tc_comm.h"
+#if 0
+#include "finsh.h"
 #include "spi_tdc_gp21.h"
-
-static void
-_tc_cleanup(void)
-{
-    tc_done(TC_STAT_PASSED);
-}
 
 int
 test_tdc_gp21(void)
 {
     rt_device_t tdc = RT_NULL;
+#if 0
     struct spi_tdc_gp21_tof_data tof_data;
     struct spi_tdc_gp21_temp_scales temp_scales;
+#endif
 
     if(RT_EOK != tdc_gp21_register()) {
         return -RT_ERROR;
@@ -45,21 +41,10 @@ test_tdc_gp21(void)
         return -RT_ERROR;
     }
 #endif
-    return RT_EOK;
+		return RT_EOK;
 }
 FINSH_FUNCTION_EXPORT(test_tdc_gp21, test tdc gp21);
 
-int
-_tc_test_tdc_gp21(void)
-{
-    tc_cleanup(_tc_cleanup);
-
-    if(RT_EOK != test_tdc_gp21()) {
-        tc_stat(TC_STAT_FAILED);
-    }
-    return 100;
-}
-FINSH_FUNCTION_EXPORT(_tc_test_tdc_gp21, TC);
 
 int
 test_tdc_gp21_tof(void)
@@ -80,15 +65,4 @@ test_tdc_gp21_tof(void)
     return RT_EOK;
 }
 FINSH_FUNCTION_EXPORT(test_tdc_gp21_tof, test tdc gp21 tof);
-
-int
-_tc_test_tdc_gp21_tof(void)
-{
-    tc_cleanup(_tc_cleanup);
-
-    if(RT_EOK != test_tdc_gp21_tof()) {
-        tc_stat(TC_STAT_FAILED);
-    }
-    return 100;
-}
-FINSH_FUNCTION_EXPORT(_tc_test_tdc_gp21_tof, TC);
+#endif

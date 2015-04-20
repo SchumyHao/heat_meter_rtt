@@ -1,6 +1,6 @@
 #include <rtthread.h>
 #if 0
-#include "tc_comm.h"
+#include "finsh.h"
 #include "spi_flash_w25qxx.h"
 #include "rt_stm32f0xx_spi.h"
 
@@ -41,12 +41,6 @@ static struct stm32_spi_dev_cs flash_nss_pin = {
     flash_nss_release
 };
 
-static void
-_tc_cleanup(void)
-{
-    tc_done(TC_STAT_PASSED);
-}
-
 int
 test_flash_w25qxx(void)
 {
@@ -83,16 +77,4 @@ test_flash_w25qxx(void)
     return RT_EOK;
 }
 FINSH_FUNCTION_EXPORT(test_flash_w25qxx, test flash);
-
-int
-_tc_test_flash_w25qxx(void)
-{
-    tc_cleanup(_tc_cleanup);
-
-    if(RT_EOK != test_flash_w25qxx()) {
-        tc_stat(TC_STAT_FAILED);
-    }
-    return 100;
-}
-FINSH_FUNCTION_EXPORT(_tc_test_flash_w25qxx, TC);
 #endif

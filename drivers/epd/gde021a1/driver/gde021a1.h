@@ -45,7 +45,7 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "epd.h"
+#include "..\Common\epd.h"
 
 /** @addtogroup BSP
   * @{
@@ -145,7 +145,7 @@ extern EPD_DrvTypeDef   gde021a1_drv;
 
 /* EPD IO functions */
 void      EPD_IO_Init(void);
-void      EPD_IO_WriteData(uint16_t RegValue);
+void      EPD_IO_WriteData(uint8_t RegValue);
 void      EPD_IO_WriteReg(uint8_t Reg);
 uint16_t  EPD_IO_ReadData(void);
 void      EPD_Delay (uint32_t delay);
