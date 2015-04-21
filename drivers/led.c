@@ -38,5 +38,5 @@ int rt_hw_led_init(void)
 }
 #ifdef  RT_USING_COMPONENTS_INIT
 /* Initial components for device */
-INIT_BOARD_EXPORT(rt_hw_led_init);
+INIT_DEVICE_EXPORT(rt_hw_led_init);
 #endif

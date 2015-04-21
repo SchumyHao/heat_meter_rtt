@@ -1,8 +1,9 @@
 #include "gde021a1_device.h"
+#include "rt_stm32f0xx_spi.h"
 
 #define dbg_print         rt_kprintf
 
-static struct rt_spi_device epd_gde_spi_dev;
+static struct rt_spi_device* epd_gde_spi_dev;
 
 #define TICKS_PER_MS   (SystemCoreClock/1000)
 rt_inline void
@@ -26,7 +27,7 @@ EPD_IO_WriteData(uint8_t RegValue)
     /* Set EPD data/command line DC to High */
     EPD_DC_HIGH();
 
-    rt_spi_transfer(&epd_gde_spi_dev, &RegValue, NULL, sizeof(RegValue));
+    rt_spi_transfer(epd_gde_spi_dev, &RegValue, NULL, sizeof(RegValue));
 }
 
 void
@@ -35,7 +36,7 @@ EPD_IO_WriteReg(uint8_t Reg)
     /* Set EPD data/command line DC to Low */
     EPD_DC_LOW();
 
-    rt_spi_transfer(&epd_gde_spi_dev, &Reg, NULL, sizeof(Reg));
+    rt_spi_transfer(epd_gde_spi_dev, &Reg, NULL, sizeof(Reg));
 }
 
 uint16_t
@@ -46,7 +47,7 @@ EPD_IO_ReadData(void)
     rt_uint8_t* ptr = (rt_uint8_t*)&recv_data;
     rt_int8_t i = 1;
 
-    rt_spi_transfer(&epd_gde_spi_dev, NULL, recv_buf, sizeof(recv_data));
+    rt_spi_transfer(epd_gde_spi_dev, NULL, recv_buf, sizeof(recv_data));
     for(; i>=0; i--) {
         *ptr = recv_buf[i];
         ptr++;
@@ -93,7 +94,7 @@ EPD_IO_Init(void)
 }
 
 static rt_err_t
-epd_gde_init(rt_device_t dev)
+_epd_gde_init(rt_device_t dev)
 {
     gde021a1_Init();
     return RT_EOK;
@@ -140,92 +141,44 @@ epd_gde_control(rt_device_t dev, rt_uint8_t cmd, void* args)
     return RT_EOK;
 }
 
-static void
-epd_gde_nss_init(struct stm32_spi_dev_cs* cs)
-{
-    GPIO_InitTypeDef EPD_GPIO;
-    RT_ASSERT(cs != RT_NULL);
-
-    RCC_AHBPeriphClockCmd(EPD_GPIO_NSS_PIN_RCC, ENABLE);
-    GPIO_StructInit(&EPD_GPIO);
-    EPD_GPIO.GPIO_Pin = EPD_GPIO_NSS_PIN;
-    EPD_GPIO.GPIO_Mode = GPIO_Mode_OUT;
-    EPD_GPIO.GPIO_PuPd = GPIO_PuPd_UP;
-    EPD_GPIO.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Init(EPD_GPIO_NSS_PIN_GROUP, &EPD_GPIO);
-    GPIO_SetBits(EPD_GPIO_NSS_PIN_GROUP, EPD_GPIO_NSS_PIN);
-}
-
-static void
-epd_gde_nss_take(struct stm32_spi_dev_cs* cs)
-{
-    RT_ASSERT(cs != RT_NULL);
-
-    GPIO_ResetBits(EPD_GPIO_NSS_PIN_GROUP, EPD_GPIO_NSS_PIN);
-}
-
-static void
-epd_gde_nss_release(struct stm32_spi_dev_cs* cs)
-{
-    RT_ASSERT(cs != RT_NULL);
-
-    GPIO_SetBits(EPD_GPIO_NSS_PIN_GROUP, EPD_GPIO_NSS_PIN);
-}
-
-static struct stm32_spi_dev_cs epd_nss_pin = {
-    epd_gde_nss_init,
-    epd_gde_nss_take,
-    epd_gde_nss_release
-};
-
 static struct rt_device epd_gde_dev;
 
-int 
-rt_hw_epd_init(void)
+rt_err_t
+epd_gde_init(const char* epd_device_name, const char* spi_device_name)
 {
-    struct rt_spi_configuration cfg;
-    rt_device_t spi_bus = RT_NULL;
-    struct rt_spi_device* spi_dev = &epd_gde_spi_dev;
+    struct rt_spi_device* spi_dev = RT_NULL;
     rt_err_t ret = RT_EOK;
 
-    /* 1. find spi bus */
-    spi_bus = rt_device_find(SPI_BUS_NAME);
-    if(spi_bus == RT_NULL) {
-        dbg_print("spi bus %s not found!\r\n", SPI_BUS_NAME);
+    spi_dev = (struct rt_spi_device*)rt_device_find(spi_device_name);
+    if(RT_NULL == spi_dev) {
+        dbg_print("spi device %s not found!\r\n", spi_device_name);
         return -RT_ENOSYS;
     }
-    if(!(spi_bus->open_flag & RT_DEVICE_OFLAG_OPEN)) {
-        if(RT_EOK != rt_device_open(spi_bus, RT_DEVICE_OFLAG_RDWR)) {
-            dbg_print("spi bus %s open failed!\r\n", SPI_BUS_NAME);
-            return -RT_ERROR;
-        }
-    }
-    if(RT_EOK != rt_spi_bus_attach_device(spi_dev, "spiepd", SPI_BUS_NAME, &epd_nss_pin)) {
-        dbg_print("epd spi device attach to spi bus %s failed!\r\n", SPI_BUS_NAME);
-        return -RT_ERROR;
-    }
+    epd_gde_spi_dev = spi_dev;
 
-    /* 2.config spi device */
-    cfg.data_width = 8;
-    cfg.mode = RT_SPI_MODE_3 | RT_SPI_MSB;
-    cfg.max_hz = 2000000;
-    ret = rt_spi_configure(spi_dev, &cfg);
-    if(RT_EOK != ret) {
-        return ret;
+    /* config spi */
+    {
+        struct rt_spi_configuration cfg;
+        cfg.data_width = 8;
+        cfg.mode = RT_SPI_MODE_3 | RT_SPI_MSB;
+        cfg.max_hz = 2000000;
+        ret = rt_spi_configure(epd_gde_spi_dev, &cfg);
+        if(RT_EOK != ret) {
+            return ret;
+        }
     }
 
     /* 3.register epd device */
     epd_gde_dev.type = RT_Device_Class_Graphic;
-    epd_gde_dev.init = epd_gde_init;
+    epd_gde_dev.init = _epd_gde_init;
     epd_gde_dev.open = epd_gde_open;
     epd_gde_dev.close = epd_gde_close;
     epd_gde_dev.control = epd_gde_control;
     epd_gde_dev.read = RT_NULL;
     epd_gde_dev.write = RT_NULL;
-    epd_gde_dev.user_data = RT_NULL;
-    rt_device_register(&epd_gde_dev, "epd",
+    epd_gde_dev.user_data = epd_gde_spi_dev;
+    rt_device_register(&epd_gde_dev, epd_device_name,
                        RT_DEVICE_FLAG_RDWR|RT_DEVICE_FLAG_STANDALONE);
-		
-		return RT_EOK;
+
+    return RT_EOK;
 }
-INIT_DEVICE_EXPORT(rt_hw_epd_init);

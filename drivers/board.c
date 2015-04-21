@@ -94,8 +94,154 @@ rt_hw_flash_init(void)
 }
 #ifdef  RT_USING_COMPONENTS_INIT
 #endif /* RT_USING_COMPONENTS_INIT */
-INIT_DEVICE_EXPORT(rt_hw_flash_init);
+INIT_COMPONENT_EXPORT(rt_hw_flash_init);
 #endif /* HM_BOARD_FLASH */
+
+#if HM_BOARD_EPD
+#include "stm32l0538_discovery_epd.h"
+#include "gde021a1_device.h"
+#define EPD_GPIO_NSS_PIN                    GPIO_Pin_4
+#define EPD_GPIO_NSS_PIN_GROUP              GPIOA
+#define EPD_GPIO_NSS_PIN_RCC                RCC_AHBPeriph_GPIOA
+static void
+epd_gde_nss_init(struct stm32_spi_dev_cs* cs)
+{
+    GPIO_InitTypeDef EPD_GPIO;
+    RT_ASSERT(cs != RT_NULL);
+
+    RCC_AHBPeriphClockCmd(EPD_GPIO_NSS_PIN_RCC, ENABLE);
+    GPIO_StructInit(&EPD_GPIO);
+    EPD_GPIO.GPIO_Pin = EPD_GPIO_NSS_PIN;
+    EPD_GPIO.GPIO_Mode = GPIO_Mode_OUT;
+    EPD_GPIO.GPIO_PuPd = GPIO_PuPd_UP;
+    EPD_GPIO.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(EPD_GPIO_NSS_PIN_GROUP, &EPD_GPIO);
+    GPIO_SetBits(EPD_GPIO_NSS_PIN_GROUP, EPD_GPIO_NSS_PIN);
+}
+static void
+epd_gde_nss_take(struct stm32_spi_dev_cs* cs)
+{
+    RT_ASSERT(cs != RT_NULL);
+
+    GPIO_ResetBits(EPD_GPIO_NSS_PIN_GROUP, EPD_GPIO_NSS_PIN);
+}
+
+static void
+epd_gde_nss_release(struct stm32_spi_dev_cs* cs)
+{
+    RT_ASSERT(cs != RT_NULL);
+
+    GPIO_SetBits(EPD_GPIO_NSS_PIN_GROUP, EPD_GPIO_NSS_PIN);
+}
+static struct stm32_spi_dev_cs epd_nss_pin = {
+    epd_gde_nss_init,
+    epd_gde_nss_take,
+    epd_gde_nss_release
+};
+static int
+rt_hw_epd_init(void)
+{
+    rt_device_t spi_bus = RT_NULL;
+    struct rt_spi_device* spi_dev = RT_NULL;
+    const char* spi_bus_name = HM_BOARD_SPI_BUS_1_NAME;
+
+    spi_bus = rt_device_find(spi_bus_name);
+    if(spi_bus == RT_NULL) {
+        rt_kprintf("spi bus %s not found!\r\n", spi_bus_name);
+        return -RT_ENOSYS;
+    }
+    if(!(spi_bus->open_flag & RT_DEVICE_OFLAG_OPEN)) {
+        if(RT_EOK != rt_device_open(spi_bus, RT_DEVICE_OFLAG_RDWR)) {
+            rt_kprintf("spi bus %s open failed!\r\n", spi_bus_name);
+            return -RT_ERROR;
+        }
+    }
+    spi_dev = (struct rt_spi_device*)rt_malloc(sizeof(*spi_dev));
+    RT_ASSERT(spi_dev != RT_NULL);
+    if(RT_EOK != rt_spi_bus_attach_device(spi_dev, HM_BOARD_EPD_SPI_NAME, spi_bus_name, &epd_nss_pin)) {
+        rt_kprintf("epd device attach to spi bus %s failed!\r\n", spi_bus_name);
+        return -RT_ERROR;
+    }
+    epd_gde_init(HM_BOARD_EPD_NAME, HM_BOARD_EPD_SPI_NAME);
+
+    return RT_EOK;
+}
+#ifdef  RT_USING_COMPONENTS_INIT
+#endif /* RT_USING_COMPONENTS_INIT */
+INIT_COMPONENT_EXPORT(rt_hw_epd_init);
+#endif /* HM_BOARD_EPD */
+
+#if HM_BOARD_TDC
+#include "spi_tdc_gp21.h"
+#define TDC_GPIO_NSS_PIN                    GPIO_Pin_10
+#define TDC_GPIO_NSS_PIN_GROUP              GPIOB
+#define TDC_GPIO_NSS_PIN_RCC                RCC_AHBPeriph_GPIOB
+static void
+tdc_gp21_nss_init(struct stm32_spi_dev_cs* cs)
+{
+    GPIO_InitTypeDef TDC_GPIO;
+    RT_ASSERT(cs != RT_NULL);
+
+    RCC_AHBPeriphClockCmd(TDC_GPIO_NSS_PIN_RCC, ENABLE);
+    GPIO_StructInit(&TDC_GPIO);
+    TDC_GPIO.GPIO_Pin = TDC_GPIO_NSS_PIN;
+    TDC_GPIO.GPIO_Mode = GPIO_Mode_OUT;
+    TDC_GPIO.GPIO_PuPd = GPIO_PuPd_UP;
+    TDC_GPIO.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(TDC_GPIO_NSS_PIN_GROUP, &TDC_GPIO);
+    GPIO_SetBits(TDC_GPIO_NSS_PIN_GROUP, TDC_GPIO_NSS_PIN);
+}
+static void
+tdc_gp21_nss_take(struct stm32_spi_dev_cs* cs)
+{
+    RT_ASSERT(cs != RT_NULL);
+
+    GPIO_ResetBits(TDC_GPIO_NSS_PIN_GROUP, TDC_GPIO_NSS_PIN);
+}
+static void
+tdc_gp21_nss_release(struct stm32_spi_dev_cs* cs)
+{
+    RT_ASSERT(cs != RT_NULL);
+
+    GPIO_SetBits(TDC_GPIO_NSS_PIN_GROUP, TDC_GPIO_NSS_PIN);
+}
+static struct stm32_spi_dev_cs tdc_nss_pin = {
+    tdc_gp21_nss_init,
+    tdc_gp21_nss_take,
+    tdc_gp21_nss_release
+};
+static int
+rt_hw_tdc_init(void)
+{
+    rt_device_t spi_bus = RT_NULL;
+    struct rt_spi_device* spi_dev = RT_NULL;
+    const char* spi_bus_name = HM_BOARD_SPI_BUS_2_NAME;
+
+    spi_bus = rt_device_find(spi_bus_name);
+    if(spi_bus == RT_NULL) {
+        rt_kprintf("spi bus %s not found!\r\n", spi_bus_name);
+        return -RT_ENOSYS;
+    }
+    if(!(spi_bus->open_flag & RT_DEVICE_OFLAG_OPEN)) {
+        if(RT_EOK != rt_device_open(spi_bus, RT_DEVICE_OFLAG_RDWR)) {
+            rt_kprintf("spi bus %s open failed!\r\n", spi_bus_name);
+            return -RT_ERROR;
+        }
+    }
+    spi_dev = (struct rt_spi_device*)rt_malloc(sizeof(*spi_dev));
+    RT_ASSERT(spi_dev != RT_NULL);
+    if(RT_EOK != rt_spi_bus_attach_device(spi_dev, HM_BOARD_TDC_SPI_NAME, spi_bus_name, &tdc_nss_pin)) {
+        rt_kprintf("epd device attach to spi bus %s failed!\r\n", spi_bus_name);
+        return -RT_ERROR;
+    }
+    tdc_gp21_register(HM_BOARD_EPD_NAME, HM_BOARD_EPD_SPI_NAME);
+
+    return RT_EOK;
+}
+#ifdef  RT_USING_COMPONENTS_INIT
+#endif /* RT_USING_COMPONENTS_INIT */
+INIT_COMPONENT_EXPORT(rt_hw_tdc_init);
+#endif /* HM_BOARD_TDC */
 
 #define PRINT_RCC_FREQ_INFO
 

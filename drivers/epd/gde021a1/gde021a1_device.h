@@ -1,20 +1,19 @@
 #ifndef __GDE021A1_DEVICE_H__
 #define __GDE021A1_DEVICE_H__
 
-#include <rtthread.h>
-#include "board.h"
-#include "stm32f0xx.h"
-#include "gde021a1.h"
-#include "rt_stm32f0xx_spi.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#define SPI_BUS_NAME      "spi1"
+#include <rtthread.h>
+#include <stdio.h>
+#include "board.h"
+#include "gde021a1.h"
+#include "stm32f0xx.h"
 
 /**
   * @brief  GDE021A1 Pins
   */
-#define EPD_GPIO_NSS_PIN                    GPIO_Pin_4
-#define EPD_GPIO_NSS_PIN_GROUP              GPIOA
-#define EPD_GPIO_NSS_PIN_RCC                RCC_AHBPeriph_GPIOA
 #define EPD_GPIO_DC_PIN                     GPIO_Pin_3
 #define EPD_GPIO_DC_PIN_GROUP               GPIOA
 #define EPD_GPIO_DC_PIN_RCC                 RCC_AHBPeriph_GPIOA
@@ -34,5 +33,12 @@
 #define EPD_DC_LOW()      GPIO_ResetBits(EPD_GPIO_DC_PIN_GROUP,EPD_GPIO_DC_PIN)
 #define EPD_DC_HIGH()     GPIO_SetBits(EPD_GPIO_DC_PIN_GROUP,EPD_GPIO_DC_PIN)
 #define EPD_BUSY_GET()    GPIO_ReadInputDataBit(EPD_GPIO_BUSY_PIN_GROUP,EPD_GPIO_BUSY_PIN)
+
+rt_err_t
+epd_gde_init(const char* epd_device_name, const char* spi_device_name);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

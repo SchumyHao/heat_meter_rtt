@@ -49,6 +49,6 @@ struct spi_tdc_gp21_tof_data {
     global functions
 */
 rt_err_t
-tdc_gp21_register(void);
+tdc_gp21_register(const char* tdc_device_name, const char* spi_device_name);
 
 #endif

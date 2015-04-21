@@ -1133,7 +1133,7 @@ int rt_hw_spi_bus_register(void)
     return RT_EOK;
 }
 #ifdef  RT_USING_COMPONENTS_INIT
-INIT_BOARD_EXPORT(rt_hw_spi_bus_register);
+INIT_DEVICE_EXPORT(rt_hw_spi_bus_register);
 #endif
 
 #ifdef RT_USING_SPI1
