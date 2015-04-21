@@ -16,6 +16,7 @@ extern "C" {
 #endif
 
 #include <rtthread.h>
+#include <rtdevice.h>
 #include <drivers/spi.h>
 #include "stm32f0xx.h"
 

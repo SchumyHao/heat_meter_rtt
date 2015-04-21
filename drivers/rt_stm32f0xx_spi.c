@@ -8,9 +8,11 @@
  * 2015_3_6       Schumy       can work in all mode except Tx DMA Rx IT
  */
 
-#include <rtdevice.h>
-#include "stm32f0xx.h"
 #include "rt_stm32f0xx_spi.h"
+/* RT_USING_COMPONENTS_INIT */
+#ifdef  RT_USING_COMPONENTS_INIT
+#include <components.h>
+#endif
 
 #define SPI_DUMP 0xffff
 #define SPI_IT_XFER_ONEC_MAX_LEN (32)
@@ -1114,7 +1116,7 @@ int rt_hw_spi_bus_register(void)
 
 #ifdef RT_USING_SPI1
     stm32_spi_bus_1.spix = SPI1;
-    ret = stm32_spi_bus_device_register(&stm32_spi_bus_1, "spi1");
+    ret = stm32_spi_bus_device_register(&stm32_spi_bus_1, RT_SPI1_DEVICE_NAME);
     if(RT_EOK != ret) {
         return ret;
     }
@@ -1122,7 +1124,7 @@ int rt_hw_spi_bus_register(void)
 
 #ifdef RT_USING_SPI2
     stm32_spi_bus_2.spix = SPI2;
-    ret = stm32_spi_bus_device_register(&stm32_spi_bus_2, "spi2");
+    ret = stm32_spi_bus_device_register(&stm32_spi_bus_2, RT_SPI2_DEVICE_NAME);
     if(RT_EOK != ret) {
         return ret;
     }
@@ -1130,7 +1132,9 @@ int rt_hw_spi_bus_register(void)
 
     return RT_EOK;
 }
-INIT_DEVICE_EXPORT(rt_hw_spi_bus_register);
+#ifdef  RT_USING_COMPONENTS_INIT
+INIT_BOARD_EXPORT(rt_hw_spi_bus_register);
+#endif
 
 #ifdef RT_USING_SPI1
 void SPI1_IRQHandler(void)
@@ -1388,4 +1392,3 @@ FINSH_FUNCTION_EXPORT(_tc_test_spi_bus_open_close_inter, TC);
 
 #endif /* DEBUG_SPI_INTER */
 #endif /* RT_USING_TC */
-
