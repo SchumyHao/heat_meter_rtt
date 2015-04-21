@@ -112,7 +112,7 @@ int rt_application_init()
 #if (RT_THREAD_PRIORITY_MAX == 32)
     init_thread = rt_thread_create("init",
                                    rt_init_thread_entry, RT_NULL,
-                                   256, 8, 20);
+                                   512, 8, 20);
 #else
     init_thread = rt_thread_create("init",
                                    rt_init_thread_entry, RT_NULL,

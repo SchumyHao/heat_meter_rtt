@@ -118,7 +118,7 @@ extern "C" {
 #define HM_BOARD_FLASH_NAME       "flash"
 //   <s0.8> spi device name
 //   <i> flash rt_spi_dev name
-#define HM_BOARD_FLASH_SPI_NAME   "spiflash"
+#define HM_BOARD_FLASH_SPI_NAME   "spimem"
 // </e>
 
 // <e> EPD configuration

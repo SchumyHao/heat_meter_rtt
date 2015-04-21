@@ -94,6 +94,7 @@ rt_hw_epd_init(void)
         return -RT_ERROR;
     }
     epd_gde_init(HM_BOARD_EPD_NAME, HM_BOARD_EPD_SPI_NAME);
+		BSP_EPD_Init();
 
     return RT_EOK;
 }
