@@ -11,6 +11,7 @@
  * Date           Author       Notes
  * 2009-01-05     Bernard      first implementation
  * 2013-11-15     bright       add RCC initial and print RCC freq function
+ * 2015-04-21     Schumy       add board.c to heat meter bsp
  */
 
 #include <rthw.h>
@@ -22,11 +23,8 @@
 #ifdef  RT_USING_COMPONENTS_INIT
 #include <components.h>
 #endif
-/**
- * @addtogroup STM32
- */
 
-/*@{*/
+#define PRINT_RCC_FREQ_INFO
 
 /*******************************************************************************
 * Function Name  : NVIC_Configuration
@@ -127,6 +125,7 @@ void SysTick_Handler(void)
 	/* leave interrupt */
 	rt_interrupt_leave();
 }
+
 /**
  * This function will initial STM32 board.
  */
@@ -140,6 +139,7 @@ void rt_hw_board_init()
 	SysTick_Config(SystemCoreClock / RT_TICK_PER_SECOND);
 
 	/* Initial usart deriver, and set console device */
+#if HM_BOARD_UART
 	rt_hw_usart_init();
 #ifdef RT_USING_CONSOLE
 	rt_console_set_device(RT_CONSOLE_DEVICE_NAME);
@@ -148,10 +148,10 @@ void rt_hw_board_init()
 #ifdef PRINT_RCC_FREQ_INFO
 	print_rcc_freq_info();
 #endif
+#endif /* HM_BOARD_UART */
+
 	/* Call components board initial (use INIT_BOARD_EXPORT()) */
 #ifdef RT_USING_COMPONENTS_INIT
     rt_components_board_init();
 #endif
 }
-
-/*@}*/

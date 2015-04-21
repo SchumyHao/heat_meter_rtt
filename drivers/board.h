@@ -9,14 +9,18 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2015-04-21     Schumy       add board.h to heat meter bsp
  * 2009-09-22     Bernard      add board.h to this bsp
  * 2013-11-15     bright       fix SRAM size for heap management
+ * 2015-04-21     Schumy       add board.h to heat meter bsp
  */
 
 // <<< Use Configuration Wizard in Context Menu >>>
 #ifndef __BOARD_H__
 #define __BOARD_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stm32f0xx.h>
 
@@ -140,12 +144,15 @@
 // </e>
 
 // <o> Internal SRAM memory size[Kbytes] <8-32>
-//	<i>Default: 32
+//  <i>Default: 32
 #define STM32_SRAM_SIZE         32
 #define STM32_SRAM_END          (0x20000000 + STM32_SRAM_SIZE * 1024)
 
 void rt_hw_board_init(void);
 
+#ifdef __cplusplus
+}
 #endif
 
+#endif
 // <<< end of configuration section >>>

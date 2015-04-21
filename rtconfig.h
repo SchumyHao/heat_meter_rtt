@@ -2,6 +2,9 @@
 #ifndef __RTTHREAD_CFG_H__
 #define __RTTHREAD_CFG_H__
 
+/*******************************************************************************
+ * RT Thread system config section
+*******************************************************************************/
 /* RT_NAME_MAX*/
 #define RT_NAME_MAX	   8
 
@@ -56,85 +59,131 @@
 #define RT_USING_SMALL_MEM
 #define RT_USING_TINY_SIZE
 
-// <bool name="RT_USING_COMPONENTS_INIT" description="Using RT-Thread components initialization" default="true" />
 #define RT_USING_COMPONENTS_INIT
 
-/* SECTION: Device System */
+
+/*******************************************************************************
+ * RT Thread decive config section
+*******************************************************************************/
 /* Using Device System */
 #define RT_USING_DEVICE
-// <bool name="RT_USING_DEVICE_IPC" description="Using device communication" default="true" />
 #define RT_USING_DEVICE_IPC
-// <bool name="RT_USING_SERIAL" description="Using Serial" default="true" />
+
+#include "board.h"
+#if HM_BOARD_UART
 #define RT_USING_SERIAL
+#if HM_BOARD_UART_1
+#define RT_USING_UART1
+#define RT_UART1_DEVICE_NAME      HM_BOARD_UART_1_NAME
+#if HM_BOARD_UART_1_RX_INT
+#define RT_UART1_RX_INT
+#endif /* HM_BOARD_UART_1_RX_INT */
+#if HM_BOARD_UART_1_RX_DMA
+#define RT_UART1_RX_DMA
+#endif /* HM_BOARD_UART_1_RX_DMA */
+#if HM_BOARD_UART_1_TX_INT
+#define RT_UART1_TX_INT
+#endif /* HM_BOARD_UART_1_TX_INT */
+#if HM_BOARD_UART_1_TX_DMA
+#define RT_UART1_TX_DMA
+#endif /* HM_BOARD_UART_1_TX_DMA */
+#endif /* HM_BOARD_UART_1 */
+#if HM_BOARD_UART_6
+#define RT_USING_UART6
+#define RT_UART6_DEVICE_NAME      HM_BOARD_UART_6_NAME
+#if HM_BOARD_UART_6_RX_INT
+#define RT_UART6_RX_INT
+#endif /* HM_BOARD_UART_6_RX_INT */
+#if HM_BOARD_UART_6_RX_DMA
+#define RT_UART6_RX_DMA
+#endif /* HM_BOARD_UART_6_RX_DMA */
+#if HM_BOARD_UART_6_TX_INT
+#define RT_UART6_TX_INT
+#endif /* HM_BOARD_UART_6_TX_INT */
+#if HM_BOARD_UART_6_TX_DMA
+#define RT_UART6_TX_DMA
+#endif /* HM_BOARD_UART_6_TX_DMA */
+#endif /* HM_BOARD_UART_6 */
+#endif /* HM_BOARD_UART */
 
-// <bool name="RT_USING_SPI" description="Using SPI" default="false" />
+#if HM_BOARD_SPI_BUS
 #define RT_USING_SPI
-#ifdef RT_USING_SPI
-// <bool name="RT_USING_SPI1" description="Using SPI1" default="true" />
+#if HM_BOARD_SPI_BUS_1
 #define RT_USING_SPI1
-#ifdef RT_USING_SPI1
-// <bool name="RT_USING_SPI1_TX_DMA" description="Using DMA when transmit on SPI1" default="false" />
-//#define RT_USING_SPI1_TX_DMA
-// <bool name="RT_USING_SPI1_RX_DMA" description="Using DMA when receive on SPI1" default="false" />
+#define RT_SPI1_DEVICE_NAME      HM_BOARD_SPI_BUS_1_NAME
+#if HM_BOARD_SPI_BUS_1_RX_INT
+#endif /* HM_BOARD_SPI_BUS_1_RX_INT */
+#if HM_BOARD_SPI_BUS_1_RX_DMA
 #define RT_USING_SPI1_RX_DMA
-#endif /* ifdef RT_USING_SPI1 */
+#endif /* HM_BOARD_SPI_BUS_1_RX_DMA */
+#if HM_BOARD_SPI_BUS_1_TX_INT
+#endif /* HM_BOARD_SPI_BUS_1_TX_INT */
+#if HM_BOARD_SPI_BUS_1_TX_DMA
+#define RT_USING_SPI1_TX_DMA
+#endif /* HM_BOARD_SPI_BUS_1_TX_DMA */
+#endif /* HM_BOARD_SPI_BUS_1 */
+#if HM_BOARD_SPI_BUS_2
 #define RT_USING_SPI2
-#ifdef RT_USING_SPI2
-// <bool name="RT_USING_SPI2_TX_DMA" description="Using DMA when transmit on SPI2" default="false" />
-//#define RT_USING_SPI2_TX_DMA
-// <bool name="RT_USING_SPI2_RX_DMA" description="Using DMA when receive on SPI2" default="false" />
-//#define RT_USING_SPI2_RX_DMA
-#endif /* RT_USING_SPI2 */
-#endif /* RT_USING_SPI */
+#define RT_SPI2_DEVICE_NAME      HM_BOARD_SPI_BUS_2_NAME
+#if HM_BOARD_SPI_BUS_2_RX_INT
+#endif /* HM_BOARD_SPI_BUS_2_RX_INT */
+#if HM_BOARD_SPI_BUS_2_RX_DMA
+#define RT_USING_SPI2_RX_DMA
+#endif /* HM_BOARD_SPI_BUS_2_RX_DMA */
+#if HM_BOARD_SPI_BUS_2_TX_INT
+#endif /* HM_BOARD_SPI_BUS_2_TX_INT */
+#if HM_BOARD_SPI_BUS_2_TX_DMA
+#define RT_USING_SPI2_TX_DMA
+#endif /* HM_BOARD_SPI_BUS_2_TX_DMA */
+#endif /* HM_BOARD_SPI_BUS_2 */
+#endif /* HM_BOARD_SPI_BUS */
 
+#if HM_BOARD_LED
+#define RT_USING_LED
+#endif /* HM_BOARD_LED */
+
+#if HM_BOARD_BUT
+#define RT_USING_BUT
+#endif /* HM_BOARD_BUT */
+
+#if HM_BOARD_FLASH
+#define RT_USING_FLASH
+#define RT_FLASH_DEVICE_NAME     HM_BOARD_FLASH_NAME
+#define RT_FLASH_SPI_DEVICE_NAME HM_BOARD_FLASH_SPI_NAME
+#endif /* HM_BOARD_FLASH */
+
+#if HM_BOARD_EPD
+#define RT_USING_EPD
+#define RT_EPD_DEVICE_NAME       HM_BOARD_EPD_NAME
+#define RT_EPD_SPI_DEVICE_NAME   HM_BOARD_EPD_SPI_NAME
+#endif /* HM_BOARD_EPD */
+
+
+#if HM_BOARD_TDC
 #define RT_USING_TDC_GP21
+#define RT_TDC_DEVICE_NAME       HM_BOARD_TDC_NAME
+#define RT_TDC_SPI_DEVICE_NAME   HM_BOARD_TDC_SPI_NAME
+#endif /* HM_BOARD_TDC */
 
-
-/* SECTION: Console options */
 #define RT_USING_CONSOLE
 /* the buffer size of console*/
-#define RT_CONSOLEBUF_SIZE	128
-// <string name="RT_CONSOLE_DEVICE_NAME" description="The device name for console" default="uart1" />
-#define RT_CONSOLE_DEVICE_NAME	    "uart1"
+#define RT_CONSOLEBUF_SIZE	     128
+#define RT_CONSOLE_DEVICE_NAME	 RT_UART1_DEVICE_NAME
 
-
-
-/* SECTION: finsh, a C-Express shell */
 #define RT_USING_FINSH
 /* configure finsh parameters */
-#define FINSH_THREAD_PRIORITY 25
-#define FINSH_THREAD_STACK_SIZE	1024
-#define FINSH_HISTORY_LINES	1
+#define FINSH_THREAD_PRIORITY    25
+#define FINSH_THREAD_STACK_SIZE	 1024
+#define FINSH_HISTORY_LINES	     5
+
 /* Using symbol table */
 #define FINSH_USING_SYMTAB
 #define FINSH_USING_DESCRIPTION
 
 /* SECTION: TC, a unit test component */
-#define RT_USING_TC
+//#define RT_USING_TC
 
 /* SECTION: libc management */
 #define RT_USING_LIBC
-
-#if 0
-/* SECTION: device filesystem */
-/* #define RT_USING_DFS */
-//#define RT_USING_DFS_ELMFAT
-#define RT_DFS_ELM_WORD_ACCESS
-/* Reentrancy (thread safe) of the FatFs module.  */
-#define RT_DFS_ELM_REENTRANT
-/* Number of volumes (logical drives) to be used. */
-#define RT_DFS_ELM_DRIVES			2
-/* #define RT_DFS_ELM_USE_LFN			1 */
-#define RT_DFS_ELM_MAX_LFN			255
-/* Maximum sector size to be handled. */
-#define RT_DFS_ELM_MAX_SECTOR_SIZE  512
-
-#define RT_USING_DFS_ROMFS
-
-/* the max number of mounted filesystem */
-#define DFS_FILESYSTEMS_MAX			2
-/* the max number of opened files 		*/
-#define DFS_FD_MAX					4
-#endif /* 0 */
 
 #endif
