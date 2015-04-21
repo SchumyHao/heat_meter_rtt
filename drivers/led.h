@@ -15,13 +15,25 @@
 #ifndef __LED_H__
 #define __LED_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <rthw.h>
 #include <rtthread.h>
 #include <stm32f0xx.h>
 
-#define rt_hw_led_on()   GPIO_SetBits(GPIOC, GPIO_Pin_9)
-#define rt_hw_led_off()  GPIO_ResetBits(GPIOC, GPIO_Pin_9)
+#define LED_GPIO_PIN                    GPIO_Pin_8
+#define LED_GPIO_PIN_GROUP              GPIOA
+#define LED_GPIO_PIN_RCC                RCC_AHBPeriph_GPIOA
+
+#define rt_hw_led_on()   GPIO_SetBits(LED_GPIO_PIN_GROUP, LED_GPIO_PIN)
+#define rt_hw_led_off()  GPIO_ResetBits(LED_GPIO_PIN_GROUP, LED_GPIO_PIN)
 
 int rt_hw_led_init(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
