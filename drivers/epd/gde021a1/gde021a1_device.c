@@ -88,6 +88,9 @@ EPD_IO_Init(void)
     /* Enbale Display */
     EPD_PWR_LOW();
 
+    rt_spi_take(epd_gde_spi_dev);
+    rt_spi_release(epd_gde_spi_dev);
+
     /* EPD reset pin mamagement */
     EPD_RESET_HIGH();
     EPD_Delay(10);
@@ -176,7 +179,7 @@ epd_gde_init(const char* epd_device_name, const char* spi_device_name)
     epd_gde_dev.control = epd_gde_control;
     epd_gde_dev.read = RT_NULL;
     epd_gde_dev.write = RT_NULL;
-    epd_gde_dev.user_data = epd_gde_spi_dev;
+    epd_gde_dev.user_data = RT_NULL;
     rt_device_register(&epd_gde_dev, epd_device_name,
                        RT_DEVICE_FLAG_RDWR|RT_DEVICE_FLAG_STANDALONE);
 

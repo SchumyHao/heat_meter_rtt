@@ -7,7 +7,7 @@
 void
 test_epd_init(void)
 {
-    BSP_EPD_RefreshDisplay();
+    //BSP_EPD_Init();
     BSP_EPD_Clear(EPD_COLOR_WHITE);
     BSP_EPD_RefreshDisplay();
     BSP_EPD_Clear(EPD_COLOR_LIGHTGRAY);

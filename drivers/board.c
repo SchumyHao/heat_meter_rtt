@@ -235,7 +235,7 @@ rt_hw_tdc_init(void)
         rt_kprintf("epd device attach to spi bus %s failed!\r\n", spi_bus_name);
         return -RT_ERROR;
     }
-    tdc_gp21_register(HM_BOARD_EPD_NAME, HM_BOARD_EPD_SPI_NAME);
+    tdc_gp21_register(HM_BOARD_TDC_NAME, HM_BOARD_TDC_SPI_NAME);
 
     return RT_EOK;
 }
