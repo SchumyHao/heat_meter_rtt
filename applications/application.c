@@ -13,18 +13,19 @@
  * 2013-11-15     bright       add init thread and components initial
  */
 
-/**
- * @addtogroup STM32
- */
-/*@{*/
-
 #include <stdio.h>
-
 #include <board.h>
 #include <rtthread.h>
 #ifdef  RT_USING_COMPONENTS_INIT
 #include <components.h>
 #endif  /* RT_USING_COMPONENTS_INIT */
+
+extern void hm_store_thread_entry(void* parameter);
+extern void hm_print_thread_entry(void* parameter);
+extern void hm_tof_thread_entry(void* parameter);
+extern void hm_temp_thread_entry(void* parameter);
+extern void hm_heatcal_thread_entry(void* parameter);
+
 
 static void rt_init_thread_entry(void* parameter)
 {
@@ -40,17 +41,38 @@ static void rt_init_thread_entry(void* parameter)
     finsh_set_device(RT_CONSOLE_DEVICE_NAME);
 #endif  /* RT_USING_FINSH */
 
-    /* Create led thread */
-    tmp_thread = rt_thread_create("led",
-                                  led_thread_entry, RT_NULL,
-                                  256, 20, 20);
+    /* Create store thread */
+    tmp_thread = rt_thread_create("store",
+                                  hm_store_thread_entry, RT_NULL,
+                                  1024, 10, 100);
     if(tmp_thread != RT_NULL)
         rt_thread_startup(tmp_thread);
 
-    /* Create TDC thread */
-    tmp_thread = rt_thread_create("tdc",
-                                  tdc_thread_entry, RT_NULL,
-                                  512, 10, 20);
+    /* Create print thread */
+    tmp_thread = rt_thread_create("print",
+                                  hm_print_thread_entry, RT_NULL,
+                                  1024, 30, 100);
+    if(tmp_thread != RT_NULL)
+        rt_thread_startup(tmp_thread);
+
+    /* Create tof thread */
+    tmp_thread = rt_thread_create("tof",
+                                  hm_tof_thread_entry, RT_NULL,
+                                  1024, 4, 20);
+    if(tmp_thread != RT_NULL)
+        rt_thread_startup(tmp_thread);
+
+    /* Create temp thread */
+    tmp_thread = rt_thread_create("temp",
+                                  hm_temp_thread_entry, RT_NULL,
+                                  1024, 4, 20);
+    if(tmp_thread != RT_NULL)
+        rt_thread_startup(tmp_thread);
+
+    /* Create heatcal thread */
+    tmp_thread = rt_thread_create("heatcal",
+                                  hm_heatcal_thread_entry, RT_NULL,
+                                  1024, 7, 20);
     if(tmp_thread != RT_NULL)
         rt_thread_startup(tmp_thread);
 }
@@ -59,15 +81,9 @@ int rt_application_init()
 {
     rt_thread_t init_thread;
 
-#if (RT_THREAD_PRIORITY_MAX == 32)
     init_thread = rt_thread_create("init",
                                    rt_init_thread_entry, RT_NULL,
-                                   512, 8, 20);
-#else
-    init_thread = rt_thread_create("init",
-                                   rt_init_thread_entry, RT_NULL,
-                                   512, 80, 20);
-#endif
+                                   1024, 1, 20);
     if(init_thread != RT_NULL)
         rt_thread_startup(init_thread);
 

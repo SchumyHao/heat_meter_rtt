@@ -34,6 +34,7 @@
 #define EPD_GPIO_NSS_PIN                    GPIO_Pin_4
 #define EPD_GPIO_NSS_PIN_GROUP              GPIOA
 #define EPD_GPIO_NSS_PIN_RCC                RCC_AHBPeriph_GPIOA
+
 static void
 epd_gde_nss_init(struct stm32_spi_dev_cs* cs)
 {
@@ -94,7 +95,7 @@ rt_hw_epd_init(void)
         return -RT_ERROR;
     }
     epd_gde_init(HM_BOARD_EPD_NAME, HM_BOARD_EPD_SPI_NAME);
-		BSP_EPD_Init();
+    BSP_EPD_Init();
 
     return RT_EOK;
 }

@@ -1,7 +1,6 @@
 #include <rtthread.h>
 #if 1
 #include "finsh.h"
-#include "rt_stm32f0xx_spi.h"
 #include "stm32l0538_discovery_epd.h"
 
 void
