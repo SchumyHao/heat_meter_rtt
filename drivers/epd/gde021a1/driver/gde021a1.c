@@ -288,9 +288,11 @@ void gde021a1_CloseChargePump(void)
   * @brief  Displays picture..
   * @param  pdata: picture address.
   * @param  Xpos:  Image X position in the EPD
+  * @note   Xpos:  No use in this function
   * @param  Ypos:  Image Y position in the EPD
+  * @note   Ypos:  No use in this function
   * @param  Xsize: Image X size in the EPD
-  * @note   Xsize have to be a multiple of 4 
+  * @note   Xsize have to be a multiple of 4. Is Y in set window
   * @param  Ysize: Image Y size in the EPD
   * @retval None
   */

@@ -709,6 +709,11 @@ tdc_gp21_measure_temp(struct spi_tdc_gp21* tdc_gp21,
     rt_uint32_t res[4] = {0,0,0,0};
     struct spi_tdc_gp21_temp_scales temp = {0,0};
 
+    stat = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
+    if(stat & 0xFE00) {
+        tdc_gp21_error_print(tdc_gp21, stat);
+        tdc_gp21_write_cmd(tdc_gp21, GP21_INITIATE_TDC);
+    }
     tdc_gp21_write_cmd(tdc_gp21, GP21_START_TEMP_RESTART);
     stat = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
     if(stat & 0xFE00) {

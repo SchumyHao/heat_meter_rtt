@@ -359,13 +359,13 @@ void BSP_EPD_FillRect(uint16_t Xpos, uint16_t Ypos, uint16_t Width, uint16_t Hei
 void BSP_EPD_DrawImage(uint16_t Xpos, uint16_t Ypos, uint16_t Xsize, uint16_t Ysize, uint8_t *pdata)
 {
   /* Set display window */
-  epd_drv->SetDisplayWindow(Xpos, Ypos, (Xpos+Ysize-1), (Ypos+(Xsize/4)-1));
+  epd_drv->SetDisplayWindow(Xpos, Ypos, (Xpos+Xsize-1), (Ypos+(Ysize/4)-1));
   
   if(epd_drv->DrawImage != NULL)
   {
-    epd_drv->DrawImage(Xpos, Ypos, Xsize, Ysize, pdata);
+    epd_drv->DrawImage(Xpos, Ypos, Ysize, Xsize, pdata);
   }
-  epd_drv->SetDisplayWindow(0, 0, BSP_EPD_GetXSize(), BSP_EPD_GetYSize());
+  //epd_drv->SetDisplayWindow(0, 0, BSP_EPD_GetXSize(), BSP_EPD_GetYSize());
 }
 
 /**
