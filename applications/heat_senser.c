@@ -1,5 +1,5 @@
 /*
- * File      : heat_meter.c
+ * File      : heat_senser.c
  *
  * This file impliment the thread process senser data about heat meter.
  *
@@ -10,9 +10,19 @@
 
 #include <rtthread.h>
 #include <stdio.h>
+#include "finsh.h"
 
 #include "spi_tdc_gp21.h"
 #include "board.h"
+
+#define HS_DEBUG_PRINT              rt_kprintf
+//#define HS_DEBUG_PRINT(...)
+#define HS_TOF_PRINT_EPD            1
+#define HS_TEMP_PRINT_EPD           1
+
+#define DIAMETER_MM                (20.0F)
+#define THETA                      (30)
+#define SIN_2THETA                 (0.866F)
 
 struct hm_print_data {
     rt_uint16_t x;
@@ -20,78 +30,40 @@ struct hm_print_data {
     const char* str;
 };
 
-#define TOF_DATA_BUF_LEN            (30)
-static struct spi_tdc_gp21_tof_data tof_data[TOF_DATA_BUF_LEN];
-#define TEMP_DATA_BUF_LEN           (5)
-static struct spi_tdc_gp21_temp_scales temp_data[TEMP_DATA_BUF_LEN];
+struct hm_tof_data {
+    struct spi_tdc_gp21_tof_data data;
+    float speed;
+    rt_tick_t time;
+};
 
-#define TOF_SLEEP_TIME_MS           (500)
-#define TEMP_SLEEP_TIME_MS          (3000)
+struct hm_temp_data {
+    struct spi_tdc_gp21_temp_data data;
+    float hot;
+    float cold;
+    rt_tick_t time;
+};
+
+#define TOF_TEMP_PRINT_DEVICE       "uart6"
+static rt_device_t tt_print_device;
+
+#define TOF_DATA_BUF_LEN            (30)
+static struct hm_tof_data tof_data[TOF_DATA_BUF_LEN];
+#define TEMP_DATA_BUF_LEN           (5)
+static struct hm_temp_data temp_data[TEMP_DATA_BUF_LEN];
+
+#define TDC_SLEEP_TIME_MS           (500)
 
 static rt_event_t cal_event;
-#define TOF_DATA_FULL_EVENT         (1U<<0)
-#define TEMP_DATA_FULL_EVENT        (1U<<1)
+#define TDC_DATA_FULL_EVENT         (1U<<0)
 
-static rt_mutex_t tdc_lock;
 static rt_mutex_t tof_lock;
 static rt_mutex_t temp_lock;
-#define LOCK_TACK_WAIT_TIME_MS      (500)
+#define LOCK_TACK_WAIT_TIME_MS      (1500)
 
-#define MS_TO_TICKS(ms)             ((ms)*RT_TICK_PER_SECOND/1000)
-
-#define PT1000_MIN_TEMP             (-50)
+#define PT1000_MIN_TEMP             (0)
 #define PT1000_MAX_TEMP             (100)
 const static float PT1000[][10] = {
     /*        0.0         0.1         0.2         0.3         0.4         0.5         0.6         0.7         0.8         0.9  */
-    /*-49*/{807.033,    806.604,    806.239,    805.842,    805.445,    805.048,    804.651,    804.254,    803.857,    803.460},
-    /*-48*/{811.003,    810.606,    810.209,    809.812,    809.415,    809.018,    808.621,    808.224,    807.827,    807.430},
-    /*-47*/{814.970,    814.573,    814.177,    813.780,    813.383,    812.987,    812.590,    812.193,    811.796,    811.400},
-    /*-46*/{818.937,    818.540,    818.144,    817.747,    817.350,    816.954,    816.557,    816.160,    815.763,    815.367},
-    /*-45*/{822.902,    822.506,    822.109,    821.713,    821.316,    820.920,    820.523,    820.127,    819.730,    819.334},
-    /*-44*/{826.865,    826.469,    826.072,    825.676,    825.280,    824.884,    824.487,    824.091,    823.695,    823.298},
-    /*-43*/{830.828,    830.432,    830.035,    829.639,    829.243,    828.847,    828.450,    828.054,    827.658,    827.261},
-    /*-42*/{834.789,    834.393,    833.997,    833.601,    833.205,    832.809,    832.412,    832.016,    831.620,    831.224},
-    /*-41*/{838.748,    838.352,    837.956,    837.560,    837.164,    836.769,    836.373,    835.977,    835.581,    835.185},
-    /*-40*/{842.707,    842.311,    841.915,    841.519,    841.123,    840.728,    840.332,    839.936,    839.540,    839.144},
-    /*-39*/{846.664,    846.268,    845.873,    845.477,    845.081,    844.686,    844.290,    843.894,    843.498,    843.103},
-    /*-38*/{850.619,    850.224,    849.828,    849.433,    849.037,    848.642,    848.246,    847.851,    847.455,    847.060},
-    /*-37*/{854.573,    854.179,    853.783,    853.388,    852.992,    852.597,    852.201,    851.806,    851.410,    851.015},
-    /*-36*/{858.526,    858.131,    857.735,    857.340,    856.945,    856.550,    856.154,    855.759,    855.364,    854.968},
-    /*-35*/{862.478,    862.082,    861.688,    861.292,    860.897,    860.502,    860.107,    859.712,    859.316,    858.921},
-    /*-34*/{866.428,    866.033,    865.638,    865.243,    864.848,    864.453,    864.058,    863.663,    863.268,    862.873},
-    /*-33*/{870.377,    869.982,    869.587,    869.192,    868.797,    868.403,    868.008,    867.613,    867.218,    866.823},
-    /*-32*/{874.325,    873.930,    873.535,    873.141,    872.746,    872.351,    871.956,    871.561,    871.166,    870.772},
-    /*-31*/{878.272,    877.877,    877.483,    877.088,    876.693,    876.299,    875.904,    875.509,    875.114,    874.720},
-    /*-30*/{882.217,    881.823,    881.428,    881.034,    880.639,    880.245,    879.850,    879.456,    879.061,    878.667},
-    /*-29*/{886.161,    885.766,    885.372,    884.978,    884.583,    884.189,    883.795,    883.400,    883.006,    882.611},
-    /*-28*/{890.103,    889.709,    889.315,    888.920,    888.526,    888.132,    887.738,    887.344,    886.949,    886.555},
-    /*-27*/{894.044,    893.650,    893.256,    892.862,    892.468,    892.074,    891.679,    891.285,    890.891,    890.497},
-    /*-26*/{897.985,    897.591,    897.197,    896.803,    896.409,    896.015,    895.620,    895.226,    894.832,    894.438},
-    /*-25*/{901.923,    901.529,    901.135,    900.742,    900.348,    899.954,    899.560,    899.166,    898.773,    898.379},
-    /*-24*/{905.861,    905.467,    905.073,    904.680,    904.286,    903.892,    903.498,    903.104,    902.711,    902.317},
-    /*-23*/{909.798,    909.404,    909.011,    908.617,    908.223,    907.830,    907.436,    907.042,    906.648,    906.255},
-    /*-22*/{913.733,    913.340,    912.946,    912.553,    912.159,    911.766,    911.372,    910.979,    910.585,    910.192},
-    /*-21*/{917.666,    917.273,    916.879,    916.486,    916.093,    915.700,    915.306,    914.913,    914.520,    914.126},
-    /*-20*/{921.599,    921.206,    920.812,    920.419,    920.026,    919.633,    919.239,    918.846,    918.453,    918.059},
-    /*-19*/{925.531,    925.138,    924.745,    924.351,    923.958,    923.565,    923.172,    922.779,    922.385,    921.992},
-    /*-18*/{929.460,    929.067,    928.674,    928.281,    927.888,    927.496,    927.103,    926.710,    926.317,    925.924},
-    /*-17*/{933.390,    932.997,    932.604,    932.211,    931.818,    931.425,    931.032,    930.639,    930.246,    929.853},
-    /*-16*/{937.317,    936.924,    936.532,    936.139,    935.746,    935.354,    934.961,    934.568,    934.175,    933.783},
-    /*-15*/{941.244,    940.851,    940.459,    940.066,    939.673,    939.281,    938.888,    938.495,    938.102,    937.710},
-    /*-14*/{945.170,    944.777,    944.385,    943.992,    943.600,    943.207,    942.814,    942.422,    942.029,    941.637},
-    /*-13*/{949.094,    948.702,    948.309,    947.917,    947.524,    947.132,    946.740,    946.347,    945.955,    945.562},
-    /*-12*/{953.016,    952.624,    952.232,    951.839,    951.447,    951.055,    950.663,    950.271,    949.878,    949.486},
-    /*-11*/{956.938,    956.546,    956.154,    955.761,    955.369,    954.977,    954.585,    954.193,    953.800,    953.408},
-    /*-10*/{960.859,    960.467,    960.075,    959.683,    959.291,    958.899,    958.506,    958.114,    957.722,    957.330},
-    /*-9*/ {964.779,    964.387,    963.995,    963.603,    963.211,    962.819,    962.427,    962.035,    961.643,    961.251},
-    /*-8*/ {968.697,    968.305,    967.913,    967.522,    967.130,    966.738,    966.346,    965.954,    965.563,    965.171},
-    /*-7*/ {972.614,    972.222,    971.831,    971.439,    971.047,    970.656,    970.264,    969.872,    969.480,    969.089},
-    /*-6*/ {976.529,    976.138,    975.746,    975.355,    974.963,    974.572,    974.180,    973.789,    973.397,    973.006},
-    /*-5*/ {980.444,    980.053,    979.662,    979.270,    978.879,    978.487,    978.096,    977.704,    977.313,    976.921},
-    /*-4*/ {984.358,    983.967,    983.575,    983.184,    982.793,    982.401,    982.010,    981.618,    981.227,    980.835},
-    /*-3*/ {988.270,    987.879,    987.488,    987.096,    986.705,    986.314,    985.923,    985.532,    985.140,    984.749},
-    /*-2*/ {992.181,    991.790,    991.399,    991.008,    990.617,    990.226,    989.834,    989.443,    989.052,    988.661},
-    /*-1*/ {996.091,    995.700,    995.309,    994.918,    994.527,    994.136,    993.745,    993.354,    992.963,    992.572},
     /*0*/  {1000.000,   1000.391,   1000.782,   1001.172,   1001.563,   1001.954,   1002.345,   1002.736,   1003.126,   1003.517},
     /*1*/  {1003.908,   1004.298,   1004.689,   1005.080,   1005.470,   1005.861,   1006.252,   1006.642,   1007.033,   1007.424},
     /*2*/  {1007.814,   1008.205,   1008.595,   1008.986,   1009.377,   1009.767,   1010.158,   1010.548,   1010.939,   1011.320},
@@ -194,135 +166,186 @@ const static float PT1000[][10] = {
     /*99*/ {1381.262,   1381.641,   1382.020,   1382.400,   1382.779,   1383.158,   1383.538,   1383.917,   1384.296,   1384.676}
 };
 
+const static float density[] = {
+    /*       1        2        3        4        5        6       7        8        9        10 */
+    /*0*/   1000.70,1000.70,1000.70,1000.70,1000.70,1000.70,1000.60,1000.60,1000.50,1000.40,
+    /*10*/  1000.30,1000.20,1000.10,999.95,999.80,999.64,999.47,999.29,999.10,998.89,
+    /*20*/  998.68,998.45,998.22,997.98,997.72,997.46,997.19,996.91,996.62,996.32,
+    /*30*/  996.01,995.69,995.37,995.04,994.69,994.35,993.99,993.62,993.25,992.87,
+    /*40*/  992.49,992.09,991.69,991.28,990.87,990.44,990.02,989.58,989.14,988.69,
+    /*50*/  988.23,987.77,987.30,986.83,986.35,985.86,985.37,984.87,984.36,983.85,
+    /*60*/  983.33,982.81,982.28,981.75,981.21,980.66,980.11,979.55,978.99,978.43,
+    /*70*/  977.85,977.27,976.69,976.10,975.51,974.91,974.30,973.70,973.08,972.46,
+    /*80*/  971.84,971.76,970.21,969.93,969.29,968.64,967.99,967.33,966.66,965.99,
+    /*90*/  965.32,964.64,963.96,963.27,962.58,961.88,961.18,960.48,959.77,959.05,
+    /*100*/ 958.33,957.61,956.88,956.15,955.41,954.67,953.92,953.17,952.41,951.65,
+    /*110*/ 950.89,950.12,949.34,948.57,947.78,947.00,946.21,945.41,944.61,943.81,
+    /*120*/ 943.00,942.19,941.37,940.55,939.72,938.89,938.06,937.22,936.37,935.52,
+    /*130*/ 934.67,933.82,932.95,932.09,931.22,930.35,929.47,928.58,927.70,926.81,
+    /*140*/ 925.91,925.01,924.10,923.19,922.28,921.36,920.44,919.51,918.58,917.65
+};
+
+const static float enthalpy[] = {
+    /*      1       2      3       4       5       6      7       8      9       10 */
+    /*0*/   5.7964,10.004,14.209,18.411,22.611,26.808,31.004,35.197,39.389,43.579,
+    /*10*/  47.768,51.956,56.142,60.327,64.511,68.693,72.875,77.057,81.237,85.417,
+    /*20*/  89.596,93.774,97.952,102.13,106.31,110.48,114.66,118.84,123.01,127.19,
+    /*30*/  131.36,135.54,139.72,143.89,148.07,152.24,156.42,160.59,164.77,168.94,
+    /*40*/  173.12,177.30,181.47,185.65,189.82,194.00,198.18,202.36,206.53,210.71,
+    /*50*/  214.89,219.07,223.25,227.42,231.60,235.78,239.96,244.14,248.33,252.51,
+    /*60*/  256.69,260.87,265.05,269.24,273.42,277.61,281.79,285.98,290.16,294.35,
+    /*70*/  298.54,302.72,306.91,311.10,315.29,319.48,323.67,327.86,332.06,336.25,
+    /*80*/  340.44,344.64,348.83,353.03,357.23,361.42,365.62,369.82,374.02,378.22,
+    /*90*/  382.43,386.63,390.83,395.04,399.24,403.45,407.66,411.87,416.08,420.29,
+    /*100*/ 424.51,428.72,432.93,437.15,441.37,445.59,449.81,454.03,458.25,462.48,
+    /*110*/ 466.70,470.93,475.16,479.39,483.62,487.85,492.08,496.32,500.56,504.80,
+    /*120*/ 509.04,513.28,517.52,521.77,526.02,530.27,534.52,538.77,543.03,547.28,
+    /*130*/ 551.54,555.80,560.07,564.33,568.60,572.87,577.14,581.41,585.69,589.96,
+    /*140*/ 594.24,598.53,602.81,607.10,611.39,615.68,619.97,624.27,628.57,632.87
+};
+
+static void hm_ble_write(const char* str, rt_size_t size)
+{
+    rt_size_t writen = size;
+    const char* ptr = str;
+
+    while(writen) {
+        if(writen < 20) {
+            rt_device_write(tt_print_device, 0, ptr, writen);
+            writen = 0;
+        }
+        else {
+            rt_device_write(tt_print_device, 0, ptr, 20);
+            writen -= 20;
+            ptr += 20;
+            rt_thread_delay(2);
+        }
+    }
+}
+
 extern rt_err_t hm_print(struct hm_print_data* pd);
-rt_inline void heat_print(rt_uint32_t heat)
+rt_inline void heat_print(float heat)
 {
     static struct hm_print_data pd;
     static char buf[10];
-    rt_sprintf(buf, "%d", heat);
+    sprintf(buf, "%.2f", heat);
     pd.x = 36;
     pd.y = 7;
     pd.str = buf;
     hm_print(&pd);
 }
-rt_inline void tof_print(float speed)
+
+rt_inline void tof_print(struct hm_tof_data* data)
+{
+    static char ble_buf[100];
+    sprintf(ble_buf, "%ld:tof up=%f down=%f speed=%f\n\r",
+            data->time, data->data.up, data->data.down, data->speed);
+    hm_ble_write(ble_buf, rt_strlen(ble_buf)+1);
+}
+
+#if HS_TOF_PRINT_EPD
+rt_inline void tof_print_epd(struct hm_tof_data* data)
 {
     static struct hm_print_data pd;
     static char buf[10];
-    sprintf(buf, "%.1f", speed);
+    sprintf(buf, "%.1f", data->speed);
     pd.x = 36;
     pd.y = 12;
     pd.str = buf;
     hm_print(&pd);
 }
+#endif
 
-rt_inline void temp_print(float hot, float cold)
+rt_inline void temp_print(struct hm_temp_data* data)
+{
+    static char ble_buf[100];
+    sprintf(ble_buf, "%ld:temp R_hot=%f R_cold=%f hot=%f cold=%f\n\r",
+            data->time, data->data.hot, data->data.cold, data->hot, data->cold);
+    hm_ble_write(ble_buf, rt_strlen(ble_buf)+1);
+}
+
+#if HS_TEMP_PRINT_EPD
+rt_inline void temp_print_epd(struct hm_temp_data* data)
 {
 #define   HOT    (0)
 #define   COLD   (1)
     static struct hm_print_data pd[2];
     static char buf[2][10];
-    sprintf(buf[HOT], "%.1f", hot);
+    sprintf(buf[HOT], "%.1f", data->hot);
     pd[HOT].x = 36;
     pd[HOT].y = 2;
     pd[HOT].str = buf[HOT];
     hm_print(&pd[HOT]);
-    sprintf(buf[COLD], "%.1f", cold);
+    sprintf(buf[COLD], "%.1f", data->cold);
     pd[COLD].x = 115;
     pd[COLD].y = 2;
     pd[COLD].str = buf[COLD];
     hm_print(&pd[COLD]);
 }
+#endif
 
-void hm_tof_thread_entry(void* parameter)
+void hm_tdc_thread_entry(void* parameter)
 {
     rt_device_t tdc = RT_NULL;
     rt_uint8_t tof_data_count = 0;
+    rt_uint8_t temp_data_count = 0;
+    rt_uint8_t loop_count = TOF_DATA_BUF_LEN/TEMP_DATA_BUF_LEN;
+
 
     tdc = rt_device_find(HM_BOARD_TDC_NAME);
     RT_ASSERT(tdc);
     rt_device_open(tdc, RT_DEVICE_OFLAG_RDWR);
+
+    tt_print_device = rt_device_find(TOF_TEMP_PRINT_DEVICE);
+    RT_ASSERT(tt_print_device);
+    rt_device_open(tt_print_device, RT_DEVICE_OFLAG_RDWR);
+
     tof_lock = rt_mutex_create("L_tof", RT_IPC_FLAG_FIFO);
     RT_ASSERT(tof_lock);
-    if(tdc_lock == RT_NULL) {
-        tdc_lock = rt_mutex_create("L_tdc", RT_IPC_FLAG_FIFO);
-        RT_ASSERT(tdc_lock);
-    }
-
-    while(1) {
-        if(rt_mutex_take(tdc_lock, RT_WAITING_FOREVER) != RT_EOK) {
-            rt_kprintf("TOF take tdc lock error\n");
-        }
-        else {
-            rt_kprintf("TOF take tdc lock\n");
-            if(rt_mutex_take(tof_lock, MS_TO_TICKS(LOCK_TACK_WAIT_TIME_MS)) != RT_EOK) {
-                rt_kprintf("TOF take lock error\n");
-                rt_mutex_release(tdc_lock);
-                continue;
-            }
-            else {
-                rt_device_control(tdc, SPI_TDC_GP21_CTRL_MEASURE_TOF2, tof_data+tof_data_count);
-                rt_mutex_release(tof_lock);
-                rt_mutex_release(tdc_lock);
-                rt_kprintf("TOF release tdc lock\n");
-                tof_data_count++;
-                if(tof_data_count==TOF_DATA_BUF_LEN) {
-                    tof_data_count = 0;
-                    if(rt_event_send(cal_event, TOF_DATA_FULL_EVENT) != RT_EOK) {
-                        rt_kprintf("TOF send event error\n");
-                    }
-                }
-            }
-        }
-        rt_thread_delay(MS_TO_TICKS(TOF_SLEEP_TIME_MS));
-    }
-}
-
-void hm_temp_thread_entry(void* parameter)
-{
-    rt_device_t tdc = RT_NULL;
-    rt_uint8_t temp_data_count = 0;
-
-    tdc = rt_device_find(HM_BOARD_TDC_NAME);
-    RT_ASSERT(tdc);
-    rt_device_open(tdc, RT_DEVICE_OFLAG_RDWR);
     temp_lock = rt_mutex_create("L_temp", RT_IPC_FLAG_FIFO);
     RT_ASSERT(temp_lock);
-    if(tdc_lock == RT_NULL) {
-        tdc_lock = rt_mutex_create("L_tdc", RT_IPC_FLAG_FIFO);
-        RT_ASSERT(tdc_lock);
-    }
 
     while(1) {
-        if(rt_mutex_take(tdc_lock, RT_WAITING_FOREVER) != RT_EOK) {
-            rt_kprintf("temprature take tdc lock error\n");
-        }
-        else {
-            rt_kprintf("temprature take tdc lock\n");
-            if(rt_mutex_take(temp_lock, MS_TO_TICKS(LOCK_TACK_WAIT_TIME_MS)) != RT_EOK) {
-                rt_kprintf("temprature take lock error\n");
-                rt_mutex_release(tdc_lock);
+        loop_count--;
+        {
+            if(rt_mutex_take(tof_lock, rt_tick_from_millisecond(LOCK_TACK_WAIT_TIME_MS)) != RT_EOK) {
+                rt_kprintf("TOF take lock error\n");
                 continue;
             }
             else {
-                rt_device_control(tdc, SPI_TDC_GP21_CTRL_MEASURE_TEMP, temp_data+temp_data_count);
-                rt_mutex_release(temp_lock);
-                rt_mutex_release(tdc_lock);
-                rt_kprintf("temprature release tdc lock\n");
-                temp_data_count++;
-                if(temp_data_count==TEMP_DATA_BUF_LEN) {
-                    temp_data_count = 0;
-                    if(rt_event_send(cal_event, TEMP_DATA_FULL_EVENT) != RT_EOK) {
-                        rt_kprintf("temprature send event error\n");
-                    }
-                }
+                rt_device_control(tdc, SPI_TDC_GP21_CTRL_MEASURE_TOF2, &tof_data[tof_data_count].data);
+                tof_data[tof_data_count].time = rt_tick_get();
+                rt_mutex_release(tof_lock);
+                tof_data_count++;
             }
         }
-        rt_thread_delay(MS_TO_TICKS(TEMP_SLEEP_TIME_MS));
+
+        if(loop_count == 0) {
+            loop_count = TOF_DATA_BUF_LEN/TEMP_DATA_BUF_LEN;
+            if(rt_mutex_take(temp_lock, rt_tick_from_millisecond(LOCK_TACK_WAIT_TIME_MS)) != RT_EOK) {
+                rt_kprintf("temprature take lock error\n");
+                continue;
+            }
+            else {
+                rt_device_control(tdc, SPI_TDC_GP21_CTRL_MEASURE_TEMP, &temp_data[temp_data_count].data);
+                temp_data[temp_data_count].time = rt_tick_get();
+                rt_mutex_release(temp_lock);
+                temp_data_count++;
+            }
+        }
+
+        if((temp_data_count==TEMP_DATA_BUF_LEN) || (tof_data_count==TOF_DATA_BUF_LEN)) {
+            temp_data_count = 0;
+            tof_data_count = 0;
+            if(rt_event_send(cal_event, TDC_DATA_FULL_EVENT) != RT_EOK) {
+                rt_kprintf("TDC send event error\n");
+            }
+        }
+        rt_thread_delay(rt_tick_from_millisecond(TDC_SLEEP_TIME_MS));
     }
 }
 
-static int bi_search_coarse(float res)
+static int bi_search_pt_coarse(const int res)
 {
     int mid = 0;
     int begin = 0;
@@ -333,10 +356,10 @@ static int bi_search_coarse(float res)
 
     while(begin <= end) {
         mid = (begin+end)/2;
-        if(res > ptr[mid][0]) {
+        if(res > (int)(ptr[mid][0])) {
             begin = mid + 1;
         }
-        else if(res < ptr[mid][0]) {
+        else if(res < (int)(ptr[mid][0])) {
             end = mid - 1;
         }
         else {
@@ -346,7 +369,7 @@ static int bi_search_coarse(float res)
     return end;
 }
 
-static int bi_search_fine(float res, int coarse)
+static int bi_search_pt_fine(const float res, const int coarse)
 {
     int mid = 0;
     int begin = 0;
@@ -369,65 +392,129 @@ static int bi_search_fine(float res, int coarse)
     return end;
 }
 
-static float temp_cal(const float temp_scale)
+static float temp_cal(const float temp_res)
 {
-    float res = temp_scale*1000;
+    int coarse = bi_search_pt_coarse((int)temp_res);
+    int fine = bi_search_pt_fine(temp_res, coarse);
 
-    int coarse = bi_search_coarse(res);
-    int fine = bi_search_fine(res, coarse);
-
-    return (1.0*(coarse+PT1000_MIN_TEMP+1)+0.1*fine);
+    return (1.0*(coarse+PT1000_MIN_TEMP)+0.1*fine);
 }
 
-static float get_average(float* ptr, int n)
+static float tof_cal(const struct spi_tdc_gp21_tof_data* data)
 {
-    float ave = *ptr;
-    int i = 0;
-
-    if(n<=0) {
-        return 0;
-    }
-
-    for(i=1; i<n; i++) {
-        ave = ave*((float)i/(float)(i+1)) + *++ptr/((float)(i+1));
-    }
-    return ave;
+    double d_t = data->up - data->down;  //ns
+    double a_t = (data->up + data->down)/2;  //ns
+    /* speed cal
+       D/(2*sin*cos) * d_t/a_t^2
+       D/sin2 * d_t/a_t^2
+       mm/us
+    */
+    return (((DIAMETER_MM/SIN_2THETA)/(a_t*a_t))*d_t*1000000.0);  //m/s
 }
 
-static rt_uint32_t do_heat_cal(void)
+static float heat_cal(const float qv, const int time, const float hot, const float cold)
 {
-    float hot[TEMP_DATA_BUF_LEN];
-    float cold[TEMP_DATA_BUF_LEN];
-    float hot_avr = 0;
-    float cold_avr = 0;
+    float p_hot = 0;
+    float h_hot = 0;
+    float p_cold = 0;
+    float h_cold = 0;
+
+    RT_ASSERT((hot>0)&&(cold>0));
+    p_hot = density[(int)hot-1];
+    h_hot = enthalpy[(int)hot-1];
+    p_cold = density[(int)cold-1];
+    h_cold = enthalpy[(int)cold-1];
+
+    return (((p_hot*h_hot-p_cold*h_cold)/1000.0)*(qv*((float)time/1000.0)));
+}
+
+rt_inline float qv_cal(const float speed)
+{
+    //m^3/s
+    /* qv = speed/k * pi*d^2/4
+       k = 4/3 pi = 3.14 d = DIAMETER_MM
+    */
+    return (0.023562*speed);
+}
+
+rt_inline int ticks_to_ms(const rt_tick_t tick)
+{
+#define TICK_TO_MS   (1000/RT_TICK_PER_SECOND)
+    return tick*TICK_TO_MS;
+}
+
+static void find_temp(const rt_tick_t tick, float* hot, float* cold)
+{
     int i = 0;
 
-    for(i=0; i<TEMP_DATA_BUF_LEN; i++) {
-        hot[i] = temp_cal(temp_data[i].hot);
-        cold[i] = temp_cal(temp_data[i].cold);
+    if(tick <= temp_data[0].time) {
+        *hot = temp_data[0].hot;
+        *cold = temp_data[0].cold;
+        return;
+    }
+
+    for(i=1; i<TEMP_DATA_BUF_LEN; i++) {
+        if(tick <= temp_data[i].time) {
+            *hot = temp_data[i].hot;
+            *cold = temp_data[i].cold;
+            return;
+        }
+    }
+
+    *hot = temp_data[TEMP_DATA_BUF_LEN-1].hot;
+    *cold = temp_data[TEMP_DATA_BUF_LEN-1].cold;
+    return;
+}
+
+static float do_heat_cal(void)
+{
+    float hot = 0;
+    float cold = 0;
+    float heat = 0;
+    int i = 0;
+
+    for(i=0; i<TEMP_DATA_BUF_LEN; i++) { /* cal temp */
+        temp_data[i].hot = temp_cal(temp_data[i].data.hot);
+        temp_data[i].cold = temp_cal(temp_data[i].data.cold);
+#if 1
+        temp_print(&temp_data[i]);
+#endif
+    }
+
+    for(i=0; i<TOF_DATA_BUF_LEN; i++) { /* cal speed */
+        tof_data[i].speed = tof_cal(&tof_data[i].data);
+#if 1
+        tof_print(&tof_data[i]);
+#endif
     }
 #if 1
-    hot_avr = get_average(hot, TEMP_DATA_BUF_LEN);
-    cold_avr = get_average(cold, TEMP_DATA_BUF_LEN);
-    temp_print(hot_avr, cold_avr);
+		temp_print_epd(&temp_data[0]);
+		tof_print_epd(&tof_data[0]);
 #endif
 
-    return 0;
+    for(i=0; i<TOF_DATA_BUF_LEN-1; i++) {
+        find_temp(tof_data[i].time, &hot, &cold);
+        heat += heat_cal(qv_cal((tof_data[i].speed+tof_data[i+1].speed)/2),
+                         ticks_to_ms(tof_data[i+1].time-tof_data[i].time),
+                         hot, cold);
+    }
+
+    return heat; //kJ
 }
 
 void hm_heatcal_thread_entry(void* parameter)
 {
     rt_uint32_t event_set = 0;
-    rt_uint32_t heat_used = 0;
+    float heat_used = 0;
     cal_event = rt_event_create("H_cal", RT_IPC_FLAG_FIFO);
     RT_ASSERT(cal_event);
 
     while(1) {
-        if(rt_event_recv(cal_event, TOF_DATA_FULL_EVENT | TEMP_DATA_FULL_EVENT,
+        if(rt_event_recv(cal_event, TDC_DATA_FULL_EVENT,
                          RT_EVENT_FLAG_AND | RT_EVENT_FLAG_CLEAR, RT_WAITING_FOREVER,
                          &event_set)==RT_EOK) {
-            if((rt_mutex_take(temp_lock, MS_TO_TICKS(LOCK_TACK_WAIT_TIME_MS)) ||
-                (rt_mutex_take(tof_lock, MS_TO_TICKS(LOCK_TACK_WAIT_TIME_MS)))) != RT_EOK) {
+            if((rt_mutex_take(temp_lock, rt_tick_from_millisecond(LOCK_TACK_WAIT_TIME_MS)) ||
+                (rt_mutex_take(tof_lock, rt_tick_from_millisecond(LOCK_TACK_WAIT_TIME_MS)))) != RT_EOK) {
                 rt_kprintf("TOF and temprature take lock error\n");
             }
             heat_used += do_heat_cal();

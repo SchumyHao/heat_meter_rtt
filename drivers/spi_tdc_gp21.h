@@ -30,19 +30,19 @@ struct spi_tdc_gp21 {
     struct rt_device parent;
     struct rt_spi_device* spi_dev;
     struct spi_tdc_gp21_int_pin intpin;
-    float corr_factor;
-    rt_bool_t busy;
+    double Hzref_4M;
+    //rt_bool_t busy;
 };
 
 #define SPI_TDC_GP21_CTRL_MEASURE_TEMP   (0x01)
 #define SPI_TDC_GP21_CTRL_MEASURE_TOF2   (0x02)
-struct spi_tdc_gp21_temp_scales {
+struct spi_tdc_gp21_temp_data {
     float cold;
     float hot;
 };
-struct spi_tdc_gp21_tof_data {
-    float up;
-    float down;
+struct spi_tdc_gp21_tof_data { // in ns
+    double up;
+    double down;
 };
 
 /*

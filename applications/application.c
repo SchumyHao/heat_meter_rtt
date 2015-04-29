@@ -22,8 +22,7 @@
 
 extern void hm_store_thread_entry(void* parameter);
 extern void hm_print_thread_entry(void* parameter);
-extern void hm_tof_thread_entry(void* parameter);
-extern void hm_temp_thread_entry(void* parameter);
+extern void hm_tdc_thread_entry(void* parameter);
 extern void hm_heatcal_thread_entry(void* parameter);
 
 
@@ -56,16 +55,9 @@ static void rt_init_thread_entry(void* parameter)
         rt_thread_startup(tmp_thread);
 
     /* Create tof thread */
-    tmp_thread = rt_thread_create("tof",
-                                  hm_tof_thread_entry, RT_NULL,
-                                  1024, 4, 20);
-    if(tmp_thread != RT_NULL)
-        rt_thread_startup(tmp_thread);
-
-    /* Create temp thread */
-    tmp_thread = rt_thread_create("temp",
-                                  hm_temp_thread_entry, RT_NULL,
-                                  1024, 4, 20);
+    tmp_thread = rt_thread_create("tdc",
+                                  hm_tdc_thread_entry, RT_NULL,
+                                  1024, 3, 20);
     if(tmp_thread != RT_NULL)
         rt_thread_startup(tmp_thread);
 
