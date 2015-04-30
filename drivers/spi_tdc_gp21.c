@@ -97,7 +97,7 @@
                                              GP21_ERR_MASK_TDC_TIMEOUT)
 
 /* config value */
-#define GP21_CONFIG_VALUE_ID_H              (0x00445678U)
+#define GP21_CONFIG_VALUE_ID_H              (0x00445679U)
 #define GP21_CONFIG_VALUE_ID_L              (0x12345678U)
 #define GP21_CONFIG_VALUE_STOPMASK_DELAY_US (200U)
 #define GP21_CONFIG_VALUE_ANZ_FIRE          (10U)
@@ -363,7 +363,7 @@
 #define GP21_CONFIG_VALUE_REG0              (GP21_CONFIG_VALUE_DEF_REG0|\
         GP21_CONFIG_VALUE_ANZ_FIRE_L(GP21_CONFIG_VALUE_ANZ_FIRE)|\
         GP21_CONFIG_VALUE_DIV_FIRE(GP21_CONFIG_VALUE_FIRE_DIV)|\
-        GP21_CONFIG_VALUE_ANZ_PER_CALRES_16  |\
+        GP21_CONFIG_VALUE_ANZ_PER_CALRES_2  |\
         GP21_CONFIG_VALUE_DIV_CLKHS_1       |\
         GP21_CONFIG_VALUE_START_CLKHS_L(GP21_CONFIG_VALUE_START_CLKHS_1MS) |\
         GP21_CONFIG_VALUE_ANZ_PORT_4        |\
@@ -628,6 +628,121 @@ rt_inline void tdc_gp21_reset(struct spi_tdc_gp21* tdc_gp21)
     tdc_gp21_reset_wait();
 }
 
+
+
+static void
+tdc_gp21_measure_temp(struct spi_tdc_gp21* tdc_gp21,
+                      struct spi_tdc_gp21_temp_data* args)
+{
+    rt_uint16_t stat = 0;
+    rt_uint32_t res[2][4] = {0,0,0,0};
+
+    stat = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
+    if(stat & GP21_ERR_ERRORS) {
+        tdc_gp21_error_print(tdc_gp21, stat);
+        tdc_gp21_write_cmd(tdc_gp21, GP21_INITIATE_TDC);
+    }
+    tdc_gp21_write_cmd(tdc_gp21, GP21_START_TEMP_RESTART);
+    stat = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
+    if(stat & GP21_ERR_ERRORS) {
+        tdc_gp21_error_print(tdc_gp21, stat);
+        return;
+    }
+    res[0][0] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES0_REGISTER);
+    res[0][1] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES1_REGISTER);
+    res[0][2] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES2_REGISTER);
+    res[0][3] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES3_REGISTER);
+    /* wait for next measure finish */
+    tdc_gp21_busy_wait(tdc_gp21);
+    stat = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
+    if(stat & 0xFE00) {
+        tdc_gp21_error_print(tdc_gp21, stat);
+        return;
+    }
+    res[1][0] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES0_REGISTER);
+    res[1][1] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES1_REGISTER);
+    res[1][2] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES2_REGISTER);
+    res[1][3] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES3_REGISTER);
+    /* ust PT1000, referance resistance is 1k, gain error correction is 0.9931(PT1000,3.0v)
+       k = 1000.0/(0.9940*2) = 503.0181
+       but, reference to real heat meter, set k = 
+    */
+    args->hot  = 503.0181 *
+                 (((float)res[0][0]/(float)res[0][2]) + ((float)res[1][0]/(float)res[1][2]));
+    args->cold = 503.0181 *
+                 (((float)res[0][1]/(float)res[0][3]) + ((float)res[1][1]/(float)res[1][3]));
+}
+
+rt_inline void
+tdc_gp21_wait_for_alu(void)
+{
+    /* ALU calculate need no more than 4.6us */
+    tdc_gp21_us_delay(5);
+
+}
+
+static void
+tdc_gp21_measure_tof2(struct spi_tdc_gp21* tdc_gp21,
+                      struct spi_tdc_gp21_tof_data* args)
+{
+    rt_uint16_t stat = 0;
+    rt_uint32_t res[2][3] = {0,0,0};
+
+    tdc_gp21_write_cmd(tdc_gp21, GP21_INITIATE_TDC);
+    tdc_gp21_write_cmd(tdc_gp21, GP21_START_TOF_RESTART);
+    stat = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
+    if(stat & GP21_ERR_ERRORS) {
+        tdc_gp21_error_print(tdc_gp21, stat);
+        return;
+    }
+    /* ALU will automatically cal STOP1-START and store answer to res0 */
+    /* ALU cal STOP2-START and store answer to res1 by send command below */
+    tdc_gp21_write_register24(tdc_gp21, GP21_WRITE_REG1_REGISTER,
+                              ((GP21_CONFIG_VALUE_REG1&(~GP21_CONFIG_VALUE_HIT2_MASK))|
+                               GP21_CONFIG_VALUE_HIT2_MR2_CH_SPCH1_2));
+    tdc_gp21_wait_for_alu();
+    /* ALU cal STOP3-START and store answer to res2 by send command below */
+    tdc_gp21_write_register24(tdc_gp21, GP21_WRITE_REG1_REGISTER,
+                              ((GP21_CONFIG_VALUE_REG1&(~GP21_CONFIG_VALUE_HIT2_MASK))|
+                               GP21_CONFIG_VALUE_HIT2_MR2_CH_SPCH1_3));
+    tdc_gp21_wait_for_alu();
+    res[0][0] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES0_REGISTER);
+    res[0][1] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES1_REGISTER);
+    res[0][2] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES2_REGISTER);
+
+    /* wait for next measure finish */
+    //todo: whether should set reg1 to cal stop1_1?
+    tdc_gp21_busy_wait(tdc_gp21);
+    stat = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
+    if(stat & GP21_ERR_ERRORS) {
+        tdc_gp21_error_print(tdc_gp21, stat);
+        return;
+    }
+    tdc_gp21_write_register24(tdc_gp21, GP21_WRITE_REG1_REGISTER,
+                              ((GP21_CONFIG_VALUE_REG1&(~GP21_CONFIG_VALUE_HIT2_MASK))|
+                               GP21_CONFIG_VALUE_HIT2_MR2_CH_SPCH1_2));
+    tdc_gp21_wait_for_alu();
+    tdc_gp21_write_register24(tdc_gp21, GP21_WRITE_REG1_REGISTER,
+                              ((GP21_CONFIG_VALUE_REG1&(~GP21_CONFIG_VALUE_HIT2_MASK))|
+                               GP21_CONFIG_VALUE_HIT2_MR2_CH_SPCH1_3));
+    tdc_gp21_wait_for_alu();
+    res[1][0] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES0_REGISTER);
+    res[1][1] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES1_REGISTER);
+    res[1][2] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES2_REGISTER);
+
+    /* cal up & down tof time
+       as we set DIV_CLKHS=0 (REG0 20 21 bits) DIV_FIRE=3 CLKHS = tdc_gp21->Hzref_4M MHz
+       so ffireclk1 = CLKHS / 2^DIV_CLKHS = 4M
+       ffireclk2 = ffireclk1 * 2 / (DIV_FIRE+1) = 2M
+       ffire = ffireclk2 / 2 = 1M
+       TODO: should I minus 1/1M ?
+
+       time = CLKHS/2^DIV_CLKHS * res
+    */
+    args->up = tdc_gp21_reg_to_double((res[0][0]+res[0][1]+res[0][2])/3)/tdc_gp21->Hzref_4M;//us
+    args->down = tdc_gp21_reg_to_double((res[1][0]+res[1][1]+res[1][2])/3)/tdc_gp21->Hzref_4M;//us
+}
+
 static rt_err_t
 tdc_gp21_init(rt_device_t dev)
 {
@@ -726,7 +841,12 @@ tdc_gp21_init(rt_device_t dev)
 static rt_err_t
 tdc_gp21_open(rt_device_t dev, rt_uint16_t oflag)
 {
+    struct spi_tdc_gp21_temp_data temp;
+    struct spi_tdc_gp21_tof_data tof;
     RT_ASSERT(dev != RT_NULL);
+
+    tdc_gp21_measure_temp((struct spi_tdc_gp21*)dev, &temp);
+    tdc_gp21_measure_tof2((struct spi_tdc_gp21*)dev, &tof);
 
     return RT_EOK;
 }
@@ -737,118 +857,6 @@ tdc_gp21_close(rt_device_t dev)
     RT_ASSERT(dev != RT_NULL);
 
     return RT_EOK;
-}
-
-static void
-tdc_gp21_measure_temp(struct spi_tdc_gp21* tdc_gp21,
-                      struct spi_tdc_gp21_temp_data* args)
-{
-    rt_uint16_t stat = 0;
-    rt_uint32_t res[2][4] = {0,0,0,0};
-
-    stat = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
-    if(stat & GP21_ERR_ERRORS) {
-        tdc_gp21_error_print(tdc_gp21, stat);
-        tdc_gp21_write_cmd(tdc_gp21, GP21_INITIATE_TDC);
-    }
-    tdc_gp21_write_cmd(tdc_gp21, GP21_START_TEMP_RESTART);
-    stat = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
-    if(stat & GP21_ERR_ERRORS) {
-        tdc_gp21_error_print(tdc_gp21, stat);
-        return;
-    }
-    res[0][0] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES0_REGISTER);
-    res[0][1] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES1_REGISTER);
-    res[0][2] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES2_REGISTER);
-    res[0][3] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES3_REGISTER);
-    /* wait for next measure finish */
-    tdc_gp21_busy_wait(tdc_gp21);
-    stat = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
-    if(stat & 0xFE00) {
-        tdc_gp21_error_print(tdc_gp21, stat);
-        return;
-    }
-    res[1][0] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES0_REGISTER);
-    res[1][1] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES1_REGISTER);
-    res[1][2] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES2_REGISTER);
-    res[1][3] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES3_REGISTER);
-    /* ust PT1000, referance resistance is 1k, gain error correction is 0.9931(PT1000,3.0v)
-       k = 1000.0/(0.9940*2) = 503.0181
-    */
-    args->hot  = 503.0181 *
-                 (((float)res[0][0]/(float)res[0][2]) + ((float)res[1][0]/(float)res[1][2]));
-    args->cold = 503.0181 *
-                 (((float)res[0][1]/(float)res[0][3]) + ((float)res[1][1]/(float)res[1][3]));
-}
-
-rt_inline void
-tdc_gp21_wait_for_alu(void)
-{
-    /* ALU calculate need no more than 4.6us */
-    tdc_gp21_us_delay(5);
-
-}
-
-static void
-tdc_gp21_measure_tof2(struct spi_tdc_gp21* tdc_gp21,
-                      struct spi_tdc_gp21_tof_data* args)
-{
-    rt_uint16_t stat = 0;
-    rt_uint32_t res[2][3] = {0,0,0};
-
-    tdc_gp21_write_cmd(tdc_gp21, GP21_INITIATE_TDC);
-    tdc_gp21_write_cmd(tdc_gp21, GP21_START_TOF_RESTART);
-    stat = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
-    if(stat & GP21_ERR_ERRORS) {
-        tdc_gp21_error_print(tdc_gp21, stat);
-        return;
-    }
-    /* ALU will automatically cal STOP1-START and store answer to res0 */
-    /* ALU cal STOP2-START and store answer to res1 by send command below */
-    tdc_gp21_write_register24(tdc_gp21, GP21_WRITE_REG1_REGISTER,
-                              ((GP21_CONFIG_VALUE_REG1&(~GP21_CONFIG_VALUE_HIT2_MASK))|
-                               GP21_CONFIG_VALUE_HIT2_MR2_CH_SPCH1_2));
-    tdc_gp21_wait_for_alu();
-    /* ALU cal STOP3-START and store answer to res2 by send command below */
-    tdc_gp21_write_register24(tdc_gp21, GP21_WRITE_REG1_REGISTER,
-                              ((GP21_CONFIG_VALUE_REG1&(~GP21_CONFIG_VALUE_HIT2_MASK))|
-                               GP21_CONFIG_VALUE_HIT2_MR2_CH_SPCH1_3));
-    tdc_gp21_wait_for_alu();
-    res[0][0] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES0_REGISTER);
-    res[0][1] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES1_REGISTER);
-    res[0][2] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES2_REGISTER);
-
-    /* wait for next measure finish */
-    //todo: whether should set reg1 to cal stop1_1?
-    tdc_gp21_busy_wait(tdc_gp21);
-    stat = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
-    if(stat & GP21_ERR_ERRORS) {
-        tdc_gp21_error_print(tdc_gp21, stat);
-        return;
-    }
-    tdc_gp21_write_register24(tdc_gp21, GP21_WRITE_REG1_REGISTER,
-                              ((GP21_CONFIG_VALUE_REG1&(~GP21_CONFIG_VALUE_HIT2_MASK))|
-                               GP21_CONFIG_VALUE_HIT2_MR2_CH_SPCH1_2));
-    tdc_gp21_wait_for_alu();
-    tdc_gp21_write_register24(tdc_gp21, GP21_WRITE_REG1_REGISTER,
-                              ((GP21_CONFIG_VALUE_REG1&(~GP21_CONFIG_VALUE_HIT2_MASK))|
-                               GP21_CONFIG_VALUE_HIT2_MR2_CH_SPCH1_3));
-    tdc_gp21_wait_for_alu();
-    res[1][0] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES0_REGISTER);
-    res[1][1] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES1_REGISTER);
-    res[1][2] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES2_REGISTER);
-
-    /* cal up & down tof time
-       as we set DIV_CLKHS=0 (REG0 20 21 bits) DIV_FIRE=3 CLKHS = tdc_gp21->Hzref_4M MHz
-       so ffireclk1 = CLKHS / 2^DIV_CLKHS = 4M
-       ffireclk2 = ffireclk1 * 2 / (DIV_FIRE+1) = 2M
-       ffire = ffireclk2 / 2 = 1M
-       TODO: should I minus 1/1M ?
-
-       time = CLKHS/2^DIV_CLKHS * res
-    */
-    args->up = 1000.0*tdc_gp21_reg_to_double((res[0][0]+res[0][1]+res[0][2])/3)/tdc_gp21->Hzref_4M;
-    args->down = 1000.0*tdc_gp21_reg_to_double((res[1][0]+res[1][1]+res[1][2])/3)/tdc_gp21->Hzref_4M;
 }
 
 static rt_err_t

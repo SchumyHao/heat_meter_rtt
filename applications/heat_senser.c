@@ -23,6 +23,7 @@
 #define DIAMETER_MM                (20.0F)
 #define THETA                      (30)
 #define SIN_2THETA                 (0.866F)
+#define DISTANCE_MM                (4.0F)
 
 struct hm_print_data {
     rt_uint16_t x;
@@ -235,11 +236,12 @@ rt_inline void heat_print(float heat)
     hm_print(&pd);
 }
 
+rt_inline float qv_cal(const float speed);
 rt_inline void tof_print(struct hm_tof_data* data)
 {
     static char ble_buf[100];
     sprintf(ble_buf, "%ld:tof up=%f down=%f speed=%f\n\r",
-            data->time, data->data.up, data->data.down, data->speed);
+            data->time, data->data.up, data->data.down, qv_cal(data->speed));
     hm_ble_write(ble_buf, rt_strlen(ble_buf)+1);
 }
 
@@ -248,7 +250,7 @@ rt_inline void tof_print_epd(struct hm_tof_data* data)
 {
     static struct hm_print_data pd;
     static char buf[10];
-    sprintf(buf, "%.1f", data->speed);
+    sprintf(buf, "%2.3f", qv_cal(data->speed));
     pd.x = 36;
     pd.y = 12;
     pd.str = buf;
@@ -271,12 +273,12 @@ rt_inline void temp_print_epd(struct hm_temp_data* data)
 #define   COLD   (1)
     static struct hm_print_data pd[2];
     static char buf[2][10];
-    sprintf(buf[HOT], "%.1f", data->hot);
+    sprintf(buf[HOT], "%2.1f", data->hot);
     pd[HOT].x = 36;
     pd[HOT].y = 2;
     pd[HOT].str = buf[HOT];
     hm_print(&pd[HOT]);
-    sprintf(buf[COLD], "%.1f", data->cold);
+    sprintf(buf[COLD], "%2.1f", data->cold);
     pd[COLD].x = 115;
     pd[COLD].y = 2;
     pd[COLD].str = buf[COLD];
@@ -402,14 +404,21 @@ static float temp_cal(const float temp_res)
 
 static float tof_cal(const struct spi_tdc_gp21_tof_data* data)
 {
-    double d_t = data->up - data->down;  //ns
-    double a_t = (data->up + data->down)/2;  //ns
+    double d_t = data->up - data->down;  //us
+    double a_t = (data->up + data->down)/2;  //us
     /* speed cal
        D/(2*sin*cos) * d_t/a_t^2
        D/sin2 * d_t/a_t^2
-       mm/us
+
+       but in real heat meter, use U type sensor, L = DISTANCE_MM
+       d_t = 2*DISTANCE_MM*V/(V0^2)
+       a_t = (DISTANCE_MM)/(V0)
+       V = d_t*DISTANCE_MM /(2*a_t^2)  (m/ms)
+       V = k * d_t/(a_t^2)  (m/s)
+       k = DISTANCE_MM*1000/2
     */
-    return (((DIAMETER_MM/SIN_2THETA)/(a_t*a_t))*d_t*1000000.0);  //m/s
+#define TOF_CAL_K     (DISTANCE_MM*500.0)
+    return (TOF_CAL_K*d_t/(a_t*a_t));  //m/s
 }
 
 static float heat_cal(const float qv, const int time, const float hot, const float cold)
@@ -431,7 +440,8 @@ static float heat_cal(const float qv, const int time, const float hot, const flo
 rt_inline float qv_cal(const float speed)
 {
     //m^3/s
-    /* qv = speed/k * pi*d^2/4
+    /* speed = m/s
+       qv = speed/k * pi*d^2/4
        k = 4/3 pi = 3.14 d = DIAMETER_MM
     */
     return (0.023562*speed);
