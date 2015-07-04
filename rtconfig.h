@@ -24,7 +24,7 @@
 #define RT_USING_OVERFLOW_CHECK
 
 /* Using Hook */
-/* #define RT_USING_HOOK */
+#define RT_USING_HOOK
 
 /* Using Software Timer */
 /* #define RT_USING_TIMER_SOFT */

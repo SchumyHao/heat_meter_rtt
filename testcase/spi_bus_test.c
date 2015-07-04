@@ -1,6 +1,6 @@
 #include <rtthread.h>
 #include "tc_comm.h"
-#if 0
+#if 1
 static void _tc_cleanup(void)
 {
     tc_done(TC_STAT_PASSED);

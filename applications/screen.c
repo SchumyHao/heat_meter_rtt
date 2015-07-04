@@ -221,7 +221,7 @@ static void hm_screen_first_image(void)
 void hm_print_thread_entry(void* parameter)
 {
     struct hm_print_data* recv_data;
-    print_mb = rt_mb_create("printmb", PRINT_MAILBOX_MAX_NUM, RT_IPC_FLAG_FIFO);
+     print_mb = rt_mb_create("printmb", PRINT_MAILBOX_MAX_NUM, RT_IPC_FLAG_FIFO);
     RT_ASSERT(print_mb != RT_NULL);
     hm_screen_first_image();
 

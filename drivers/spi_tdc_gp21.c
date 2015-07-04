@@ -90,17 +90,16 @@
 #define GP21_ERR_MASK_EEPROM_ERR            (0x2000)
 #define GP21_ERR_MASK_EEPROM_ERRS           (0x4000)
 #define GP21_ERR_ERRORS                     (GP21_ERR_MASK_EEPROM_ERRS       |\
-                                             GP21_ERR_MASK_EEPROM_ERR        |\
-                                             GP21_ERR_MASK_TEMP_SENSER_SHORT |\
-                                             GP21_ERR_MASK_TEMP_SENSER_OPEN  |\
-                                             GP21_ERR_MASK_PRE_CNT_TIMEOUT   |\
-                                             GP21_ERR_MASK_TDC_TIMEOUT)
+        GP21_ERR_MASK_EEPROM_ERR        |\
+        GP21_ERR_MASK_TEMP_SENSER_SHORT |\
+        GP21_ERR_MASK_TEMP_SENSER_OPEN  |\
+        GP21_ERR_MASK_PRE_CNT_TIMEOUT   |\
+        GP21_ERR_MASK_TDC_TIMEOUT)
 
 /* config value */
-#define GP21_CONFIG_VALUE_ID_H              (0x00445679U)
+#define GP21_CONFIG_VALUE_ID_H              (0x11567864U)
 #define GP21_CONFIG_VALUE_ID_L              (0x12345678U)
-#define GP21_CONFIG_VALUE_STOPMASK_DELAY_US (200U)
-#define GP21_CONFIG_VALUE_ANZ_FIRE          (10U)
+#define GP21_CONFIG_VALUE_ANZ_FIRE          (3U)
 #define GP21_CONFIG_VALUE_FIRE_DIV          (3U)
 /*
     config register0 :
@@ -396,14 +395,17 @@
         GP21_CONFIG_VALUE_ALU_INT_ON        |\
         GP21_CONFIG_VALUE_CH2_EDGE_ONE      |\
         GP21_CONFIG_VALUE_CH1_EDGE_ONE      |\
+        0x00170000|\
         GP21_CONFIG_VALUE_ID2(GP21_CONFIG_VALUE_ID_L))
 
 #define GP21_CONFIG_VALUE_REG3              (GP21_CONFIG_VALUE_DEF_REG3|\
         GP21_CONFIG_VALUE_EN_ERR_VAL_ON     |\
         GP21_CONFIG_VALUE_SEL_TIMO_MB2_4096 |\
+        0x00178000|\
         GP21_CONFIG_VALUE_ID3(GP21_CONFIG_VALUE_ID_L))
 
 #define GP21_CONFIG_VALUE_REG4              (GP21_CONFIG_VALUE_DEF_REG4|\
+        0x00180000|\
         GP21_CONFIG_VALUE_ID4(GP21_CONFIG_VALUE_ID_H))
 
 #define GP21_CONFIG_VALUE_REG5              (GP21_CONFIG_VALUE_DEF_REG5|\
@@ -543,7 +545,7 @@ static void tdc_gp21_error_print(struct spi_tdc_gp21* tdc_gp21,
                                  const rt_uint16_t stat)
 {
     if(stat & GP21_ERR_MASK_TDC_TIMEOUT) {
-			  rt_kprintf("0x%4x:%s TDC overflow!\n", stat, tdc_gp21->parent.parent.name);
+        rt_kprintf("0x%4x:%s TDC overflow!\n", stat, tdc_gp21->parent.parent.name);
     }
     if(stat & GP21_ERR_MASK_PRE_CNT_TIMEOUT) {
         rt_kprintf("0x%4x:%s 14 bit precounter in MR2 overflow!\n", stat, tdc_gp21->parent.parent.name);
@@ -597,7 +599,7 @@ tdc_gp21_write_cmd(struct spi_tdc_gp21* tdc_gp21, rt_uint8_t opcode)
 
     /* some cmd need wait interrupt pin */
     if((opcode == GP21_WRITE_CFG_TO_EEPROM)  ||
-       (opcode == GP21_WRITE_EEPROM_TO_CFG)  ||
+       //(opcode == GP21_WRITE_EEPROM_TO_CFG)  ||
        (opcode == GP21_COMPARE_EEPROM_CFG)   ||
        (opcode == GP21_START_TOF)            ||
        (opcode == GP21_START_TEMP)           ||
@@ -655,7 +657,7 @@ tdc_gp21_measure_temp(struct spi_tdc_gp21* tdc_gp21,
     /* wait for next measure finish */
     tdc_gp21_busy_wait(tdc_gp21);
     stat = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
-    if(stat & 0xFE00) {
+    if(stat & GP21_ERR_ERRORS) {
         tdc_gp21_error_print(tdc_gp21, stat);
         return;
     }
@@ -663,13 +665,13 @@ tdc_gp21_measure_temp(struct spi_tdc_gp21* tdc_gp21,
     res[1][1] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES1_REGISTER);
     res[1][2] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES2_REGISTER);
     res[1][3] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES3_REGISTER);
-    /* ust PT1000, referance resistance is 1k, gain error correction is 0.9931(PT1000,3.0v)
-       k = 1000.0/(0.9940*2) = 503.0181
-       but, reference to real heat meter, set k = 
+    /* ERROR!:
+           ust PT1000, referance resistance is 1k, gain error correction is 0.9931(PT1000,3.0v)
+       k = 1000.0/(0.9931*2) = 503.0181
     */
-    args->hot  = 503.0181 *
+    args->hot  = 500.0 *
                  (((float)res[0][0]/(float)res[0][2]) + ((float)res[1][0]/(float)res[1][2]));
-    args->cold = 503.0181 *
+    args->cold = 500.0 *
                  (((float)res[0][1]/(float)res[0][3]) + ((float)res[1][1]/(float)res[1][3]));
 }
 
@@ -688,9 +690,14 @@ tdc_gp21_measure_tof2(struct spi_tdc_gp21* tdc_gp21,
     rt_uint16_t stat = 0;
     rt_uint32_t res[2][3] = {0,0,0};
 
+    //rt_uint16_t tmp_stat[10];
+
+    tdc_gp21_write_register24(tdc_gp21, GP21_WRITE_REG1_REGISTER, GP21_CONFIG_VALUE_REG1);
     tdc_gp21_write_cmd(tdc_gp21, GP21_INITIATE_TDC);
     tdc_gp21_write_cmd(tdc_gp21, GP21_START_TOF_RESTART);
+
     stat = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
+    //tmp_stat[0] = stat;
     if(stat & GP21_ERR_ERRORS) {
         tdc_gp21_error_print(tdc_gp21, stat);
         return;
@@ -700,16 +707,20 @@ tdc_gp21_measure_tof2(struct spi_tdc_gp21* tdc_gp21,
     tdc_gp21_write_register24(tdc_gp21, GP21_WRITE_REG1_REGISTER,
                               ((GP21_CONFIG_VALUE_REG1&(~GP21_CONFIG_VALUE_HIT2_MASK))|
                                GP21_CONFIG_VALUE_HIT2_MR2_CH_SPCH1_2));
+    //tmp_stat[1] = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
     tdc_gp21_wait_for_alu();
+    //tmp_stat[2] = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
     /* ALU cal STOP3-START and store answer to res2 by send command below */
     tdc_gp21_write_register24(tdc_gp21, GP21_WRITE_REG1_REGISTER,
                               ((GP21_CONFIG_VALUE_REG1&(~GP21_CONFIG_VALUE_HIT2_MASK))|
                                GP21_CONFIG_VALUE_HIT2_MR2_CH_SPCH1_3));
     tdc_gp21_wait_for_alu();
+    //tmp_stat[3] = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
     res[0][0] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES0_REGISTER);
     res[0][1] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES1_REGISTER);
     res[0][2] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES2_REGISTER);
 
+    tdc_gp21_write_register24(tdc_gp21, GP21_WRITE_REG1_REGISTER, GP21_CONFIG_VALUE_REG1);
     /* wait for next measure finish */
     //todo: whether should set reg1 to cal stop1_1?
     tdc_gp21_busy_wait(tdc_gp21);
@@ -718,14 +729,17 @@ tdc_gp21_measure_tof2(struct spi_tdc_gp21* tdc_gp21,
         tdc_gp21_error_print(tdc_gp21, stat);
         return;
     }
+    //tmp_stat[4]=stat;
     tdc_gp21_write_register24(tdc_gp21, GP21_WRITE_REG1_REGISTER,
                               ((GP21_CONFIG_VALUE_REG1&(~GP21_CONFIG_VALUE_HIT2_MASK))|
                                GP21_CONFIG_VALUE_HIT2_MR2_CH_SPCH1_2));
     tdc_gp21_wait_for_alu();
+    //tmp_stat[5] = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
     tdc_gp21_write_register24(tdc_gp21, GP21_WRITE_REG1_REGISTER,
                               ((GP21_CONFIG_VALUE_REG1&(~GP21_CONFIG_VALUE_HIT2_MASK))|
                                GP21_CONFIG_VALUE_HIT2_MR2_CH_SPCH1_3));
     tdc_gp21_wait_for_alu();
+    //tmp_stat[6] = tdc_gp21_read_register16(tdc_gp21, GP21_READ_STAT_REGISTER);
     res[1][0] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES0_REGISTER);
     res[1][1] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES1_REGISTER);
     res[1][2] = tdc_gp21_read_register32(tdc_gp21, GP21_READ_RES2_REGISTER);
@@ -739,8 +753,8 @@ tdc_gp21_measure_tof2(struct spi_tdc_gp21* tdc_gp21,
 
        time = CLKHS/2^DIV_CLKHS * res
     */
-    args->up = tdc_gp21_reg_to_double((res[0][0]+res[0][1]+res[0][2])/3)/tdc_gp21->Hzref_4M;//us
-    args->down = tdc_gp21_reg_to_double((res[1][0]+res[1][1]+res[1][2])/3)/tdc_gp21->Hzref_4M;//us
+    args->up = (tdc_gp21_reg_to_double((res[0][0]+res[0][1]+res[0][2])/3)-4)/tdc_gp21->Hzref_4M;//us
+    args->down = (tdc_gp21_reg_to_double((res[1][0]+res[1][1]+res[1][2])/3)-4)/tdc_gp21->Hzref_4M;//us
 }
 
 static rt_err_t
@@ -776,18 +790,18 @@ tdc_gp21_init(rt_device_t dev)
     TDC_GPIO.GPIO_PuPd = GPIO_PuPd_NOPULL;
     TDC_GPIO.GPIO_Speed = GPIO_Speed_10MHz;
     GPIO_Init(TDC_GPIO_NRST_PIN_GROUP, &TDC_GPIO);
-		TDC_GPIO.GPIO_Pin = TDC_GPIO_EN_STOP1_PIN;
+    TDC_GPIO.GPIO_Pin = TDC_GPIO_EN_STOP1_PIN;
     TDC_GPIO.GPIO_Mode = GPIO_Mode_OUT;
     TDC_GPIO.GPIO_PuPd = GPIO_PuPd_UP;
     TDC_GPIO.GPIO_Speed = GPIO_Speed_10MHz;
     GPIO_Init(TDC_GPIO_EN_STOP1_PIN_GROUP, &TDC_GPIO);
-		GPIO_SetBits(TDC_GPIO_EN_STOP1_PIN_GROUP, TDC_GPIO_EN_STOP1_PIN);
-		TDC_GPIO.GPIO_Pin = TDC_GPIO_EN_STOP2_PIN;
+    GPIO_SetBits(TDC_GPIO_EN_STOP1_PIN_GROUP, TDC_GPIO_EN_STOP1_PIN);
+    TDC_GPIO.GPIO_Pin = TDC_GPIO_EN_STOP2_PIN;
     TDC_GPIO.GPIO_Mode = GPIO_Mode_OUT;
     TDC_GPIO.GPIO_PuPd = GPIO_PuPd_UP;
     TDC_GPIO.GPIO_Speed = GPIO_Speed_10MHz;
     GPIO_Init(TDC_GPIO_EN_STOP2_PIN_GROUP, &TDC_GPIO);
-		GPIO_SetBits(TDC_GPIO_EN_STOP2_PIN_GROUP, TDC_GPIO_EN_STOP2_PIN);
+    GPIO_SetBits(TDC_GPIO_EN_STOP2_PIN_GROUP, TDC_GPIO_EN_STOP2_PIN);
     //SYSCFG_EXTILineConfig(TDC_GPIO_IT_PIN_PORT_SOURCE, TDC_GPIO_IT_PIN_PIN_SOURCE);
     //TDC_EXTI.EXTI_Line = TDC_GPIO_IT_EXTI_LINE;
     //TDC_EXTI.EXTI_LineCmd = ENABLE;
@@ -802,8 +816,10 @@ tdc_gp21_init(rt_device_t dev)
     /* config GP21 */
     tdc_gp21_reset(tdc_gp21);
     tdc_gp21_write_cmd(tdc_gp21, GP21_WRITE_EEPROM_TO_CFG);
+    rt_thread_delay(30);
+    
     /* check version */
-    if(!tdc_gp21_check_id(tdc_gp21, GP21_CONFIG_VALUE_ID_L, GP21_CONFIG_VALUE_ID_H)) 
+    if(!tdc_gp21_check_id(tdc_gp21, GP21_CONFIG_VALUE_ID_L, GP21_CONFIG_VALUE_ID_H))
     {
         rt_uint16_t stat = 0;
         tdc_gp21_write_register32(tdc_gp21, GP21_WRITE_REG0_REGISTER, GP21_CONFIG_VALUE_REG0);
@@ -841,12 +857,7 @@ tdc_gp21_init(rt_device_t dev)
 static rt_err_t
 tdc_gp21_open(rt_device_t dev, rt_uint16_t oflag)
 {
-    struct spi_tdc_gp21_temp_data temp;
-    struct spi_tdc_gp21_tof_data tof;
     RT_ASSERT(dev != RT_NULL);
-
-    tdc_gp21_measure_temp((struct spi_tdc_gp21*)dev, &temp);
-    tdc_gp21_measure_tof2((struct spi_tdc_gp21*)dev, &tof);
 
     return RT_EOK;
 }

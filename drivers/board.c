@@ -245,7 +245,7 @@ rt_hw_tdc_init(void)
 INIT_COMPONENT_EXPORT(rt_hw_tdc_init);
 #endif /* HM_BOARD_TDC */
 
-#define PRINT_RCC_FREQ_INFO
+//#define PRINT_RCC_FREQ_INFO
 
 /*******************************************************************************
 * Function Name  : NVIC_Configuration

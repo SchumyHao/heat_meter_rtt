@@ -10,7 +10,7 @@
 
 #include <rtthread.h>
 #include <stdio.h>
-#include "finsh.h"
+//#include "finsh.h"
 
 #include "spi_tdc_gp21.h"
 #include "board.h"
@@ -33,19 +33,21 @@ struct hm_print_data {
 
 struct hm_tof_data {
     struct spi_tdc_gp21_tof_data data;
-    float speed;
+    float speed;      //m^3/h
     rt_tick_t time;
 };
 
 struct hm_temp_data {
     struct spi_tdc_gp21_temp_data data;
-    float hot;
-    float cold;
+    float hot;       //¡æ
+    float cold;      //¡æ
     rt_tick_t time;
 };
 
+#if (HM_BOARD_UART_6 == 1)
 #define TOF_TEMP_PRINT_DEVICE       "uart6"
 static rt_device_t tt_print_device;
+#endif
 
 #define TOF_DATA_BUF_LEN            (30)
 static struct hm_tof_data tof_data[TOF_DATA_BUF_LEN];
@@ -205,6 +207,7 @@ const static float enthalpy[] = {
     /*140*/ 594.24,598.53,602.81,607.10,611.39,615.68,619.97,624.27,628.57,632.87
 };
 
+#if (HM_BOARD_UART_6 == 1)
 static void hm_ble_write(const char* str, rt_size_t size)
 {
     rt_size_t writen = size;
@@ -223,6 +226,7 @@ static void hm_ble_write(const char* str, rt_size_t size)
         }
     }
 }
+#endif
 
 extern rt_err_t hm_print(struct hm_print_data* pd);
 rt_inline void heat_print(float heat)
@@ -236,21 +240,24 @@ rt_inline void heat_print(float heat)
     hm_print(&pd);
 }
 
-rt_inline float qv_cal(const float speed);
 rt_inline void tof_print(struct hm_tof_data* data)
 {
     static char ble_buf[100];
     sprintf(ble_buf, "%ld:tof up=%f down=%f speed=%f\n\r",
-            data->time, data->data.up, data->data.down, qv_cal(data->speed));
+            data->time, data->data.up, data->data.down, data->speed);
+#if (HM_BOARD_UART_6 == 1)
     hm_ble_write(ble_buf, rt_strlen(ble_buf)+1);
+#else
+    rt_kprintf(ble_buf, rt_strlen(ble_buf)+1);
+#endif
 }
 
 #if HS_TOF_PRINT_EPD
-rt_inline void tof_print_epd(struct hm_tof_data* data)
+rt_inline void tof_print_epd(float data)
 {
     static struct hm_print_data pd;
     static char buf[10];
-    sprintf(buf, "%2.3f", qv_cal(data->speed));
+    sprintf(buf, "%2.3f", data);
     pd.x = 36;
     pd.y = 12;
     pd.str = buf;
@@ -263,7 +270,11 @@ rt_inline void temp_print(struct hm_temp_data* data)
     static char ble_buf[100];
     sprintf(ble_buf, "%ld:temp R_hot=%f R_cold=%f hot=%f cold=%f\n\r",
             data->time, data->data.hot, data->data.cold, data->hot, data->cold);
+#if (HM_BOARD_UART_6 == 1)
     hm_ble_write(ble_buf, rt_strlen(ble_buf)+1);
+#else
+    rt_kprintf(ble_buf, rt_strlen(ble_buf)+1);
+#endif
 }
 
 #if HS_TEMP_PRINT_EPD
@@ -298,9 +309,11 @@ void hm_tdc_thread_entry(void* parameter)
     RT_ASSERT(tdc);
     rt_device_open(tdc, RT_DEVICE_OFLAG_RDWR);
 
+#if (HM_BOARD_UART_6 == 1)
     tt_print_device = rt_device_find(TOF_TEMP_PRINT_DEVICE);
     RT_ASSERT(tt_print_device);
     rt_device_open(tt_print_device, RT_DEVICE_OFLAG_RDWR);
+#endif
 
     tof_lock = rt_mutex_create("L_tof", RT_IPC_FLAG_FIFO);
     RT_ASSERT(tof_lock);
@@ -309,7 +322,7 @@ void hm_tdc_thread_entry(void* parameter)
 
     while(1) {
         loop_count--;
-        {
+        { /* TOF */
             if(rt_mutex_take(tof_lock, rt_tick_from_millisecond(LOCK_TACK_WAIT_TIME_MS)) != RT_EOK) {
                 rt_kprintf("TOF take lock error\n");
                 continue;
@@ -322,7 +335,7 @@ void hm_tdc_thread_entry(void* parameter)
             }
         }
 
-        if(loop_count == 0) {
+        if(loop_count == 0) { /* TEMP */
             loop_count = TOF_DATA_BUF_LEN/TEMP_DATA_BUF_LEN;
             if(rt_mutex_take(temp_lock, rt_tick_from_millisecond(LOCK_TACK_WAIT_TIME_MS)) != RT_EOK) {
                 rt_kprintf("temprature take lock error\n");
@@ -336,13 +349,14 @@ void hm_tdc_thread_entry(void* parameter)
             }
         }
 
-        if((temp_data_count==TEMP_DATA_BUF_LEN) || (tof_data_count==TOF_DATA_BUF_LEN)) {
+        if((temp_data_count==TEMP_DATA_BUF_LEN) || (tof_data_count==TOF_DATA_BUF_LEN)) { /* Send event */
             temp_data_count = 0;
             tof_data_count = 0;
             if(rt_event_send(cal_event, TDC_DATA_FULL_EVENT) != RT_EOK) {
                 rt_kprintf("TDC send event error\n");
             }
         }
+
         rt_thread_delay(rt_tick_from_millisecond(TDC_SLEEP_TIME_MS));
     }
 }
@@ -399,9 +413,14 @@ static float temp_cal(const float temp_res)
     int coarse = bi_search_pt_coarse((int)temp_res);
     int fine = bi_search_pt_fine(temp_res, coarse);
 
-    return (1.0*(coarse+PT1000_MIN_TEMP)+0.1*fine);
+    //TODO: why need -1?
+    //return (1.0*(coarse+PT1000_MIN_TEMP)+0.1*fine);
+    return ((1.0*(coarse+PT1000_MIN_TEMP)+0.1*fine)-1.0);
 }
 
+#include <finsh.h>
+static long tmp_tof_cal_k = 18000;
+FINSH_VAR_EXPORT(tmp_tof_cal_k, finsh_type_long, TOF);
 static float tof_cal(const struct spi_tdc_gp21_tof_data* data)
 {
     double d_t = data->up - data->down;  //us
@@ -418,7 +437,7 @@ static float tof_cal(const struct spi_tdc_gp21_tof_data* data)
        k = DISTANCE_MM*1000/2
     */
 #define TOF_CAL_K     (DISTANCE_MM*500.0)
-    return (TOF_CAL_K*d_t/(a_t*a_t));  //m/s
+    return ((float)tmp_tof_cal_k*d_t/(a_t*a_t));  //m^3/h
 }
 
 static float heat_cal(const float qv, const int time, const float hot, const float cold)
@@ -434,9 +453,16 @@ static float heat_cal(const float qv, const int time, const float hot, const flo
     p_cold = density[(int)cold-1];
     h_cold = enthalpy[(int)cold-1];
 
-    return (((p_hot*h_hot-p_cold*h_cold)/1000.0)*(qv*((float)time/1000.0)));
+    /*
+          qv   m^3/h
+          time ms
+          p    kg/m^3
+          h    kj/kg
+      */
+    return (((p_hot*h_hot-p_cold*h_cold)/3600.0)*(qv*((float)time/1000.0)));
 }
 
+#if 0
 rt_inline float qv_cal(const float speed)
 {
     //m^3/s
@@ -446,6 +472,7 @@ rt_inline float qv_cal(const float speed)
     */
     return (0.023562*speed);
 }
+#endif
 
 rt_inline int ticks_to_ms(const rt_tick_t tick)
 {
@@ -476,13 +503,21 @@ static void find_temp(const rt_tick_t tick, float* hot, float* cold)
     return;
 }
 
+
+#ifndef ABS
+#define ABS(a)     (((a)>0)? (a): (-(a)))
+#endif
 static float do_heat_cal(void)
 {
     float hot = 0;
     float cold = 0;
     float heat = 0;
+    float speed_avr = 0;
+    static float speed_avr_pre = 0;
+    float max_tolerance = 0;
     int i = 0;
-
+    int count = 0;
+    
     for(i=0; i<TEMP_DATA_BUF_LEN; i++) { /* cal temp */
         temp_data[i].hot = temp_cal(temp_data[i].data.hot);
         temp_data[i].cold = temp_cal(temp_data[i].data.cold);
@@ -491,20 +526,74 @@ static float do_heat_cal(void)
 #endif
     }
 
-    for(i=0; i<TOF_DATA_BUF_LEN; i++) { /* cal speed */
+    {/* cal speed */
+    for(i=0; i<TOF_DATA_BUF_LEN; i++) {
         tof_data[i].speed = tof_cal(&tof_data[i].data);
+        if((ABS(tof_data[i].speed) < 1.5) && 
+           (tof_data[i].speed > 0)){
+            speed_avr += tof_data[i].speed;
+            count++;
+        }
+    }
+    speed_avr = (count!=0)? (speed_avr/count): speed_avr_pre;
+    }
+    
+    max_tolerance = 0.3 * speed_avr;
+    max_tolerance = ABS(max_tolerance);
+    for(i=0; i<TOF_DATA_BUF_LEN; i++) { /* remove wrong speed */
+        if(ABS(speed_avr - tof_data[i].speed) > max_tolerance) {
+            tof_data[i].speed = 0;
+        }
+    }
+
+    {/* cal average speed again */
+    count = 0;
+    speed_avr = 0;
+    for(i=0; i<TOF_DATA_BUF_LEN; i++) { 
+        if(tof_data[i].speed != 0) {
+            speed_avr += tof_data[i].speed;
+            count++;
+        }    
+    }
+    speed_avr = (count!=0)? (speed_avr/count): speed_avr_pre;
+    speed_avr_pre = speed_avr;
+    }
+
+    for(i=0; i<TOF_DATA_BUF_LEN; i++) { /* replace wrong speed */
+        if(tof_data[i].speed == 0) {
+            tof_data[i].speed = speed_avr;
+        }
+    }
+    
+    for(i=0; i<TOF_DATA_BUF_LEN; i++) { /* correct small value */
+        if((speed_avr < 0.15)&&(speed_avr > 0.065)) {
+            tof_data[i].speed -= 0.06;
+        }
+        else if(speed_avr < 0.065) {
+            tof_data[i].speed = 0;
+        }
 #if 1
         tof_print(&tof_data[i]);
 #endif
     }
+    if((speed_avr < 0.15)&&(speed_avr > 0.1)) {
+        speed_avr -= 0.05;
+    }
+    if((speed_avr < 0.1)&&(speed_avr > 0.06)) {
+        speed_avr -= 0.03;
+    }
+    else if(speed_avr < 0.06) {
+        speed_avr = 0;
+    }
+
 #if 1
-		temp_print_epd(&temp_data[0]);
-		tof_print_epd(&tof_data[0]);
+    temp_print_epd(&temp_data[0]);
+    tof_print_epd(speed_avr);
 #endif
 
     for(i=0; i<TOF_DATA_BUF_LEN-1; i++) {
         find_temp(tof_data[i].time, &hot, &cold);
-        heat += heat_cal(qv_cal((tof_data[i].speed+tof_data[i+1].speed)/2),
+        heat += heat_cal((tof_data[i].speed+tof_data[i+1].speed)/2,
                          ticks_to_ms(tof_data[i+1].time-tof_data[i].time),
                          hot, cold);
     }

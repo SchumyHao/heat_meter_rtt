@@ -45,7 +45,7 @@ extern "C" {
 //   </e>
 //   <e> UART6
 //   <i> Enable on board UART6
-#define HM_BOARD_UART_6          1
+#define HM_BOARD_UART_6          0
 //     <s0.8> name
 //     <i> uart6 rt_device name
 #define HM_BOARD_UART_6_NAME     "uartBLE"
@@ -97,17 +97,17 @@ extern "C" {
 
 // <q> LED
 // <i> Enable on board LED
-#define HM_BOARD_LED              1
+#define HM_BOARD_LED              0
 
 // <e> Button configuration
 // <i> Enable on board Button
-#define HM_BOARD_BUT              1
+#define HM_BOARD_BUT              0
 //   <q> Button 1
-#define HM_BOARD_BUT1             1
+#define HM_BOARD_BUT1             0
 //   <q> Button 2
-#define HM_BOARD_BUT2             1
+#define HM_BOARD_BUT2             0
 //   <q> Button 3
-#define HM_BOARD_BUT3             1
+#define HM_BOARD_BUT3             0
 // </e>
 
 // <e> SPI Flash configuration
